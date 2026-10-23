@@ -14,7 +14,7 @@ val keystoreProperties = if (keystorePropertiesFile.exists() && keystoreProperti
     }
 } else null
 
-val versionName = "1.0"
+val appVersionName = "1.0"
 val gitCommitCount = run {
     val process = Runtime.getRuntime().exec(arrayOf("git", "rev-list", "--count", "HEAD"))
     process.inputStream.bufferedReader().use { it.readText().trim().toInt() }
@@ -40,7 +40,7 @@ android {
         minSdk = 26
         targetSdk = 36
         versionCode = gitCommitCount
-        versionName = versionName
+        versionName = appVersionName
     }
 
     buildTypes {
@@ -86,7 +86,7 @@ android {
 
 base {
     archivesName.set(
-        "KsuWebUI-${versionName}-${gitCommitCount}-$name"
+        "KsuWebUI-SN-${appVersionName}-${gitCommitCount}-$name"
     )
 }
 

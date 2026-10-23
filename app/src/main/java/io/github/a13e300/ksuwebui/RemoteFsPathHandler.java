@@ -166,8 +166,7 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
             );
         }
         if ("internal/colors.css".equals(path)) {
-            boolean enableMonet = mContext.getSharedPreferences("settings", Context.MODE_PRIVATE).getBoolean("enable_monet", true);
-            String css = enableMonet ? MonetColorsProvider.INSTANCE.getColorsCss() : "";
+            String css = MonetColorsProvider.INSTANCE.getColorsCss();
             return new WebResourceResponse(
                 "text/css",
                 "utf-8",

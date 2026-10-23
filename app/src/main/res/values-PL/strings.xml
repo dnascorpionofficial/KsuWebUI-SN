@@ -7,7 +7,6 @@
   <string name="author">Autor: %s</string>
   <string name="version">Wersja: %s</string>
   <string name="show_disabled">Pokaż wyłączone</string>
-  <string name="enable_monet_color">Kolor dynamiczny</string>
   <string name="start_downloading">Rozpoczynanie pobierania</string>
   <string name="download_failed">Pobieranie nieudane: %s</string>
 </resources>
