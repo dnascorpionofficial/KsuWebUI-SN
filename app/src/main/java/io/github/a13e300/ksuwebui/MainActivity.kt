@@ -438,10 +438,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                         .putExtra("name", name)
                 )
             }
-            holder.binding.root.setOnLongClickListener {
-                togglePin(item)
-                true
-            }
         }
 
     }
