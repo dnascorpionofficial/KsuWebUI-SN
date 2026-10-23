@@ -70,8 +70,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     val m = moduleList[i]
                     moduleList = moduleList.toMutableList().also {
                         it[i] = if (isBanner) m.copy(banner = shown) else m.copy(icon = shown)
-                    }
-                    adapter.notifyItemChanged(i)
+                    }.sortedWith(moduleOrder)
+                    adapter.notifyDataSetChanged()
                 }
             }
         }
@@ -232,7 +232,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             }
             val pinnedIds = getPinnedModules()
             mods.forEach { it.pinned = it.id in pinnedIds }
-            mods.sortWith(compareByDescending<Module> { it.pinned }.thenBy { it.name.lowercase() })
+            mods.sortWith(moduleOrder)
             runOnUiThread {
                 moduleList = mods
                 adapter.notifyDataSetChanged()
@@ -343,6 +343,11 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         return out
     }
 
+    // pinned first, then modules with a background, then by name
+    private val moduleOrder = compareByDescending<Module> { it.pinned }
+        .thenByDescending { it.banner != null }
+        .thenBy { it.name.lowercase() }
+
     private fun togglePin(item: Module) {
         item.pinned = !item.pinned
         val pinnedIds = getPinnedModules()
@@ -352,7 +357,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             pinnedIds.remove(item.id)
         }
         savePinnedModules(pinnedIds)
-        moduleList = moduleList.sortedWith(compareByDescending<Module> { it.pinned }.thenBy { it.name.lowercase() })
+        moduleList = moduleList.sortedWith(moduleOrder)
         adapter.notifyDataSetChanged()
     }
 
