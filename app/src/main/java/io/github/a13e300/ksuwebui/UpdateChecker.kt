@@ -29,6 +29,7 @@ object UpdateChecker {
             readTimeout = 15000
             useCaches = false
             setRequestProperty("User-Agent", "KsuWebUI-SN")
+            setRequestProperty("Cache-Control", "no-cache")
         }
 
     // human-readable result of the last check (shown as a toast when Debugging is on)
@@ -54,7 +55,7 @@ object UpdateChecker {
             return null
         }
         return try {
-            val raw = fetch("https://raw.githubusercontent.com/$repo/HEAD/update.txt", "update.txt")
+            val raw = fetch("https://raw.githubusercontent.com/$repo/HEAD/update.txt?t=${System.currentTimeMillis()}", "update.txt")
                 .removePrefix("\uFEFF")
             val line2 = raw.lines().getOrNull(1)?.trim().orEmpty()
             val latestCode = line2.toIntOrNull() ?: run {
@@ -92,6 +93,11 @@ object UpdateChecker {
             null
         }
     }
+
+    /** Version code of a downloaded APK, or null if it cannot be read. */
+    @Suppress("DEPRECATION")
+    fun apkVersionCode(apk: File): Int? =
+        App.instance.packageManager.getPackageArchiveInfo(apk.absolutePath, 0)?.versionCode
 
     /** Downloads the APK into the app cache; onProgress gets 0..100 when the size is known. Run on an IO dispatcher. */
     suspend fun download(update: Update, onProgress: (Int) -> Unit): File {

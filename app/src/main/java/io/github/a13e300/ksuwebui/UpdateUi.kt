@@ -51,6 +51,12 @@ private fun AppCompatActivity.startUpdate(update: UpdateChecker.Update) {
                             bar.setProgressCompat(p, true)
                         }
                     }
+                    // the release APK must be newer than what is installed, otherwise the button would stay
+                    val apkCode = UpdateChecker.apkVersionCode(apk)
+                    if (apkCode != null && apkCode <= BuildConfig.VERSION_CODE) {
+                        apk.delete()
+                        return@withContext getString(R.string.update_not_newer, apkCode, BuildConfig.VERSION_CODE)
+                    }
                     runOnUiThread {
                         dialog.setTitle(R.string.update_installing)
                         bar.isIndeterminate = true
