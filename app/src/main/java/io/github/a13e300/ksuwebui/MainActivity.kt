@@ -21,7 +21,6 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.PopupMenu
 import android.widget.Toast
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
@@ -48,6 +47,10 @@ import kotlinx.coroutines.withContext
 import com.topjohnwu.superuser.nio.FileSystemManager
 import io.github.a13e300.ksuwebui.databinding.ActivityMainBinding
 import io.github.a13e300.ksuwebui.databinding.ItemModuleBinding
+import io.github.a13e300.ksuwebui.databinding.ItemSheetActionBinding
+import io.github.a13e300.ksuwebui.databinding.SheetModuleSettingsBinding
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.core.net.toUri
 import androidx.core.content.edit
 import com.topjohnwu.superuser.Shell
@@ -502,38 +505,46 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
     }
 
-    private fun showModuleSettings(anchor: View, item: Module) {
-        val popup = PopupMenu(this, anchor)
-        popup.menu.add(0, 1, 0, if (item.pinned) R.string.unpin else R.string.pin)
-        popup.menu.add(0, 2, 1, R.string.set_background)
-        popup.menu.add(0, 3, 2, R.string.set_icon)
-        if (customFile("banner_${item.id}.png").exists()) popup.menu.add(0, 4, 3, R.string.remove_background)
-        if (customFile("icon_${item.id}.png").exists()) popup.menu.add(0, 5, 4, R.string.remove_icon)
-        popup.menu.add(0, 6, 5, R.string.add_to_home)
-        popup.setOnMenuItemClickListener { m ->
-            when (m.itemId) {
-                1 -> togglePin(item)
-                2 -> {
-                    pickTarget = item.id to true
-                    pickImage.launch("image/*")
-                }
-                3 -> {
-                    pickTarget = item.id to false
-                    pickImage.launch("image/*")
-                }
-                4 -> {
-                    customFile("banner_${item.id}.png").delete()
-                    refresh()
-                }
-                5 -> {
-                    customFile("icon_${item.id}.png").delete()
-                    refresh()
-                }
-                6 -> addToHomeScreen(item)
+    // bottom sheet with an icon per action
+    private fun showModuleSettings(item: Module) {
+        val dialog = BottomSheetDialog(this)
+        val sheet = SheetModuleSettingsBinding.inflate(layoutInflater)
+        sheet.title.text = item.name
+
+        fun action(icon: Int, label: Int, run: () -> Unit) {
+            val row = ItemSheetActionBinding.inflate(layoutInflater, sheet.actions, false)
+            row.icon.setImageResource(icon)
+            row.label.setText(label)
+            row.root.setOnClickListener {
+                dialog.dismiss()
+                run()
             }
-            true
+            sheet.actions.addView(row.root)
         }
-        popup.show()
+
+        action(R.drawable.ic_push_pin, if (item.pinned) R.string.unpin else R.string.pin) { togglePin(item) }
+        action(R.drawable.ic_image, R.string.set_background) {
+            pickTarget = item.id to true
+            pickImage.launch("image/*")
+        }
+        action(R.drawable.ic_account_circle, R.string.set_icon) {
+            pickTarget = item.id to false
+            pickImage.launch("image/*")
+        }
+        if (customFile("banner_${item.id}.png").exists()) action(R.drawable.ic_delete, R.string.remove_background) {
+            customFile("banner_${item.id}.png").delete()
+            refresh()
+        }
+        if (customFile("icon_${item.id}.png").exists()) action(R.drawable.ic_delete, R.string.remove_icon) {
+            customFile("icon_${item.id}.png").delete()
+            refresh()
+        }
+        action(R.drawable.ic_add, R.string.add_to_home) { addToHomeScreen(item) }
+
+        dialog.setContentView(sheet.root)
+        dialog.behavior.skipCollapsed = true
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        dialog.show()
     }
 
     // pinned shortcut that opens the module's WebUI directly (same intent as tapping its card)
@@ -610,7 +621,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             // modules without an icon get the default puzzle-piece icon
             if (item.icon != null) holder.binding.icon.setImageBitmap(item.icon)
             else holder.binding.icon.setImageResource(R.drawable.ic_module_default)
-            holder.binding.settings.setOnClickListener { showModuleSettings(it, item) }
+            holder.binding.settings.setOnClickListener { showModuleSettings(item) }
             holder.binding.name.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 0, 0, if (item.pinned) R.drawable.ic_push_pin else 0, 0
             )
