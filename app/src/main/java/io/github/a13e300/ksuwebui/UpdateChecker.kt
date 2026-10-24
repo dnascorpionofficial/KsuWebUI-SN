@@ -94,6 +94,11 @@ object UpdateChecker {
         }
     }
 
+    /** Removes a leftover downloaded APK (a successful install kills the app before it can delete it). */
+    fun cleanup() {
+        File(App.instance.cacheDir, "update").deleteRecursively()
+    }
+
     /** Version code of a downloaded APK, or null if it cannot be read. */
     @Suppress("DEPRECATION")
     fun apkVersionCode(apk: File): Int? =

@@ -160,6 +160,11 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         setupMenu(binding.toolbar.menu)
 
+        // drop a leftover update APK once per app open (independent of the Update check option)
+        if (savedInstanceState == null) {
+            lifecycleScope.launch(Dispatchers.IO) { UpdateChecker.cleanup() }
+        }
+
         // update check: once per app open, never in the background
         if (prefs.getBoolean("update_check", true)) {
             if (savedInstanceState == null) {
