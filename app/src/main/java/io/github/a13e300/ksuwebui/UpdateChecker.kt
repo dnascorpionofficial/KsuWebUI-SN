@@ -17,7 +17,8 @@ import java.net.URL
  * Only called when the app is opened; nothing is scheduled or kept running.
  */
 object UpdateChecker {
-    class Update(val version: String, val changelog: String, val apkUrl: String)
+    // changelog = release notes markdown, changelogHtml = the same rendered by GitHub (empty if unavailable)
+    class Update(val version: String, val changelog: String, val changelogHtml: String, val apkUrl: String)
 
     // result of the last check, so the button survives an activity recreate (e.g. dark mode toggle)
     @Volatile
@@ -55,20 +56,20 @@ object UpdateChecker {
             return null
         }
         return try {
-            val raw = fetch("https://raw.githubusercontent.com/$repo/HEAD/update.txt?t=${System.currentTimeMillis()}", "update.txt")
+            val raw = fetch("https://raw.githubusercontent.com/$repo/HEAD/update.txt?t=${System.currentTimeMillis()}", "version info")
                 .removePrefix("\uFEFF")
             val line2 = raw.lines().getOrNull(1)?.trim().orEmpty()
             val latestCode = line2.toIntOrNull() ?: run {
-                status = "update.txt line 2 is not a number: ${line2.take(20)}"
+                status = "Version info is invalid: ${line2.take(20)}"
                 return null
             }
             if (latestCode <= BuildConfig.VERSION_CODE) {
-                status = "Up to date (update.txt $latestCode, installed ${BuildConfig.VERSION_CODE})"
+                status = "Up to date (latest $latestCode, installed ${BuildConfig.VERSION_CODE})"
                 return null
             }
 
             val release = JSONObject(
-                fetch("https://api.github.com/repos/$repo/releases/latest", "latest release", "application/vnd.github+json")
+                fetch("https://api.github.com/repos/$repo/releases/latest", "latest release", "application/vnd.github.full+json")
             )
             val assets = release.optJSONArray("assets")
             var apkUrl: String? = null
@@ -87,10 +88,33 @@ object UpdateChecker {
             }
             val tag = release.optString("tag_name").ifEmpty { release.optString("name") }
             status = "Update found: $tag"
-            Update(tag, release.optString("body").replace("\r\n", "\n").trim(), apkUrl)
+            val body = release.optString("body").replace("\r\n", "\n").trim()
+            // GitHub renders the notes itself (links, #123, @user, commit hashes, tables, task lists …):
+            // body_html comes with the release, otherwise ask the markdown API
+            var html = release.optString("body_html").trim()
+            if (html.isEmpty() && body.isNotEmpty()) html = renderMarkdown(repo, body)
+            Update(tag, body, html, apkUrl)
         } catch (e: Exception) {
             status = "Update check failed: ${e.message ?: e.javaClass.simpleName}"
             null
+        }
+    }
+
+    /** GitHub-flavored markdown rendered by GitHub in the context of the repo; empty on failure. */
+    private fun renderMarkdown(repo: String, text: String): String {
+        val conn = connect("https://api.github.com/markdown")
+        return try {
+            conn.requestMethod = "POST"
+            conn.doOutput = true
+            conn.setRequestProperty("Accept", "application/vnd.github+json")
+            conn.setRequestProperty("Content-Type", "application/json")
+            val payload = JSONObject().put("text", text).put("mode", "gfm").put("context", repo).toString()
+            conn.outputStream.use { it.write(payload.toByteArray()) }
+            if (conn.responseCode != 200) "" else conn.inputStream.bufferedReader().use { it.readText() }
+        } catch (e: Exception) {
+            ""
+        } finally {
+            conn.disconnect()
         }
     }
 

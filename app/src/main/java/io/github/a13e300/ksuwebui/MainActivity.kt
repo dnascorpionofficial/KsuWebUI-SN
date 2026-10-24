@@ -21,7 +21,10 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
+import android.graphics.drawable.GradientDrawable
+import android.widget.TextView
+import com.google.android.material.color.MaterialColors
+import com.google.android.material.snackbar.Snackbar
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -184,7 +187,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                         showUpdate(update)
                         // with Debugging on, say what the check found (or why it found nothing)
                         if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
-                            Toast.makeText(this@MainActivity, UpdateChecker.status, Toast.LENGTH_LONG).show()
+                            showMessage(UpdateChecker.status)
                         }
                     }
                 }
@@ -505,6 +508,26 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
     }
 
+    // themed, rounded, outlined message bar instead of a plain system toast
+    private fun showMessage(text: CharSequence) {
+        val root = binding.root
+        val bar = Snackbar.make(root, text, Snackbar.LENGTH_LONG)
+        val density = resources.displayMetrics.density
+        bar.view.background = GradientDrawable().apply {
+            cornerRadius = 16 * density
+            setColor(MaterialColors.getColor(root, com.google.android.material.R.attr.colorSurfaceContainerHigh))
+            setStroke(
+                (1 * density).toInt(),
+                MaterialColors.getColor(root, com.google.android.material.R.attr.colorOutlineVariant)
+            )
+        }
+        // Snackbar tints its background with the "inverse" colour, which hid my colours and made the text unreadable
+        bar.view.backgroundTintList = null
+        bar.setTextColor(MaterialColors.getColor(root, com.google.android.material.R.attr.colorOnSurface))
+        bar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text).maxLines = 4
+        bar.show()
+    }
+
     // bottom sheet with an icon per action
     private fun showModuleSettings(item: Module) {
         val dialog = BottomSheetDialog(this)
@@ -550,7 +573,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     // pinned shortcut that opens the module's WebUI directly (same intent as tapping its card)
     private fun addToHomeScreen(item: Module) {
         if (!ShortcutManagerCompat.isRequestPinShortcutSupported(this)) {
-            Toast.makeText(this, R.string.shortcut_unsupported, Toast.LENGTH_LONG).show()
+            showMessage(getString(R.string.shortcut_unsupported))
             return
         }
         val intent = Intent(this, WebUIActivity::class.java)
