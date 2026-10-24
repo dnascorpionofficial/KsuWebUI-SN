@@ -14,7 +14,7 @@ import kotlinx.coroutines.withContext
 
 /** Changelog + Download / Later. */
 fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
-    MaterialAlertDialogBuilder(this)
+    MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
         .setTitle(getString(R.string.update_title, update.version))
         .setMessage(update.changelog.ifEmpty { getString(R.string.update_no_changelog) })
         .setPositiveButton(R.string.update_download) { _, _ -> startUpdate(update) }
@@ -33,7 +33,7 @@ private fun AppCompatActivity.startUpdate(update: UpdateChecker.Update) {
         addView(bar)
     }
     var job: Job? = null
-    val dialog = MaterialAlertDialogBuilder(this)
+    val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
         .setTitle(R.string.update_downloading)
         .setView(box)
         .setCancelable(false)
@@ -72,7 +72,7 @@ private fun AppCompatActivity.startUpdate(update: UpdateChecker.Update) {
                 }
             }
             if (error != null) {
-                MaterialAlertDialogBuilder(this@startUpdate)
+                MaterialAlertDialogBuilder(this@startUpdate, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
                     .setMessage(getString(R.string.update_failed, error))
                     .setPositiveButton(android.R.string.ok, null)
                     .show()

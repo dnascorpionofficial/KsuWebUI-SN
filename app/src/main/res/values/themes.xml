@@ -14,4 +14,11 @@
         <item name="colorOutline">@color/text_hint</item>
         <item name="colorOutlineVariant">@color/divider</item>
     </style>
+
+    <!-- update dialogs: filled / outlined buttons instead of plain text buttons -->
+    <style name="ThemeOverlay.KsuWebUI.ButtonDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Material3.Button</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Material3.Button.OutlinedButton</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.Material3.Button.OutlinedButton</item>
+    </style>
 </resources>
