@@ -12,6 +12,7 @@ import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
+import android.graphics.Rect
 import android.graphics.Shader
 import android.os.Build
 import android.os.SystemClock
@@ -29,6 +30,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -503,6 +509,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         popup.menu.add(0, 3, 2, R.string.set_icon)
         if (customFile("banner_${item.id}.png").exists()) popup.menu.add(0, 4, 3, R.string.remove_background)
         if (customFile("icon_${item.id}.png").exists()) popup.menu.add(0, 5, 4, R.string.remove_icon)
+        popup.menu.add(0, 6, 5, R.string.add_to_home)
         popup.setOnMenuItemClickListener { m ->
             when (m.itemId) {
                 1 -> togglePin(item)
@@ -522,10 +529,43 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     customFile("icon_${item.id}.png").delete()
                     refresh()
                 }
+                6 -> addToHomeScreen(item)
             }
             true
         }
         popup.show()
+    }
+
+    // pinned shortcut that opens the module's WebUI directly (same intent as tapping its card)
+    private fun addToHomeScreen(item: Module) {
+        if (!ShortcutManagerCompat.isRequestPinShortcutSupported(this)) {
+            Toast.makeText(this, R.string.shortcut_unsupported, Toast.LENGTH_LONG).show()
+            return
+        }
+        val intent = Intent(this, WebUIActivity::class.java)
+            .setAction(Intent.ACTION_VIEW)
+            .setData("ksuwebui://webui/${item.id}".toUri())
+            .putExtra("id", item.id)
+            .putExtra("name", item.name)
+        val info = ShortcutInfoCompat.Builder(this, "module_${item.id}")
+            .setShortLabel(item.name)
+            .setLongLabel(item.name)
+            .setIcon(shortcutIcon(item))
+            .setIntent(intent)
+            .build()
+        ShortcutManagerCompat.requestPinShortcut(this, info, null)
+    }
+
+    // the module's icon (or the default one) inside the adaptive-icon safe zone, so launchers don't crop it
+    private fun shortcutIcon(item: Module): IconCompat {
+        // list icons are GPU (hardware) bitmaps, which cannot be drawn on a normal Canvas: copy to a software bitmap first
+        val src = item.icon?.copy(Bitmap.Config.ARGB_8888, false)
+            ?: ContextCompat.getDrawable(this, R.drawable.ic_module_default)!!.toBitmap(192, 192)
+        val size = 432
+        val inset = size / 6
+        val bmp = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+        Canvas(bmp).drawBitmap(src, null, Rect(inset, inset, size - inset, size - inset), Paint(Paint.FILTER_BITMAP_FLAG))
+        return IconCompat.createWithAdaptiveBitmap(bmp)
     }
 
     override fun onLaunchFailed() {
