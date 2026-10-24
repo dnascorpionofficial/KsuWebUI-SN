@@ -567,8 +567,9 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.desc.text = item.desc
             holder.binding.banner.setImageBitmap(item.banner)
             holder.binding.banner.isVisible = item.banner != null
-            holder.binding.icon.setImageBitmap(item.icon)
-            holder.binding.icon.isVisible = item.icon != null
+            // modules without an icon get the default puzzle-piece icon
+            if (item.icon != null) holder.binding.icon.setImageBitmap(item.icon)
+            else holder.binding.icon.setImageResource(R.drawable.ic_module_default)
             holder.binding.settings.setOnClickListener { showModuleSettings(it, item) }
             holder.binding.name.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 0, 0, if (item.pinned) R.drawable.ic_push_pin else 0, 0
