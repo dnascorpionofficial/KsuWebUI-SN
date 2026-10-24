@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">KsuWebUI-SN</string>
     <string name="update">Update</string>
-    <string name="update_title">Update %s available</string>
+    <string name="update_title">KsuWebUI-SN Update available</string>
     <string name="update_no_changelog">No changelog</string>
     <string name="update_download">Download</string>
     <string name="update_later">Later</string>

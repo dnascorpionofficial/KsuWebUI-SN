@@ -69,7 +69,7 @@ fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
     web.loadDataWithBaseURL("https://github.com/", changelogPage(update, textColor, dark), "text/html", "utf-8", null)
 
     MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
-        .setTitle(getString(R.string.update_title, update.version))
+        .setTitle(R.string.update_title)
         .setView(box)
         .setPositiveButton(R.string.update_download) { _, _ -> startUpdate(update) }
         .setNegativeButton(R.string.update_later, null)

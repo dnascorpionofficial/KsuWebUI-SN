@@ -18,7 +18,7 @@ import java.net.URL
  */
 object UpdateChecker {
     // changelog = release notes markdown, changelogHtml = the same rendered by GitHub (empty if unavailable)
-    class Update(val version: String, val changelog: String, val changelogHtml: String, val apkUrl: String)
+    class Update(val changelog: String, val changelogHtml: String, val apkUrl: String)
 
     // result of the last check, so the button survives an activity recreate (e.g. dark mode toggle)
     @Volatile
@@ -86,14 +86,13 @@ object UpdateChecker {
                 status = "Latest release has no .apk file"
                 return null
             }
-            val tag = release.optString("tag_name").ifEmpty { release.optString("name") }
-            status = "Update found: $tag"
+            status = App.instance.getString(R.string.update_title)
             val body = release.optString("body").replace("\r\n", "\n").trim()
             // GitHub renders the notes itself (links, #123, @user, commit hashes, tables, task lists …):
             // body_html comes with the release, otherwise ask the markdown API
             var html = release.optString("body_html").trim()
             if (html.isEmpty() && body.isNotEmpty()) html = renderMarkdown(repo, body)
-            Update(tag, body, html, apkUrl)
+            Update(body, html, apkUrl)
         } catch (e: Exception) {
             status = "Update check failed: ${e.message ?: e.javaClass.simpleName}"
             null
