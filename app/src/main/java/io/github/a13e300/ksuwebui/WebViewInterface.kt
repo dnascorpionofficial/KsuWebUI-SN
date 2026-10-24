@@ -2,12 +2,9 @@ package io.github.a13e300.ksuwebui
 
 import android.app.Activity
 import android.content.pm.ApplicationInfo
-import android.os.Handler
-import android.os.Looper
 import android.text.TextUtils
 import android.app.DownloadManager
 import android.content.Context
-import android.net.Uri
 import android.os.Environment
 import android.webkit.CookieManager
 import android.util.Base64
@@ -33,7 +30,6 @@ import java.io.File
 import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
-import io.github.a13e300.ksuwebui.R
 
 const val TAG = "WebViewInterface"
 
@@ -182,7 +178,7 @@ class WebViewInterface(private val state: WebUIState) {
     fun fullScreen(enable: Boolean) {
         val ctx = context
         if (ctx is Activity) {
-            Handler(Looper.getMainLooper()).post {
+            App.handler.post {
                 if (enable) {
                     hideSystemUI(ctx.window)
                 } else {

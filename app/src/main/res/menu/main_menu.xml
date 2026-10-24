@@ -2,6 +2,22 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/search"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="always|collapseActionView" />
+    <item
+        android:id="@+id/update"
+        android:title="@string/update"
+        android:visible="false"
+        app:showAsAction="ifRoom|withText" />
+    <item
+        android:checkable="true"
+        android:id="@+id/update_check"
+        android:title="@string/update_check"
+        app:showAsAction="never" />
+    <item
         android:checkable="true"
         android:id="@+id/enable_webview_debugging"
         android:title="@string/enable_webview_debugging"

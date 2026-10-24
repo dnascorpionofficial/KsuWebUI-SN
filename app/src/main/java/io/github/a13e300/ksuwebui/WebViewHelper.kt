@@ -14,7 +14,6 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.FrameLayout
-import android.widget.LinearLayout
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.topjohnwu.superuser.nio.FileSystemManager
@@ -44,7 +43,7 @@ private const val DOWNLOAD_JS = """
             const urlParsed = new URL(a.href, location.href);
             const url = urlParsed.href;
             const fileName = a.download || url.split("/").pop().split("?")[0] || "download.bin";
-            const isInternal = urlParsed.hostname === 'mui.kernelsu.org';
+            const isInternal = urlParsed.hostname === '$WEB_DOMAIN';
             if (url.startsWith('blob:') || url.startsWith('data:') || isInternal) {
                 const blob = (url.startsWith('blob:') && blobMap.has(url)) ? blobMap.get(url) : await (await fetch(url)).blob();
                 if (blob.size > 16 * 1024 * 1024) {
@@ -88,11 +87,10 @@ fun WebUIActivity.prepareWebView(state: WebUIState): Boolean {
 fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
     val webRoot = File("${state.moduleDir}/webroot")
     val webViewAssetLoader = WebViewAssetLoader.Builder()
-        .setDomain("mui.kernelsu.org")
+        .setDomain(WEB_DOMAIN)
         .addPathHandler(
             "/",
             RemoteFsPathHandler(
-                this,
                 webRoot,
                 fs,
                 { state.insets },
@@ -103,6 +101,9 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         )
         .build()
 
+    // eruda is ~500 KB: read it once, and only when debugging is on
+    val eruda by lazy { assets.open("eruda.min.js").bufferedReader().use { it.readText() } }
+
     val webViewClient = object : WebViewClient() {
         override fun shouldInterceptRequest(
             view: WebView,
@@ -111,7 +112,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
             val url = request.url
 
             // Handle ksu://icon/[packageName] to serve app icon via WebView
-            if (url.scheme.equals("ksu", ignoreCase = true) && url.host.equals("icon", ignoreCase = true)) {
+            if (url.scheme.equals(KSU_SCHEME, ignoreCase = true) && url.host.equals(ICON_HOST, ignoreCase = true)) {
                 val packageName = url.path?.substring(1)
                 if (!packageName.isNullOrEmpty()) {
                     val icon = AppIconUtil.loadAppIconSync(this@initWebView, packageName, 512)
@@ -130,7 +131,6 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         override fun onPageFinished(view: WebView?, url: String?) {
             val prefs = getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
             if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
-                val eruda = assets.open("eruda.min.js").bufferedReader().use { it.readText() }
                 view?.evaluateJavascript(
                     "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$eruda\n;eruda.init();\n}",
                     null
@@ -207,11 +207,6 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 val input = EditText(this@initWebView).apply {
                     if (defaultValue != null) setText(defaultValue)
                 }
-                val lp = LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.MATCH_PARENT
-                )
-                input.layoutParams = lp
                 val container = FrameLayout(this@initWebView)
                 val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
                 params.leftMargin = resources.getDimensionPixelSize(androidx.appcompat.R.dimen.abc_dialog_padding_material)
@@ -230,6 +225,6 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 return true
             }
         }
-        loadUrl("https://mui.kernelsu.org/index.html")
+        loadUrl("https://$WEB_DOMAIN/index.html")
     }
 }

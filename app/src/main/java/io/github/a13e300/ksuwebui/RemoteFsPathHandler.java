@@ -1,6 +1,5 @@
 package io.github.a13e300.ksuwebui;
 
-import android.content.Context;
 import android.util.Log;
 import android.webkit.WebResourceResponse;
 
@@ -18,24 +17,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
 /**
- * Handler class to open files from file system by root access
- * For more information about android storage please refer to
- * <a href="https://developer.android.com/guide/topics/data/data-storage">Android Developers
- * Docs: Data and file storage overview</a>.
- * <p class="note">
- * To avoid leaking user or app data to the web, make sure to choose {@code directory}
- * carefully, and assume any file under this directory could be accessed by any web page subject
- * to same-origin rules.
+ * Serves files of a module's {@code webroot} to the WebView, reading them through the root
+ * file system service, plus the generated {@code internal/insets.css} and
+ * {@code internal/colors.css}.
  * <p>
- * A typical usage would be like:
- * <pre class="prettyprint">
- * File publicDir = new File(context.getFilesDir(), "public");
- * // Host "files/public/" in app's data directory under:
- * // http://appassets.androidplatform.net/public/...
- * WebViewAssetLoader assetLoader = new WebViewAssetLoader.Builder()
- *          .addPathHandler("/public/", new InternalStoragePathHandler(context, publicDir))
- *          .build();
- * </pre>
+ * Any file under the given directory can be requested by the page, so only pass a module's
+ * own webroot.
  */
 public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler {
     private static final String TAG = "FsServicePathHandler";
@@ -45,12 +32,7 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
      */
     public static final String DEFAULT_MIME_TYPE = "text/plain";
 
-    /**
-     * Forbidden subdirectories of {@link Context#getDataDir} that cannot be exposed by this
-     * handler. They are forbidden as they often contain sensitive information.
-     * <p class="note">
-     * Note: Any future addition to this list will be considered breaking changes to the API.
-     */
+    /** Directories that must never be exposed, they often contain sensitive information. */
     private static final String[] FORBIDDEN_DATA_DIRS =
             new String[] {"/data/data", "/data/system"};
 
@@ -58,7 +40,6 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
     private final File mDirectory;
 
     private final FileSystemManager mFs;
-    private final Context mContext;
 
     private final InsetsSupplier mInsetsSupplier;
     private final OnInsetsRequestedListener mOnInsetsRequestedListener;
@@ -73,42 +54,23 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
     }
 
     /**
-     * Creates PathHandler for app's internal storage.
-     * The directory to be exposed must be inside either the application's internal data
-     * directory {@link Context#getDataDir} or cache directory {@link Context#getCacheDir}.
-     * External storage is not supported for security reasons, as other apps with
-     * {@link android.Manifest.permission#WRITE_EXTERNAL_STORAGE} may be able to modify the
-     * files.
-     * <p>
-     * Exposing the entire data or cache directory is not permitted, to avoid accidentally
-     * exposing sensitive application files to the web. Certain existing subdirectories of
-     * {@link Context#getDataDir} are also not permitted as they are often sensitive.
-     * These files are ({@code "app_webview/"}, {@code "databases/"}, {@code "lib/"},
-     * {@code "shared_prefs/"} and {@code "code_cache/"}).
-     * <p>
-     * The application should typically use a dedicated subdirectory for the files it intends to
-     * expose and keep them separate from other files.
-     *
-     * @param context {@link Context} that is used to access app's internal storage.
-     * @param directory the absolute path of the exposed app internal storage directory from
-     *                  which files can be loaded.
-     * @param insetsSupplier {@link InsetsSupplier} to provide window insets for styling web content.
-     * @param onInsetsRequestedListener {@link OnInsetsRequestedListener} to notify when insets are requested.
+     * @param directory the absolute path of the directory files are served from.
+     * @param fs file system used to read the files.
+     * @param insetsSupplier provides the window insets for {@code internal/insets.css}.
+     * @param onInsetsRequestedListener notified when a page requests the insets.
      * @throws IllegalArgumentException if the directory is not allowed.
      */
     public RemoteFsPathHandler(
-            @NonNull Context context,
             @NonNull File directory,
             FileSystemManager fs,
             @NonNull InsetsSupplier insetsSupplier,
             OnInsetsRequestedListener onInsetsRequestedListener
     ) {
         try {
-            mContext = context;
             mInsetsSupplier = insetsSupplier;
             mOnInsetsRequestedListener = onInsetsRequestedListener;
             mDirectory = new File(getCanonicalDirPath(directory));
-            if (!isAllowedInternalStorageDir(context)) {
+            if (!isAllowedInternalStorageDir()) {
                 throw new IllegalArgumentException("The given directory \"" + directory
                         + "\" doesn't exist under an allowed app internal storage directory");
             }
@@ -120,7 +82,7 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
         }
     }
 
-    private boolean isAllowedInternalStorageDir(@NonNull Context context) throws IOException {
+    private boolean isAllowedInternalStorageDir() throws IOException {
         String dir = getCanonicalDirPath(mDirectory);
 
         for (String forbiddenPath : FORBIDDEN_DATA_DIRS) {
@@ -132,20 +94,8 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
     }
 
     /**
-     * Opens the requested file from the exposed data directory.
-     * <p>
-     * The matched prefix path used shouldn't be a prefix of a real web path. Thus, if the
-     * requested file cannot be found or is outside the mounted directory a
-     * {@link WebResourceResponse} object with a {@code null} {@link InputStream} will be
-     * returned instead of {@code null}. This saves the time of falling back to network and
-     * trying to resolve a path that doesn't exist. A {@link WebResourceResponse} with
-     * {@code null} {@link InputStream} will be received as an HTTP response with status code
-     * {@code 404} and no body.
-     * <p class="note">
-     * The MIME type for the file will be determined from the file's extension using
-     * {@link java.net.URLConnection#guessContentTypeFromName}. Developers should ensure that
-     * files are named using standard file extensions. If the file does not have a
-     * recognised extension, {@code "text/plain"} will be used by default.
+     * Opens the requested file from the exposed directory. A missing file or a path outside the
+     * directory yields a response with a {@code null} stream, which the WebView reports as a 404.
      *
      * @param path the suffix path to be handled.
      * @return {@link WebResourceResponse} for the requested file.

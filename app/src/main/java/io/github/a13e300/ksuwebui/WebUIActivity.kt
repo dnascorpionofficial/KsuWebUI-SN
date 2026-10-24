@@ -1,6 +1,5 @@
 package io.github.a13e300.ksuwebui
 
-import android.annotation.SuppressLint
 import android.app.ActivityManager
 import android.content.Intent
 import android.content.res.Configuration
@@ -24,7 +23,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@SuppressLint("SetJavaScriptEnabled")
 class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     
     private val webUIState = WebUIState()
@@ -171,6 +169,7 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     override fun onDestroy() {
         super.onDestroy()
         FileSystemService.removeListener(this)
+        webUIState.webviewInterface?.destroy()
         webUIState.webView?.destroy()
     }
 }

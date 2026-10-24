@@ -8,22 +8,29 @@ import android.graphics.BitmapShader
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
+import android.graphics.Matrix
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Shader
 import android.os.Build
+import android.os.SystemClock
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
+import android.view.MenuItem
 import android.view.View
 import android.widget.PopupMenu
+import android.widget.Toast
 import android.view.ViewGroup
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.appcompat.widget.SearchView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
@@ -31,6 +38,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.topjohnwu.superuser.nio.FileSystemManager
 import io.github.a13e300.ksuwebui.databinding.ActivityMainBinding
 import io.github.a13e300.ksuwebui.databinding.ItemModuleBinding
@@ -45,7 +53,28 @@ import java.util.Locale
 @SuppressLint("NotifyDataSetChanged")
 class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     private lateinit var binding: ActivityMainBinding
+    private var allModules = emptyList<Module>()
     private var moduleList = emptyList<Module>()
+    private var searchQuery = ""
+    private var imeWasVisible = false
+    private var imeHiddenAt = 0L
+
+    // while searching: first back hides the keyboard, the next back closes the search
+    private val searchBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() {
+            val visible = ViewCompat.getRootWindowInsets(binding.root)
+                ?.isVisible(WindowInsetsCompat.Type.ime()) == true
+            // the keyboard may already have been closed by this same back press
+            val justHidden = (imeWasVisible && !visible) || SystemClock.uptimeMillis() - imeHiddenAt < 400
+            imeWasVisible = visible
+            when {
+                visible -> WindowCompat.getInsetsController(window, binding.root)
+                    .hide(WindowInsetsCompat.Type.ime())
+                justHidden -> Unit
+                else -> binding.toolbar.collapseActionView()
+            }
+        }
+    }
     private lateinit var adapter: Adapter
     private val prefs by lazy { getSharedPreferences("settings", MODE_PRIVATE) }
     private var shouldRefresh = false
@@ -65,13 +94,13 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             saveCustom(if (isBanner) "banner_$id.png" else "icon_$id.png", src)
             val shown = if (isBanner) blendBanner(src) else circleIcon(src)
             runOnUiThread {
-                val i = moduleList.indexOfFirst { it.id == id }
+                val i = allModules.indexOfFirst { it.id == id }
                 if (i >= 0) {
-                    val m = moduleList[i]
-                    moduleList = moduleList.toMutableList().also {
+                    val m = allModules[i]
+                    allModules = allModules.toMutableList().also {
                         it[i] = if (isBanner) m.copy(banner = shown) else m.copy(icon = shown)
-                    }.sortedWith(moduleOrder)
-                    adapter.notifyDataSetChanged()
+                    }
+                    applyFilter()
                 }
             }
         }
@@ -96,10 +125,21 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        setSupportActionBar(binding.toolbar)
+        // plain toolbar, no ActionBar: AppCompat's ActionBar collapses an expanded search on back
+        binding.toolbar.setTitle(R.string.app_name)
+        binding.toolbar.inflateMenu(R.menu.main_menu)
+        onBackPressedDispatcher.addCallback(this, searchBack)
 
         lifecycleScope.launch(Dispatchers.IO) {
             AppList.getApps(this@MainActivity)
+        }
+
+        // remember when the keyboard closes
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
+            val visible = insets.isVisible(WindowInsetsCompat.Type.ime())
+            if (imeWasVisible && !visible) imeHiddenAt = SystemClock.uptimeMillis()
+            imeWasVisible = visible
+            ViewCompat.onApplyWindowInsets(v, insets)
         }
 
         // Add insets
@@ -118,16 +158,83 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             return@setOnApplyWindowInsetsListener insets
         }
 
+        setupMenu(binding.toolbar.menu)
+
+        // update check: once per app open, never in the background
+        if (prefs.getBoolean("update_check", true)) {
+            if (savedInstanceState == null) {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    val update = UpdateChecker.check()
+                    UpdateChecker.available = update
+                    withContext(Dispatchers.Main) {
+                        showUpdate(update)
+                        // with Debugging on, say what the check found (or why it found nothing)
+                        if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
+                            Toast.makeText(this@MainActivity, UpdateChecker.status, Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            } else {
+                // recreated (theme switch, rotation): reuse the last result instead of checking again
+                showUpdate(UpdateChecker.available)
+            }
+        }
+
         adapter = Adapter()
         binding.list.adapter = adapter
+        binding.list.setHasFixedSize(true)
+        binding.list.setItemViewCacheSize(6)
+        binding.list.recycledViewPool.setMaxRecycledViews(0, 10)
         binding.swipeRefresh.setOnRefreshListener {
             refresh()
         }
         refresh()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
-        menuInflater.inflate(R.menu.main_menu, menu)
+    private fun setupMenu(menu: Menu) {
+        val searchItem = menu.findItem(R.id.search)
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem): Boolean {
+                searchBack.isEnabled = true
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem): Boolean {
+                searchBack.isEnabled = false
+                searchQuery = ""
+                applyFilter()
+                return true
+            }
+        })
+        (searchItem.actionView as SearchView).apply {
+            queryHint = getString(R.string.search_modules)
+            maxWidth = Int.MAX_VALUE
+            setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?) = false
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    searchQuery = newText.orEmpty()
+                    applyFilter()
+                    return true
+                }
+            })
+        }
+        menu.findItem(R.id.update).setOnMenuItemClickListener {
+            UpdateChecker.available?.let { showUpdateDialog(it) }
+            true
+        }
+        menu.findItem(R.id.update_check).apply {
+            isChecked = prefs.getBoolean("update_check", true)
+            setOnMenuItemClickListener {
+                val newValue = !it.isChecked
+                prefs.edit { putBoolean("update_check", newValue) }
+                it.isChecked = newValue
+                if (!newValue) {
+                    UpdateChecker.available = null
+                    showUpdate(null)
+                }
+                true
+            }
+        }
         menu.findItem(R.id.enable_webview_debugging).apply {
             isChecked = prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)
             setOnMenuItemClickListener {
@@ -159,7 +266,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 true
             }
         }
-        return true
+    }
+
+    private fun showUpdate(update: UpdateChecker.Update?) {
+        binding.toolbar.menu.findItem(R.id.update)?.isVisible = update != null
     }
 
     override fun onResume() {
@@ -172,6 +282,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
     private fun refresh() {
         binding.swipeRefresh.isRefreshing = true
+        allModules = emptyList()
         moduleList = emptyList()
         adapter.notifyDataSetChanged()
         binding.info.setText(R.string.loading)
@@ -224,24 +335,24 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 } catch (e: Exception) {
                     0L
                 }
-                val meta = listOfNotNull(
-                    sizes[id]?.let { formatSize(it) },
-                    if (modified > 0) SimpleDateFormat("d MMMM yyyy", Locale.getDefault()).format(Date(modified)) else null
-                ).joinToString("  •  ")
-                mods.add(Module(name, id, desc, author, version, banner, icon, meta))
+                val size = sizes[id]?.let { formatSize(it) } ?: ""
+                val date = if (modified > 0) {
+                    SimpleDateFormat("d MMMM yyyy", Locale.getDefault()).format(Date(modified))
+                } else {
+                    ""
+                }
+                mods.add(Module(name, id, desc, author, version, banner, icon, size, date))
             }
             val pinnedIds = getPinnedModules()
             mods.forEach { it.pinned = it.id in pinnedIds }
             mods.sortWith(moduleOrder)
             runOnUiThread {
-                moduleList = mods
-                adapter.notifyDataSetChanged()
+                allModules = mods
+                applyFilter()
                 binding.swipeRefresh.isRefreshing = false
                 if (mods.isEmpty()) {
                     binding.info.setText(R.string.no_modules)
                     binding.info.isVisible = true
-                } else {
-                    binding.info.isVisible = false
                 }
             }
         }
@@ -269,6 +380,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     } catch (e: Exception) {
         null
     }
+
+    // GPU-backed bitmap, uploaded here on the worker thread instead of on first draw while scrolling
+    private fun toGpu(bmp: Bitmap): Bitmap =
+        bmp.copy(Bitmap.Config.HARDWARE, false)?.also { bmp.recycle() } ?: bmp
 
     private fun customFile(name: String) = File(File(filesDir, "custom"), name)
 
@@ -313,10 +428,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             shader = BitmapShader(scaled, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP)
         }
         Canvas(out).drawCircle(size / 2f, size / 2f, size / 2f, paint)
-        return out
+        return toGpu(out)
     }
 
-    // Crops to 12:5, darkens the lower part (image stays sharp) and fades it out into the card colour
+    // Crops to 12:5 and fades the lower part out into the card colour (no darkening, so no black band)
     private fun blendBanner(src: Bitmap): Bitmap {
         var cw = src.width
         var ch = (cw / 2.4f).toInt()
@@ -324,23 +439,24 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             ch = src.height
             cw = (ch * 2.4f).toInt()
         }
-        val cropped = Bitmap.createBitmap(src, (src.width - cw) / 2, (src.height - ch) / 2, cw, ch)
-        val wf = cw.toFloat()
-        val hf = ch.toFloat()
+        // never keep more pixels than the screen shows: oversized textures make fast scrolling stutter
+        val scale = minOf(1f, resources.displayMetrics.widthPixels / cw.toFloat())
+        val cropped = Bitmap.createBitmap(
+            src, (src.width - cw) / 2, (src.height - ch) / 2, cw, ch,
+            Matrix().apply { setScale(scale, scale) }, true
+        )
+        val wf = cropped.width.toFloat()
+        val hf = cropped.height.toFloat()
 
-        val out = Bitmap.createBitmap(cw, ch, Bitmap.Config.ARGB_8888)
+        val out = Bitmap.createBitmap(cropped.width, cropped.height, Bitmap.Config.ARGB_8888)
         val c = Canvas(out)
         c.drawBitmap(cropped, 0f, 0f, null)
-        // reduce brightness from 45% down to the bottom
+        // fade into the card from 75% down to the bottom (keeps artwork text near the bottom readable)
         c.drawRect(0f, 0f, wf, hf, Paint().apply {
-            shader = LinearGradient(0f, hf * 0.45f, 0f, hf, Color.TRANSPARENT, 0xCC000000.toInt(), Shader.TileMode.CLAMP)
-        })
-        // fade into the card from 55% down to the bottom
-        c.drawRect(0f, 0f, wf, hf, Paint().apply {
-            shader = LinearGradient(0f, hf * 0.55f, 0f, hf, Color.TRANSPARENT, Color.BLACK, Shader.TileMode.CLAMP)
+            shader = LinearGradient(0f, hf * 0.75f, 0f, hf, Color.TRANSPARENT, Color.BLACK, Shader.TileMode.CLAMP)
             xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
         })
-        return out
+        return toGpu(out)
     }
 
     // pinned first, then modules with a background, then by name
@@ -357,8 +473,22 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             pinnedIds.remove(item.id)
         }
         savePinnedModules(pinnedIds)
-        moduleList = moduleList.sortedWith(moduleOrder)
+        applyFilter()
+    }
+
+    // letters and digits only, so "remalwack" matches "Re-Malwack"
+    private fun normalize(s: String) = s.lowercase().filter { it.isLetterOrDigit() }
+
+    private fun applyFilter() {
+        val q = normalize(searchQuery)
+        moduleList = (if (q.isEmpty()) allModules else allModules.filter {
+            normalize(it.name).contains(q)
+        }).sortedWith(moduleOrder)
         adapter.notifyDataSetChanged()
+        if (allModules.isNotEmpty()) {
+            binding.info.setText(R.string.no_results)
+            binding.info.isVisible = moduleList.isEmpty()
+        }
     }
 
     private fun showModuleSettings(anchor: View, item: Module) {
@@ -394,6 +524,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     }
 
     override fun onLaunchFailed() {
+        allModules = emptyList()
         moduleList = emptyList()
         adapter.notifyDataSetChanged()
         binding.info.setText(R.string.please_grant_root)
@@ -401,7 +532,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.swipeRefresh.isRefreshing = false
     }
 
-    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val meta: String = "", var pinned: Boolean = false)
+    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", var pinned: Boolean = false)
 
     class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -424,12 +555,15 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.name.text = name
             holder.binding.author.text = resources.getString(R.string.author, item.author)
             holder.binding.version.text = resources.getString(R.string.version, item.version)
+            holder.binding.size.text = item.size
+            holder.binding.size.isVisible = item.size.isNotEmpty()
+            holder.binding.date.text = item.date
+            holder.binding.date.isVisible = item.date.isNotEmpty()
             holder.binding.desc.text = item.desc
             holder.binding.banner.setImageBitmap(item.banner)
             holder.binding.banner.isVisible = item.banner != null
             holder.binding.icon.setImageBitmap(item.icon)
             holder.binding.icon.isVisible = item.icon != null
-            holder.binding.meta.text = item.meta
             holder.binding.settings.setOnClickListener { showModuleSettings(it, item) }
             holder.binding.name.setCompoundDrawablesRelativeWithIntrinsicBounds(
                 0, 0, if (item.pinned) R.drawable.ic_push_pin else 0, 0

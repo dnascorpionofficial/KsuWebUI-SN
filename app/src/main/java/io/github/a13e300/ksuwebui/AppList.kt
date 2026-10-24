@@ -6,9 +6,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
-import android.os.Handler
 import android.os.IBinder
-import android.os.Looper
 import com.topjohnwu.superuser.ipc.RootService
 import io.github.a13e300.ksuwebui.services.RootServices
 import kotlin.coroutines.resume
@@ -27,9 +25,7 @@ object AppList {
 
     suspend fun getApps(context: Context): List<AppInfo> {
         cachedApps?.let { return it }
-        val result = connectRootServiceAsync(context) ?: return emptyList()
-
-        val (binder, _) = result
+        val binder = bindRootService(context) ?: return emptyList()
         try {
             val rootService = IKsuWebuiStandaloneInterface.Stub.asInterface(binder)
             val slice = rootService.getPackages(PackageManager.GET_META_DATA)
@@ -44,35 +40,26 @@ object AppList {
         } catch (_: Exception) {
             return emptyList()
         } finally {
-            val handler = Handler(Looper.getMainLooper())
-            handler.post {
-                stopRootService(context)
-            }
+            App.handler.post { stopRootService(context) }
         }
     }
 
-    private suspend fun connectRootServiceAsync(context: Context): Pair<IBinder, ServiceConnection>? = suspendCoroutine { continuation ->
-        var connectedBinder: IBinder? = null
-        var connectedConnection: ServiceConnection?
+    private suspend fun bindRootService(context: Context): IBinder? = suspendCoroutine { continuation ->
+        var connected = false
 
         val connection = object : ServiceConnection {
             override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
-                connectedBinder = binder
-                connectedConnection = this
-                continuation.resume(connectedBinder!! to connectedConnection)
+                connected = true
+                continuation.resume(binder)
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
-                if (connectedBinder == null) {
-                    continuation.resume(null)
-                }
+                if (!connected) continuation.resume(null)
             }
         }
 
-        val intent = Intent(context, RootServices::class.java)
-        val handler = Handler(Looper.getMainLooper())
-        handler.post {
-            RootService.bind(intent, connection)
+        App.handler.post {
+            RootService.bind(Intent(context, RootServices::class.java), connection)
         }
     }
 

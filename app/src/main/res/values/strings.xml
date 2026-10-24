@@ -1,5 +1,14 @@
 <resources>
     <string name="app_name" translatable="false">KsuWebUI-SN</string>
+    <string name="update">Update</string>
+    <string name="update_title">Update %s available</string>
+    <string name="update_no_changelog">No changelog</string>
+    <string name="update_download">Download</string>
+    <string name="update_later">Later</string>
+    <string name="update_downloading">Downloading …</string>
+    <string name="update_installing">Installing …</string>
+    <string name="update_failed">Update failed: %s</string>
+    <string name="update_check">Update check</string>
     <string name="enable_webview_debugging">Debugging</string>
     <string name="please_grant_root">Please grant root</string>
     <string name="no_modules">No modules</string>
@@ -7,6 +16,9 @@
     <string name="author">Author: %s</string>
     <string name="version">Version: %s</string>
     <string name="show_disabled">Show Disabled</string>
+    <string name="search">Search</string>
+    <string name="search_modules">Search modules</string>
+    <string name="no_results">No results</string>
     <string name="dark_mode">Dark mode</string>
     <string name="module_settings">Module settings</string>
     <string name="pin">Pin</string>
