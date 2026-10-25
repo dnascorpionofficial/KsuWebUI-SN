@@ -18,7 +18,6 @@ object MonetColorsProvider {
     fun updateCss(context: Context) {
         val theme = context.theme
         val monetColors = mapOf(
-            // App Base Colors
             "primary" to theme.getColorAttr(context, android.R.attr.colorPrimary),
             "onPrimary" to theme.getColorAttr(context, MaterialAttr.colorOnPrimary),
             "primaryContainer" to theme.getColorAttr(context, MaterialAttr.colorPrimaryContainer),

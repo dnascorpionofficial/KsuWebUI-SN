@@ -41,8 +41,6 @@ android {
         targetSdk = 36
         versionCode = gitCommitCount
         versionName = appVersionName
-        // "owner/repo" holding update.txt and the releases; filled automatically on GitHub Actions,
-        // or pass -PupdateRepo=owner/repo for local builds (empty = update check disabled)
         val updateRepo = (findProperty("updateRepo") as String?)
             ?: System.getenv("GITHUB_REPOSITORY")
             ?: ""

@@ -22,7 +22,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-/** Changelog (rendered like on GitHub) + Download / Later. */
 @SuppressLint("SetJavaScriptEnabled")
 fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
     val density = resources.displayMetrics.density
@@ -38,7 +37,6 @@ fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
         settings.allowContentAccess = false
         layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, minHeight)
         webViewClient = object : WebViewClient() {
-            // links open in the browser; same-page anchors do nothing
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url
                 if (url.toString().startsWith("https://github.com/#")) return true
@@ -51,7 +49,6 @@ fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
                 return true
             }
 
-            // fit the dialog to the content, up to half the screen (then it scrolls)
             override fun onPageFinished(view: WebView, url: String?) {
                 view.post {
                     val h = (view.contentHeight * density).toInt() + (8 * density).toInt()
@@ -80,11 +77,9 @@ fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
         .show()
 }
 
-// GitHub's rendered HTML inside a page styled like GitHub's markdown
 private fun AppCompatActivity.changelogPage(update: UpdateChecker.Update, textColor: Int, dark: Boolean): String {
     val body = when {
         update.changelogHtml.isNotBlank() -> update.changelogHtml
-        // GitHub could not render it: show the raw notes
         update.changelog.isNotBlank() -> "<div style=\"white-space:pre-wrap\">${TextUtils.htmlEncode(update.changelog)}</div>"
         else -> TextUtils.htmlEncode(getString(R.string.update_no_changelog))
     }
@@ -97,7 +92,6 @@ private fun AppCompatActivity.changelogPage(update: UpdateChecker.Update, textCo
     val important = if (dark) "#ab7df8" else "#8250df"
     val warning = if (dark) "#d29922" else "#9a6700"
     val caution = if (dark) "#f85149" else "#d1242f"
-    // syntax highlighting colours for GitHub's code blocks (pl-* classes)
     val plComment = muted
     val plKeyword = if (dark) "#ff7b72" else "#cf222e"
     val plString = if (dark) "#a5d6ff" else "#0a3069"
@@ -186,7 +180,6 @@ private fun AppCompatActivity.startUpdate(update: UpdateChecker.Update) {
                             bar.setProgressCompat(p, true)
                         }
                     }
-                    // the release APK must be newer than what is installed, otherwise the button would stay
                     val apkCode = UpdateChecker.apkVersionCode(apk)
                     if (apkCode != null && apkCode <= BuildConfig.VERSION_CODE) {
                         apk.delete()

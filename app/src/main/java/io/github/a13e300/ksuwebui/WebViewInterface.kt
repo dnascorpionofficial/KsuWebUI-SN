@@ -206,7 +206,6 @@ class WebViewInterface(private val state: WebUIState) {
         currentModuleInfo.put("moduleDir", modDir)
         val moduleId = File(modDir).name
         currentModuleInfo.put("id", moduleId)
-        // TODO: more
         return currentModuleInfo.toString()
     }
 

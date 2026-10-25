@@ -16,23 +16,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.GZIPInputStream;
 
-/**
- * Serves files of a module's {@code webroot} to the WebView, reading them through the root
- * file system service, plus the generated {@code internal/insets.css} and
- * {@code internal/colors.css}.
- * <p>
- * Any file under the given directory can be requested by the page, so only pass a module's
- * own webroot.
- */
 public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler {
     private static final String TAG = "FsServicePathHandler";
 
-    /**
-     * Default value to be used as MIME type if guessing MIME type failed.
-     */
     public static final String DEFAULT_MIME_TYPE = "text/plain";
 
-    /** Directories that must never be exposed, they often contain sensitive information. */
     private static final String[] FORBIDDEN_DATA_DIRS =
             new String[] {"/data/data", "/data/system"};
 
@@ -53,13 +41,6 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
         void onInsetsRequested(boolean enable);
     }
 
-    /**
-     * @param directory the absolute path of the directory files are served from.
-     * @param fs file system used to read the files.
-     * @param insetsSupplier provides the window insets for {@code internal/insets.css}.
-     * @param onInsetsRequestedListener notified when a page requests the insets.
-     * @throws IllegalArgumentException if the directory is not allowed.
-     */
     public RemoteFsPathHandler(
             @NonNull File directory,
             FileSystemManager fs,
@@ -93,13 +74,6 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
         return true;
     }
 
-    /**
-     * Opens the requested file from the exposed directory. A missing file or a path outside the
-     * directory yields a response with a {@code null} stream, which the WebView reports as a 404.
-     *
-     * @param path the suffix path to be handled.
-     * @return {@link WebResourceResponse} for the requested file.
-     */
     @Override
     @WorkerThread
     @NonNull
@@ -166,13 +140,6 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
         return handleSvgzStream(file.getPath(), fs.getFile(file.getAbsolutePath()).newInputStream());
     }
 
-    /**
-     * Use {@link MimeUtil#getMimeFromFileName} to guess MIME type or return the
-     * {@link #DEFAULT_MIME_TYPE} if it can't guess.
-     *
-     * @param filePath path of the file to guess its MIME type.
-     * @return MIME type guessed from file extension or {@link #DEFAULT_MIME_TYPE}.
-     */
     @NonNull
     public static String guessMimeType(@NonNull String filePath) {
         String mimeType = MimeUtil.getMimeFromFileName(filePath);

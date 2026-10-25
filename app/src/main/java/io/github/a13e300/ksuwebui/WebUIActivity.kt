@@ -54,10 +54,10 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
                     when {
                         data.clipData != null -> {
                             Array(data.clipData!!.itemCount) { i ->
-                                data.clipData!!.getItemAt(i).uri // Multiple files
+                                data.clipData!!.getItemAt(i).uri
                             }
                         }
-                        data.data != null -> { arrayOf(data.data!!) } // Single file
+                        data.data != null -> { arrayOf(data.data!!) }
                         else -> null
                     }
                 }

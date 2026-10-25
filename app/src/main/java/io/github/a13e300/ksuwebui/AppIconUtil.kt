@@ -10,7 +10,6 @@ import androidx.core.graphics.createBitmap
 import androidx.core.graphics.scale
 
 object AppIconUtil {
-    // Limit cache size to 200 icons
     private const val CACHE_SIZE = 200
     private val iconCache = LruCache<String?, Bitmap?>(CACHE_SIZE)
 

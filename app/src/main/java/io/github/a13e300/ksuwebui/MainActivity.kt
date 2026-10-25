@@ -70,12 +70,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     private var imeWasVisible = false
     private var imeHiddenAt = 0L
 
-    // while searching: first back hides the keyboard, the next back closes the search
     private val searchBack = object : OnBackPressedCallback(false) {
         override fun handleOnBackPressed() {
             val visible = ViewCompat.getRootWindowInsets(binding.root)
                 ?.isVisible(WindowInsetsCompat.Type.ime()) == true
-            // the keyboard may already have been closed by this same back press
             val justHidden = (imeWasVisible && !visible) || SystemClock.uptimeMillis() - imeHiddenAt < 400
             imeWasVisible = visible
             when {
@@ -89,7 +87,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     private lateinit var adapter: Adapter
     private val prefs by lazy { getSharedPreferences("settings", MODE_PRIVATE) }
     private var shouldRefresh = false
-    private var pickTarget: Pair<String, Boolean>? = null // module id, true = background / false = icon
+    private var pickTarget: Pair<String, Boolean>? = null
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
         val (id, isBanner) = pickTarget ?: return@registerForActivityResult
         pickTarget = null
@@ -126,7 +124,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Enable edge to edge
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             window.isNavigationBarContrastEnforced = false
@@ -136,7 +133,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        // plain toolbar, no ActionBar: AppCompat's ActionBar collapses an expanded search on back
         binding.toolbar.setTitle(R.string.app_name)
         binding.toolbar.inflateMenu(R.menu.main_menu)
         onBackPressedDispatcher.addCallback(this, searchBack)
@@ -145,7 +141,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             AppList.getApps(this@MainActivity)
         }
 
-        // remember when the keyboard closes
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val visible = insets.isVisible(WindowInsetsCompat.Type.ime())
             if (imeWasVisible && !visible) imeHiddenAt = SystemClock.uptimeMillis()
@@ -153,7 +148,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             ViewCompat.onApplyWindowInsets(v, insets)
         }
 
-        // Add insets
         ViewCompat.setOnApplyWindowInsetsListener(binding.appbar) { v, insets ->
             val cutoutAndBars = insets.getInsets(
                 WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
@@ -171,12 +165,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         setupMenu(binding.toolbar.menu)
 
-        // drop a leftover update APK once per app open (independent of the Update check option)
         if (savedInstanceState == null) {
             lifecycleScope.launch(Dispatchers.IO) { UpdateChecker.cleanup() }
         }
 
-        // update check: once per app open, never in the background
         if (prefs.getBoolean("update_check", true)) {
             if (savedInstanceState == null) {
                 lifecycleScope.launch(Dispatchers.IO) {
@@ -184,14 +176,12 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     UpdateChecker.available = update
                     withContext(Dispatchers.Main) {
                         showUpdate(update)
-                        // with Debugging on, say what the check found (or why it found nothing)
                         if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
                             showMessage(UpdateChecker.status)
                         }
                     }
                 }
             } else {
-                // recreated (theme switch, rotation): reuse the last result instead of checking again
                 showUpdate(UpdateChecker.available)
             }
         }
@@ -397,7 +387,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         null
     }
 
-    // GPU-backed bitmap, uploaded here on the worker thread instead of on first draw while scrolling
     private fun toGpu(bmp: Bitmap): Bitmap =
         bmp.copy(Bitmap.Config.HARDWARE, false)?.also { bmp.recycle() } ?: bmp
 
@@ -409,7 +398,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         f.outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    // custom background > module.prop "banner" / "cover" (relative path, absolute path or <MODULECWD>/path, no http URLs)
     private fun loadBanner(fs: FileSystemManager, moduleDir: String, raw: String?, id: String): Bitmap? {
         val custom = customFile("banner_$id.png")
         val bytes: ByteArray? = if (custom.isFile) {
@@ -422,7 +410,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         return bytes?.let { decodeSampled(it, 1080) }?.let { blendBanner(it) }
     }
 
-    // custom icon > webroot/icon.png > webroot/icon.jpg
     private fun loadIcon(fs: FileSystemManager, moduleDir: String, id: String): Bitmap? {
         val custom = customFile("icon_$id.png")
         val bytes: ByteArray? = if (custom.isFile) {
@@ -447,7 +434,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         return toGpu(out)
     }
 
-    // Crops to 12:5 and fades the lower part out into the card colour (no darkening, so no black band)
     private fun blendBanner(src: Bitmap): Bitmap {
         var cw = src.width
         var ch = (cw / 2.4f).toInt()
@@ -455,7 +441,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             ch = src.height
             cw = (ch * 2.4f).toInt()
         }
-        // never keep more pixels than the screen shows: oversized textures make fast scrolling stutter
         val scale = minOf(1f, resources.displayMetrics.widthPixels / cw.toFloat())
         val cropped = Bitmap.createBitmap(
             src, (src.width - cw) / 2, (src.height - ch) / 2, cw, ch,
@@ -467,7 +452,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         val out = Bitmap.createBitmap(cropped.width, cropped.height, Bitmap.Config.ARGB_8888)
         val c = Canvas(out)
         c.drawBitmap(cropped, 0f, 0f, null)
-        // fade into the card from 75% down to the bottom (keeps artwork text near the bottom readable)
         c.drawRect(0f, 0f, wf, hf, Paint().apply {
             shader = LinearGradient(0f, hf * 0.75f, 0f, hf, Color.TRANSPARENT, Color.BLACK, Shader.TileMode.CLAMP)
             xfermode = PorterDuffXfermode(PorterDuff.Mode.DST_OUT)
@@ -475,7 +459,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         return toGpu(out)
     }
 
-    // pinned first, then modules with a background, then by name
     private val moduleOrder = compareByDescending<Module> { it.pinned }
         .thenByDescending { it.banner != null }
         .thenBy { it.name.lowercase() }
@@ -492,7 +475,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         applyFilter()
     }
 
-    // letters and digits only, so "remalwack" matches "Re-Malwack"
     private fun normalize(s: String) = s.lowercase().filter { it.isLetterOrDigit() }
 
     private fun applyFilter() {
@@ -507,7 +489,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
     }
 
-    // themed, rounded, outlined message bar instead of a plain system toast
     private fun showMessage(text: CharSequence) {
         val root = binding.root
         val bar = Snackbar.make(root, text, Snackbar.LENGTH_LONG)
@@ -520,14 +501,12 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 MaterialColors.getColor(root, com.google.android.material.R.attr.colorOutlineVariant)
             )
         }
-        // Snackbar tints its background with the "inverse" colour, which hid my colours and made the text unreadable
         bar.view.backgroundTintList = null
         bar.setTextColor(MaterialColors.getColor(root, com.google.android.material.R.attr.colorOnSurface))
         bar.view.findViewById<TextView>(com.google.android.material.R.id.snackbar_text).maxLines = 4
         bar.show()
     }
 
-    // bottom sheet with an icon per action
     private fun showModuleSettings(item: Module) {
         val dialog = BottomSheetDialog(this)
         val sheet = SheetModuleSettingsBinding.inflate(layoutInflater)
@@ -569,7 +548,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         dialog.show()
     }
 
-    // pinned shortcut that opens the module's WebUI directly (same intent as tapping its card)
     private fun addToHomeScreen(item: Module) {
         if (!ShortcutManagerCompat.isRequestPinShortcutSupported(this)) {
             showMessage(getString(R.string.shortcut_unsupported))
@@ -589,9 +567,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         ShortcutManagerCompat.requestPinShortcut(this, info, null)
     }
 
-    // the module's icon (or the default one) inside the adaptive-icon safe zone, so launchers don't crop it
     private fun shortcutIcon(item: Module): IconCompat {
-        // list icons are GPU (hardware) bitmaps, which cannot be drawn on a normal Canvas: copy to a software bitmap first
         val src = item.icon?.copy(Bitmap.Config.ARGB_8888, false)
             ?: ContextCompat.getDrawable(this, R.drawable.ic_module_default)!!.toBitmap(192, 192)
         val size = 432
@@ -640,7 +616,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.desc.text = item.desc
             holder.binding.banner.setImageBitmap(item.banner)
             holder.binding.banner.isVisible = item.banner != null
-            // modules without an icon get the default puzzle-piece icon
             if (item.icon != null) holder.binding.icon.setImageBitmap(item.icon)
             else holder.binding.icon.setImageResource(R.drawable.ic_module_default)
             holder.binding.settings.setOnClickListener { showModuleSettings(item) }

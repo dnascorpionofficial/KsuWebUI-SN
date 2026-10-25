@@ -9,18 +9,9 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 
-/**
- * Update check. update.txt in the repo [BuildConfig.UPDATE_REPO]: line 1 = app version name
- * (the workflow patches it into the build), line 2 = version code used here.
- * When line 2 is greater than this build's versionCode, the latest GitHub release supplies
- * the changelog (release notes) and the APK (first .apk asset).
- * Only called when the app is opened; nothing is scheduled or kept running.
- */
 object UpdateChecker {
-    // changelog = release notes markdown, changelogHtml = the same rendered by GitHub (empty if unavailable)
     class Update(val changelog: String, val changelogHtml: String, val apkUrl: String)
 
-    // result of the last check, so the button survives an activity recreate (e.g. dark mode toggle)
     @Volatile
     var available: Update? = null
 
@@ -33,7 +24,6 @@ object UpdateChecker {
             setRequestProperty("Cache-Control", "no-cache")
         }
 
-    // human-readable result of the last check (shown as a toast when Debugging is on)
     @Volatile
     var status = ""
 
@@ -48,7 +38,6 @@ object UpdateChecker {
         }
     }
 
-    /** Blocking, call off the main thread. Returns null when up to date or on any failure (see [status]). */
     fun check(): Update? {
         val repo = BuildConfig.UPDATE_REPO
         if (repo.isEmpty()) {
@@ -88,8 +77,6 @@ object UpdateChecker {
             }
             status = App.instance.getString(R.string.update_title)
             val body = release.optString("body").replace("\r\n", "\n").trim()
-            // GitHub renders the notes itself (links, #123, @user, commit hashes, tables, task lists …):
-            // body_html comes with the release, otherwise ask the markdown API
             var html = release.optString("body_html").trim()
             if (html.isEmpty() && body.isNotEmpty()) html = renderMarkdown(repo, body)
             Update(body, html, apkUrl)
@@ -99,7 +86,6 @@ object UpdateChecker {
         }
     }
 
-    /** GitHub-flavored markdown rendered by GitHub in the context of the repo; empty on failure. */
     private fun renderMarkdown(repo: String, text: String): String {
         val conn = connect("https://api.github.com/markdown")
         return try {
@@ -117,17 +103,14 @@ object UpdateChecker {
         }
     }
 
-    /** Removes a leftover downloaded APK (a successful install kills the app before it can delete it). */
     fun cleanup() {
         File(App.instance.cacheDir, "update").deleteRecursively()
     }
 
-    /** Version code of a downloaded APK, or null if it cannot be read. */
     @Suppress("DEPRECATION")
     fun apkVersionCode(apk: File): Int? =
         App.instance.packageManager.getPackageArchiveInfo(apk.absolutePath, 0)?.versionCode
 
-    /** Downloads the APK into the app cache; onProgress gets 0..100 when the size is known. Run on an IO dispatcher. */
     suspend fun download(update: Update, onProgress: (Int) -> Unit): File {
         val dir = File(App.instance.cacheDir, "update").apply { mkdirs() }
         val part = File(dir, "update.apk.part")
@@ -168,7 +151,6 @@ object UpdateChecker {
         }
     }
 
-    /** Installs through root (the app already needs it), then reopens the app. Returns null on success, else the error. */
     fun install(apk: File): String? {
         val r = Shell.cmd(
             "pm install -r -S ${apk.length()} < '${apk.absolutePath}' && " +

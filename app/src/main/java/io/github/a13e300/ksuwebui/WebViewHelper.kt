@@ -101,7 +101,6 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         )
         .build()
 
-    // eruda is ~500 KB: read it once, and only when debugging is on
     val eruda by lazy { assets.open("eruda.min.js").bufferedReader().use { it.readText() } }
 
     val webViewClient = object : WebViewClient() {
@@ -111,7 +110,6 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         ): WebResourceResponse? {
             val url = request.url
 
-            // Handle ksu://icon/[packageName] to serve app icon via WebView
             if (url.scheme.equals(KSU_SCHEME, ignoreCase = true) && url.host.equals(ICON_HOST, ignoreCase = true)) {
                 val packageName = url.path?.substring(1)
                 if (!packageName.isNullOrEmpty()) {

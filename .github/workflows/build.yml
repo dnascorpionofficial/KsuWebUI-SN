@@ -17,7 +17,6 @@ jobs:
 
       - name: Set app version from update.txt
         run: |
-          # line 1 of update.txt = app version name (line 2 = version code, read by the app)
           v=$(head -n 1 update.txt | tr -d '\r[:space:]')
           if ! printf '%s' "$v" | grep -Eq '^[0-9A-Za-z._-]+$'; then
             echo "update.txt line 1 must be the app version, e.g. 1.1"
