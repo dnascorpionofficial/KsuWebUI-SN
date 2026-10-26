@@ -1,6 +1,6 @@
 # KsuWebUI-SN
 
-[English](README.md) | 简体中文 | [Français](README_fr.md)
+[English](README.md) | 简体中文 | [Français](README_fr.md) | [日本語](README_ja.md)
 
 [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html) 应用的独立实现版本
 

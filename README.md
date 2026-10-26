@@ -1,6 +1,6 @@
 # KsuWebUI-SN
 
-English | [简体中文](README_cn.md) | [Français](README_fr.md)
+English | [简体中文](README_cn.md) | [Français](README_fr.md) | [日本語](README_ja.md)
 
 Standalone implementation of the [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html) application
 
