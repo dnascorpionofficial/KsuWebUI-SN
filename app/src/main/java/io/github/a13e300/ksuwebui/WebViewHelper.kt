@@ -135,6 +135,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 )
             }
             view?.evaluateJavascript(DOWNLOAD_JS, null)
+            view?.evaluateJavascript(SYSTEM_BARS_JS, null)
         }
     }
 
@@ -145,6 +146,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
 
         val downloadInterface = DownloadInterface(state)
         addJavascriptInterface(downloadInterface, "ksu_download")
+        addJavascriptInterface(SystemBarsInterface(this@initWebView), "ksu_bars")
 
         setDownloadListener { url, _, contentDisposition, mimetype, _ ->
             downloadInterface.download(url, contentDisposition, mimetype)

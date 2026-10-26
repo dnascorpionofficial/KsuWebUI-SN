@@ -16,6 +16,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.progressindicator.CircularProgressIndicator
 import com.topjohnwu.superuser.nio.FileSystemManager
@@ -29,6 +30,7 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     internal lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private lateinit var saveFileLauncher: ActivityResultLauncher<Intent>
     private var pendingSaveData: ByteArray? = null
+    private var pageDark: Boolean? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -150,6 +152,7 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
                     window.attributes.layoutInDisplayCutoutMode = WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
                 }
             }
+            applyBarIcons()
             webUIState.isEdgeToEdgeEnabled = enable
             val container = webUIState.webView?.parent as? android.view.View
             container?.let { ViewCompat.requestApplyInsets(it) }
@@ -160,8 +163,23 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
         }
     }
 
+    fun onPageDark(state: Int) {
+        pageDark = if (state < 0) null else state == 1
+        runOnUiThread { applyBarIcons() }
+    }
+
+    private fun applyBarIcons() {
+        val dark = pageDark
+            ?: ((resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES)
+        WindowCompat.getInsetsController(window, window.decorView).apply {
+            isAppearanceLightStatusBars = !dark
+            isAppearanceLightNavigationBars = !dark
+        }
+    }
+
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
+        applyBarIcons()
         webUIState.webView?.settings?.textZoom = (newConfig.fontScale * 100).toInt()
         MonetColorsProvider.updateCss(this)
     }
