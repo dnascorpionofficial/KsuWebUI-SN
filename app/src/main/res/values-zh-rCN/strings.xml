@@ -16,6 +16,8 @@
     <string name="loading">加载中 …</string>
     <string name="author">作者：%s</string>
     <string name="version">版本：%s</string>
+    <string name="show_banners">显示横幅</string>
+    <string name="show_icons">显示图标</string>
     <string name="show_disabled">显示禁用的模块</string>
     <string name="search">搜索</string>
     <string name="search_modules">搜索模块</string>

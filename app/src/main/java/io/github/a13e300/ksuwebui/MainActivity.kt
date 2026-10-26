@@ -278,6 +278,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             }
         }
         binding.swDebugging.bindPref("enable_web_debugging", BuildConfig.DEBUG)
+        binding.swShowBanners.bindPref("show_banners", true) { refresh() }
+        binding.swShowIcons.bindPref("show_icons", true) { refresh() }
         binding.swShowDisabled.bindPref("show_disabled", false) { refresh() }
     }
 
@@ -315,6 +317,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         App.executor.submit {
             val mods = mutableListOf<Module>()
             val showDisabled = prefs.getBoolean("show_disabled", false)
+            val showBanners = prefs.getBoolean("show_banners", true)
+            val showIcons = prefs.getBoolean("show_icons", true)
             val sizes = HashMap<String, Long>()
             try {
                 Shell.cmd("du -sk /data/adb/modules/*").exec().out.forEach { l ->
@@ -349,8 +353,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
                     }
                 }
-                val banner = loadBanner(fs, f.path, bannerRaw ?: coverRaw, id)
-                val icon = loadIcon(fs, f.path, id)
+                val banner = if (showBanners) loadBanner(fs, f.path, bannerRaw ?: coverRaw, id) else null
+                val icon = if (showIcons) loadIcon(fs, f.path, id) else null
                 val modified = try {
                     fs.getFile("${f.path}/webroot/index.html").lastModified()
                 } catch (e: Exception) {
@@ -539,19 +543,23 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
 
         action(R.drawable.ic_push_pin, if (item.pinned) R.string.unpin else R.string.pin) { togglePin(item) }
-        action(R.drawable.ic_image, R.string.set_background) {
-            pickTarget = item.id to true
-            pickImage.launch("image/*")
+        if (prefs.getBoolean("show_banners", true)) {
+            action(R.drawable.ic_image, R.string.set_background) {
+                pickTarget = item.id to true
+                pickImage.launch("image/*")
+            }
         }
-        action(R.drawable.ic_account_circle, R.string.set_icon) {
-            pickTarget = item.id to false
-            pickImage.launch("image/*")
+        if (prefs.getBoolean("show_icons", true)) {
+            action(R.drawable.ic_account_circle, R.string.set_icon) {
+                pickTarget = item.id to false
+                pickImage.launch("image/*")
+            }
         }
-        if (customFile("banner_${item.id}.png").exists()) action(R.drawable.ic_delete, R.string.remove_background) {
+        if (prefs.getBoolean("show_banners", true) && customFile("banner_${item.id}.png").exists()) action(R.drawable.ic_delete, R.string.remove_background) {
             customFile("banner_${item.id}.png").delete()
             refresh()
         }
-        if (customFile("icon_${item.id}.png").exists()) action(R.drawable.ic_delete, R.string.remove_icon) {
+        if (prefs.getBoolean("show_icons", true) && customFile("icon_${item.id}.png").exists()) action(R.drawable.ic_delete, R.string.remove_icon) {
             customFile("icon_${item.id}.png").delete()
             refresh()
         }
@@ -631,6 +639,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.desc.text = item.desc
             holder.binding.banner.setImageBitmap(item.banner)
             holder.binding.banner.isVisible = item.banner != null
+            val iconsOn = prefs.getBoolean("show_icons", true)
+            holder.binding.icon.isVisible = iconsOn
             if (item.icon != null) holder.binding.icon.setImageBitmap(item.icon)
             else holder.binding.icon.setImageResource(R.drawable.ic_module_default)
             holder.binding.settings.setOnClickListener { showModuleSettings(item) }
