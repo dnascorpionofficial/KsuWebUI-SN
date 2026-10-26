@@ -3,6 +3,8 @@ package io.github.a13e300.ksuwebui
 import android.app.ActivityManager
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -15,6 +17,8 @@ import androidx.activity.ComponentActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.edit
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
@@ -31,9 +35,13 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     private lateinit var saveFileLauncher: ActivityResultLauncher<Intent>
     private var pendingSaveData: ByteArray? = null
     private var pageDark: Boolean? = null
+    private val bgPrefs by lazy { getSharedPreferences("page_bg", MODE_PRIVATE) }
+    private val bgKey get() = "bg_${intent.getStringExtra("id")}"
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (bgPrefs.contains(bgKey)) applyPageColor(bgPrefs.getInt(bgKey, 0))
 
         MonetColorsProvider.updateCss(this)
 
@@ -163,9 +171,16 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
         }
     }
 
-    fun onPageDark(state: Int) {
-        pageDark = if (state < 0) null else state == 1
-        runOnUiThread { applyBarIcons() }
+    fun onPageColor(rgb: Int) = runOnUiThread {
+        val color = if (rgb < 0) null else rgb or Color.BLACK
+        applyPageColor(color)
+        bgPrefs.edit { if (color == null) remove(bgKey) else putInt(bgKey, color) }
+    }
+
+    private fun applyPageColor(color: Int?) {
+        pageDark = color?.let { ColorUtils.calculateLuminance(it) < 0.5 }
+        color?.let { window.setBackgroundDrawable(ColorDrawable(it)) }
+        applyBarIcons()
     }
 
     private fun applyBarIcons() {

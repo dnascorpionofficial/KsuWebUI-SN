@@ -4,7 +4,7 @@ import android.webkit.JavascriptInterface
 
 class SystemBarsInterface(private val activity: WebUIActivity) {
     @JavascriptInterface
-    fun report(dark: Int) = activity.onPageDark(dark)
+    fun report(rgb: Int) = activity.onPageColor(rgb)
 }
 
 const val SYSTEM_BARS_JS = """
@@ -24,7 +24,7 @@ const val SYSTEM_BARS_JS = """
   function report() {
     queued = false;
     var c = rgba(document.body) || rgba(document.documentElement);
-    var v = c ? (0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2] < 128 ? 1 : 0) : -1;
+    var v = c ? (c[0] << 16 | c[1] << 8 | c[2]) : -1;
     if (v === last) return;
     last = v;
     ksu_bars.report(v);

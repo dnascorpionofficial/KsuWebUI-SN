@@ -28,6 +28,7 @@
 
         <activity
             android:name=".WebUIActivity"
+            android:theme="@style/Theme.KsuWebUI.WebUI"
             android:autoRemoveFromRecents="true"
             android:documentLaunchMode="intoExisting"
             android:configChanges="density|orientation|screenSize|screenLayout|smallestScreenSize|uiMode|locale|layoutDirection|fontScale|keyboard|keyboardHidden"
