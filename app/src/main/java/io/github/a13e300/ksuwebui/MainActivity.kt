@@ -307,7 +307,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.swDebugging.bindPref("enable_web_debugging", BuildConfig.DEBUG)
         binding.swShowBanners.bindPref("show_banners", true) { refresh() }
         binding.swShowIcons.bindPref("show_icons", true) { refresh() }
-        binding.swShowDisabled.bindPref("show_disabled", false) { refresh() }
+        binding.swShowDisabled.bindPref("show_disabled", true) { refresh() }
     }
 
     private fun CompoundButton.bindPref(key: String, default: Boolean, onChange: (Boolean) -> Unit = {}) {
@@ -343,7 +343,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     override fun onServiceAvailable(fs: FileSystemManager) {
         App.executor.submit {
             val mods = mutableListOf<Module>()
-            val showDisabled = prefs.getBoolean("show_disabled", false)
+            val showDisabled = prefs.getBoolean("show_disabled", true)
             val showBanners = prefs.getBoolean("show_banners", true)
             val showIcons = prefs.getBoolean("show_icons", true)
             val sizes = HashMap<String, Long>()
