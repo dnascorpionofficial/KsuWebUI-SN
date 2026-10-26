@@ -1,6 +1,8 @@
 # KsuWebUI-SN
 
-Standalone implementation of the [KernelSU WebUI] application (https://kernelsu.org/guide/module-webui.html)
+English | [简体中文](README_cn.md) | [Français](README_fr.md)
+
+Standalone implementation of the [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html) application
 
 Suitable for Magisk, KernelSU, and APatch
 
