@@ -184,7 +184,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
 
             override fun onJsAlert(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
                 MaterialAlertDialogBuilder(this@initWebView)
-                    .setTitle("Alert")
+                    .setTitle(R.string.dialog_alert)
                     .setMessage(message)
                     .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm() }
                     .setOnCancelListener { result?.cancel() }
@@ -194,7 +194,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
 
             override fun onJsConfirm(view: WebView?, url: String?, message: String?, result: JsResult?): Boolean {
                 MaterialAlertDialogBuilder(this@initWebView)
-                    .setTitle("Confirm")
+                    .setTitle(R.string.dialog_confirm)
                     .setMessage(message)
                     .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm() }
                     .setNegativeButton(android.R.string.cancel) { _, _ -> result?.cancel() }
@@ -215,7 +215,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 container.addView(input)
 
                 MaterialAlertDialogBuilder(this@initWebView)
-                    .setTitle("Prompt")
+                    .setTitle(R.string.dialog_prompt)
                     .setMessage(message)
                     .setView(container)
                     .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm(input.text.toString()) }

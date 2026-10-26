@@ -1,4 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="update">更新</string>
+    <string name="update_title">KsuWebUI-SN 有可用更新</string>
+    <string name="update_no_changelog">无更新日志</string>
+    <string name="update_download">下载</string>
+    <string name="update_later">稍后</string>
+    <string name="update_downloading">下载中 …</string>
+    <string name="update_installing">安装中 …</string>
+    <string name="update_failed">更新失败：%s</string>
+    <string name="update_not_newer">发布的 APK（版本号 %1$d）不比已安装的应用（版本号 %2$d）更新</string>
+    <string name="update_check">检查更新</string>
     <string name="enable_webview_debugging">调试</string>
     <string name="please_grant_root">请授予 Root 权限</string>
     <string name="no_modules">无可用模块</string>
@@ -6,6 +17,35 @@
     <string name="author">作者：%s</string>
     <string name="version">版本：%s</string>
     <string name="show_disabled">显示禁用的模块</string>
+    <string name="search">搜索</string>
+    <string name="search_modules">搜索模块</string>
+    <string name="no_results">无结果</string>
+    <string name="settings">设置</string>
+    <string name="dark">深色</string>
+    <string name="light">浅色</string>
+    <string name="open_menu">菜单</string>
+    <string name="module_settings">模块设置</string>
+    <string name="pin">置顶</string>
+    <string name="unpin">取消置顶</string>
+    <string name="set_background">设置背景</string>
+    <string name="set_icon">设置图标</string>
+    <string name="add_to_home">添加到主屏幕</string>
+    <string name="shortcut_unsupported">你的启动器不支持固定快捷方式</string>
+    <string name="remove_background">移除背景</string>
+    <string name="remove_icon">移除图标</string>
     <string name="start_downloading">开始下载</string>
-    <string name="download_failed">下载失败: %s</string>
+    <string name="download_failed">下载失败：%s</string>
+    <string name="dialog_alert">警告</string>
+    <string name="dialog_confirm">确认</string>
+    <string name="dialog_prompt">输入</string>
+    <string name="update_repo_not_set">检查更新：此版本未设置仓库</string>
+    <string name="update_version_invalid">版本信息无效：%s</string>
+    <string name="update_up_to_date">已是最新版本（最新 %1$d，已安装 %2$d）</string>
+    <string name="update_no_apk">最新发布版本没有 .apk 文件</string>
+    <string name="update_check_failed">检查更新失败：%s</string>
+    <string name="update_http_error">HTTP %1$d (%2$s)</string>
+    <string name="update_label_version_info">版本信息</string>
+    <string name="update_label_latest_release">最新发布版本</string>
+    <string name="update_save_failed">无法保存下载的文件</string>
+    <string name="update_exit_code">退出码 %d</string>
 </resources>

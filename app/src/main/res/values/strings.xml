@@ -20,7 +20,10 @@
     <string name="search">Search</string>
     <string name="search_modules">Search modules</string>
     <string name="no_results">No results</string>
-    <string name="dark_mode">Dark mode</string>
+    <string name="settings">Settings</string>
+    <string name="dark">Dark</string>
+    <string name="light">Light</string>
+    <string name="open_menu">Menu</string>
     <string name="module_settings">Module settings</string>
     <string name="pin">Pin</string>
     <string name="unpin">Unpin</string>
@@ -32,4 +35,17 @@
     <string name="remove_icon">Remove icon</string>
     <string name="start_downloading">Start downloading</string>
     <string name="download_failed">Download failed: %s</string>
+    <string name="dialog_alert">Alert</string>
+    <string name="dialog_confirm">Confirm</string>
+    <string name="dialog_prompt">Prompt</string>
+    <string name="update_repo_not_set">Update check: repo not set in this build</string>
+    <string name="update_version_invalid">Version info is invalid: %s</string>
+    <string name="update_up_to_date">Up to date (latest %1$d, installed %2$d)</string>
+    <string name="update_no_apk">Latest release has no .apk file</string>
+    <string name="update_check_failed">Update check failed: %s</string>
+    <string name="update_http_error">HTTP %1$d (%2$s)</string>
+    <string name="update_label_version_info">version info</string>
+    <string name="update_label_latest_release">latest release</string>
+    <string name="update_save_failed">Could not save the download</string>
+    <string name="update_exit_code">exit code %d</string>
 </resources>

@@ -12,24 +12,4 @@
         android:title="@string/update"
         android:visible="false"
         app:showAsAction="ifRoom|withText" />
-    <item
-        android:checkable="true"
-        android:id="@+id/update_check"
-        android:title="@string/update_check"
-        app:showAsAction="never" />
-    <item
-        android:checkable="true"
-        android:id="@+id/enable_webview_debugging"
-        android:title="@string/enable_webview_debugging"
-        app:showAsAction="never" />
-    <item
-        android:checkable="true"
-        android:id="@+id/show_disabled"
-        android:title="@string/show_disabled"
-        app:showAsAction="never" />
-    <item
-        android:id="@+id/dark_mode"
-        android:title="@string/dark_mode"
-        android:checkable="true"
-        app:showAsAction="never" />
 </menu>

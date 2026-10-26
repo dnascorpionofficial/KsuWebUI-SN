@@ -9,6 +9,8 @@
         <item name="colorSurfaceContainerLow">@color/card</item>
         <item name="colorSurfaceContainerHigh">@color/menu_bg</item>
         <item name="colorOnSurface">@color/text</item>
+        <item name="colorSecondaryContainer">@color/card_stroke</item>
+        <item name="colorOnSecondaryContainer">@color/text</item>
         <item name="colorOnSurfaceVariant">@color/text_secondary</item>
         <item name="colorOutline">@color/text_hint</item>
         <item name="colorOutlineVariant">@color/divider</item>

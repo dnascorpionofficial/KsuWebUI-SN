@@ -20,6 +20,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
+import android.widget.CompoundButton
 import android.graphics.drawable.GradientDrawable
 import android.widget.TextView
 import com.google.android.material.color.MaterialColors
@@ -36,6 +38,7 @@ import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -55,6 +58,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.core.net.toUri
 import androidx.core.content.edit
+import androidx.drawerlayout.widget.DrawerLayout
 import com.topjohnwu.superuser.Shell
 import java.io.File
 import java.text.SimpleDateFormat
@@ -83,6 +87,9 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 else -> binding.toolbar.collapseActionView()
             }
         }
+    }
+    private val drawerBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = binding.drawer.closeDrawer(GravityCompat.START)
     }
     private lateinit var adapter: Adapter
     private val prefs by lazy { getSharedPreferences("settings", MODE_PRIVATE) }
@@ -135,7 +142,11 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         setContentView(binding.root)
         binding.toolbar.setTitle(R.string.app_name)
         binding.toolbar.inflateMenu(R.menu.main_menu)
+        binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
+        binding.toolbar.setNavigationContentDescription(R.string.open_menu)
+        binding.toolbar.setNavigationOnClickListener { binding.drawer.openDrawer(GravityCompat.START) }
         onBackPressedDispatcher.addCallback(this, searchBack)
+        onBackPressedDispatcher.addCallback(this, drawerBack)
 
         lifecycleScope.launch(Dispatchers.IO) {
             AppList.getApps(this@MainActivity)
@@ -163,7 +174,16 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             return@setOnApplyWindowInsetsListener insets
         }
 
+        ViewCompat.setOnApplyWindowInsetsListener(binding.drawerPanel) { v, insets ->
+            val b = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout()
+            )
+            v.updatePadding(left = b.left, top = b.top, bottom = b.bottom)
+            insets
+        }
+
         setupMenu(binding.toolbar.menu)
+        setupDrawer()
 
         if (savedInstanceState == null) {
             lifecycleScope.launch(Dispatchers.IO) { UpdateChecker.cleanup() }
@@ -228,49 +248,44 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             UpdateChecker.available?.let { showUpdateDialog(it) }
             true
         }
-        menu.findItem(R.id.update_check).apply {
-            isChecked = prefs.getBoolean("update_check", true)
-            setOnMenuItemClickListener {
-                val newValue = !it.isChecked
-                prefs.edit { putBoolean("update_check", newValue) }
-                it.isChecked = newValue
-                if (!newValue) {
-                    UpdateChecker.available = null
-                    showUpdate(null)
-                }
-                true
+    }
+
+    private fun setupDrawer() {
+        binding.drawer.addDrawerListener(object : DrawerLayout.SimpleDrawerListener() {
+            override fun onDrawerOpened(drawerView: View) {
+                drawerBack.isEnabled = true
+            }
+
+            override fun onDrawerClosed(drawerView: View) {
+                drawerBack.isEnabled = false
+            }
+        })
+        binding.themeGroup.check(
+            if (prefs.getBoolean("dark_mode", true)) R.id.btn_dark else R.id.btn_light
+        )
+        binding.themeGroup.addOnButtonCheckedListener { _, id, checked ->
+            val dark = id == R.id.btn_dark
+            if (!checked || dark == prefs.getBoolean("dark_mode", true)) return@addOnButtonCheckedListener
+            prefs.edit { putBoolean("dark_mode", dark) }
+            AppCompatDelegate.setDefaultNightMode(
+                if (dark) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
+            )
+        }
+        binding.swUpdateCheck.bindPref("update_check", true) { on ->
+            if (!on) {
+                UpdateChecker.available = null
+                showUpdate(null)
             }
         }
-        menu.findItem(R.id.enable_webview_debugging).apply {
-            isChecked = prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)
-            setOnMenuItemClickListener {
-                val newValue = !it.isChecked
-                prefs.edit { putBoolean("enable_web_debugging", newValue) }
-                it.isChecked = newValue
-                true
-            }
-        }
-        menu.findItem(R.id.show_disabled).apply {
-            isChecked = prefs.getBoolean("show_disabled", false)
-            setOnMenuItemClickListener {
-                val newValue = !it.isChecked
-                prefs.edit { putBoolean("show_disabled", newValue) }
-                it.isChecked = newValue
-                refresh()
-                true
-            }
-        }
-        menu.findItem(R.id.dark_mode).apply {
-            isChecked = prefs.getBoolean("dark_mode", true)
-            setOnMenuItemClickListener {
-                val newValue = !it.isChecked
-                prefs.edit { putBoolean("dark_mode", newValue) }
-                it.isChecked = newValue
-                AppCompatDelegate.setDefaultNightMode(
-                    if (newValue) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
-                )
-                true
-            }
+        binding.swDebugging.bindPref("enable_web_debugging", BuildConfig.DEBUG)
+        binding.swShowDisabled.bindPref("show_disabled", false) { refresh() }
+    }
+
+    private fun CompoundButton.bindPref(key: String, default: Boolean, onChange: (Boolean) -> Unit = {}) {
+        isChecked = prefs.getBoolean(key, default)
+        setOnCheckedChangeListener { _, on ->
+            prefs.edit { putBoolean(key, on) }
+            onChange(on)
         }
     }
 

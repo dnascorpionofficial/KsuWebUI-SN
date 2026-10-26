@@ -1,5 +1,6 @@
 package io.github.a13e300.ksuwebui
 
+import androidx.annotation.StringRes
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -27,11 +28,11 @@ object UpdateChecker {
     @Volatile
     var status = ""
 
-    private fun fetch(url: String, label: String, accept: String? = null): String {
+    private fun fetch(url: String, @StringRes label: Int, accept: String? = null): String {
         val conn = connect(url)
         try {
             accept?.let { conn.setRequestProperty("Accept", it) }
-            if (conn.responseCode != 200) throw IOException("HTTP ${conn.responseCode} ($label)")
+            if (conn.responseCode != 200) throw IOException(App.instance.getString(R.string.update_http_error, conn.responseCode, App.instance.getString(label)))
             return conn.inputStream.bufferedReader().use { it.readText() }
         } finally {
             conn.disconnect()
@@ -41,24 +42,24 @@ object UpdateChecker {
     fun check(): Update? {
         val repo = BuildConfig.UPDATE_REPO
         if (repo.isEmpty()) {
-            status = "Update check: repo not set in this build"
+            status = App.instance.getString(R.string.update_repo_not_set)
             return null
         }
         return try {
-            val raw = fetch("https://raw.githubusercontent.com/$repo/HEAD/update.txt?t=${System.currentTimeMillis()}", "version info")
+            val raw = fetch("https://raw.githubusercontent.com/$repo/HEAD/update.txt?t=${System.currentTimeMillis()}", R.string.update_label_version_info)
                 .removePrefix("\uFEFF")
             val line2 = raw.lines().getOrNull(1)?.trim().orEmpty()
             val latestCode = line2.toIntOrNull() ?: run {
-                status = "Version info is invalid: ${line2.take(20)}"
+                status = App.instance.getString(R.string.update_version_invalid, line2.take(20))
                 return null
             }
             if (latestCode <= BuildConfig.VERSION_CODE) {
-                status = "Up to date (latest $latestCode, installed ${BuildConfig.VERSION_CODE})"
+                status = App.instance.getString(R.string.update_up_to_date, latestCode, BuildConfig.VERSION_CODE)
                 return null
             }
 
             val release = JSONObject(
-                fetch("https://api.github.com/repos/$repo/releases/latest", "latest release", "application/vnd.github.full+json")
+                fetch("https://api.github.com/repos/$repo/releases/latest", R.string.update_label_latest_release, "application/vnd.github.full+json")
             )
             val assets = release.optJSONArray("assets")
             var apkUrl: String? = null
@@ -72,7 +73,7 @@ object UpdateChecker {
                 }
             }
             if (apkUrl == null) {
-                status = "Latest release has no .apk file"
+                status = App.instance.getString(R.string.update_no_apk)
                 return null
             }
             status = App.instance.getString(R.string.update_title)
@@ -81,7 +82,7 @@ object UpdateChecker {
             if (html.isEmpty() && body.isNotEmpty()) html = renderMarkdown(repo, body)
             Update(body, html, apkUrl)
         } catch (e: Exception) {
-            status = "Update check failed: ${e.message ?: e.javaClass.simpleName}"
+            status = App.instance.getString(R.string.update_check_failed, e.message ?: e.javaClass.simpleName)
             null
         }
     }
@@ -141,7 +142,7 @@ object UpdateChecker {
                 }
             }
             out.delete()
-            if (!part.renameTo(out)) throw IOException("Could not save the download")
+            if (!part.renameTo(out)) throw IOException(App.instance.getString(R.string.update_save_failed))
             return out
         } catch (e: Exception) {
             part.delete()
@@ -157,6 +158,6 @@ object UpdateChecker {
                 "{ am start -n ${App.instance.packageName}/.MainActivity >/dev/null 2>&1; true; }"
         ).exec()
         return if (r.isSuccess) null
-        else (r.out + r.err).joinToString("\n").trim().ifEmpty { "exit code ${r.code}" }
+        else (r.out + r.err).joinToString("\n").trim().ifEmpty { App.instance.getString(R.string.update_exit_code, r.code) }
     }
 }
