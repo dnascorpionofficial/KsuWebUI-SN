@@ -1,4 +1,4 @@
-# KsuWebUI
+# KsuWebUI-SN
 
 Standalone implementation of the [KernelSU WebUI] application (https://kernelsu.org/guide/module-webui.html)
 
