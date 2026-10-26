@@ -50,4 +50,17 @@
   <string name="update_label_latest_release">最新リリース</string>
   <string name="update_save_failed">ダウンロードを保存できませんでした</string>
   <string name="update_exit_code">終了コード %d</string>
+  <string name="power_menu">電源</string>
+  <string name="reboot">再起動</string>
+  <string name="soft_reboot">ソフトリブート</string>
+  <string name="reboot_recovery">リカバリーで再起動</string>
+  <string name="reboot_bootloader">ブートローダーで再起動</string>
+  <string name="reboot_safe_mode">セーフモード</string>
+  <string name="confirm_reboot">今すぐデバイスを再起動しますか？</string>
+  <string name="confirm_soft_reboot">今すぐソフトリブートしますか？完全な再起動をせずにシステムを再起動します。</string>
+  <string name="confirm_reboot_recovery">今すぐリカバリーで再起動しますか？</string>
+  <string name="confirm_reboot_bootloader">今すぐブートローダーで再起動しますか？</string>
+  <string name="confirm_reboot_safe_mode">今すぐセーフモードで再起動しますか？モジュールとサードパーティ製アプリは、次回の通常起動まで無効のままになります。</string>
+  <string name="module_disabled">無効化されたモジュール</string>
+  <string name="confirm_open_disabled">このモジュールは無効化されています。WebUI を開きますか？</string>
 </resources>

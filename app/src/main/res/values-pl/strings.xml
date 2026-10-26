@@ -50,4 +50,17 @@
   <string name="update_label_latest_release">najnowsze wydanie</string>
   <string name="update_save_failed">Nie udało się zapisać pobranego pliku</string>
   <string name="update_exit_code">kod wyjścia %d</string>
+  <string name="power_menu">Zasilanie</string>
+  <string name="reboot">Uruchom ponownie</string>
+  <string name="soft_reboot">Miękki restart</string>
+  <string name="reboot_recovery">Uruchom ponownie do recovery</string>
+  <string name="reboot_bootloader">Uruchom ponownie do bootloadera</string>
+  <string name="reboot_safe_mode">Tryb awaryjny</string>
+  <string name="confirm_reboot">Uruchomić urządzenie ponownie teraz?</string>
+  <string name="confirm_soft_reboot">Wykonać miękki restart teraz? System zostanie zrestartowany bez pełnego restartu urządzenia.</string>
+  <string name="confirm_reboot_recovery">Uruchomić ponownie do recovery teraz?</string>
+  <string name="confirm_reboot_bootloader">Uruchomić ponownie do bootloadera teraz?</string>
+  <string name="confirm_reboot_safe_mode">Uruchomić ponownie w trybie awaryjnym teraz? Moduły i aplikacje innych firm pozostaną wyłączone do następnego normalnego restartu.</string>
+  <string name="module_disabled">Moduł wyłączony</string>
+  <string name="confirm_open_disabled">Ten moduł jest wyłączony. Kontynuować otwieranie jego WebUI?</string>
 </resources>

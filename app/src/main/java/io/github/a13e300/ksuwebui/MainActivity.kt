@@ -25,6 +25,7 @@ import android.widget.CompoundButton
 import android.graphics.drawable.GradientDrawable
 import android.widget.TextView
 import com.google.android.material.color.MaterialColors
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
@@ -64,6 +65,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+private const val DISABLED_RED = 0xFFE53935.toInt()
+private const val REBOOT_CMD = "svc power reboot || reboot"
+private const val SOFT_REBOOT_CMD = "setprop ctl.restart zygote || killall zygote"
 
 @SuppressLint("NotifyDataSetChanged")
 class MainActivity : AppCompatActivity(), FileSystemService.Listener {
@@ -248,6 +253,28 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             UpdateChecker.available?.let { showUpdateDialog(it) }
             true
         }
+        binding.toolbar.setOnMenuItemClickListener { item ->
+            when (item.itemId) {
+                R.id.power_reboot -> confirmPower(R.string.reboot, R.string.confirm_reboot, REBOOT_CMD)
+                R.id.power_soft_reboot -> confirmPower(R.string.soft_reboot, R.string.confirm_soft_reboot, SOFT_REBOOT_CMD)
+                R.id.power_recovery -> confirmPower(R.string.reboot_recovery, R.string.confirm_reboot_recovery, "svc power reboot recovery || reboot recovery")
+                R.id.power_bootloader -> confirmPower(R.string.reboot_bootloader, R.string.confirm_reboot_bootloader, "svc power reboot bootloader || reboot bootloader")
+                R.id.power_safe_mode -> confirmPower(R.string.reboot_safe_mode, R.string.confirm_reboot_safe_mode, "setprop persist.sys.safemode 1; $REBOOT_CMD")
+                else -> return@setOnMenuItemClickListener false
+            }
+            true
+        }
+    }
+
+    private fun confirmPower(title: Int, message: Int, cmd: String) {
+        MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
+            .setTitle(title)
+            .setMessage(message)
+            .setPositiveButton(android.R.string.yes) { _, _ ->
+                App.executor.execute { Shell.cmd(cmd).exec() }
+            }
+            .setNegativeButton(android.R.string.no, null)
+            .show()
     }
 
     private fun setupDrawer() {
@@ -366,7 +393,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 } else {
                     ""
                 }
-                mods.add(Module(name, id, desc, author, version, banner, icon, size, date))
+                val disabled = fs.getFile(f, "disable").exists()
+                mods.add(Module(name, id, desc, author, version, banner, icon, size, date, disabled))
             }
             val pinnedIds = getPinnedModules()
             mods.forEach { it.pinned = it.id in pinnedIds }
@@ -609,7 +637,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.swipeRefresh.isRefreshing = false
     }
 
-    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", var pinned: Boolean = false)
+    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false)
 
     class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -634,8 +662,17 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.version.text = resources.getString(R.string.version, item.version)
             holder.binding.size.text = item.size
             holder.binding.size.isVisible = item.size.isNotEmpty()
-            holder.binding.date.text = item.date
-            holder.binding.date.isVisible = item.date.isNotEmpty()
+            if (item.disabled) {
+                holder.binding.date.setText(R.string.module_disabled)
+                holder.binding.date.setTextColor(DISABLED_RED)
+                holder.binding.date.isVisible = true
+            } else {
+                holder.binding.date.text = item.date
+                holder.binding.date.setTextColor(
+                    MaterialColors.getColor(holder.binding.date, com.google.android.material.R.attr.colorOnSurfaceVariant)
+                )
+                holder.binding.date.isVisible = item.date.isNotEmpty()
+            }
             holder.binding.desc.text = item.desc
             holder.binding.banner.setImageBitmap(item.banner)
             holder.binding.banner.isVisible = item.banner != null
@@ -648,16 +685,29 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 0, 0, if (item.pinned) R.drawable.ic_push_pin else 0, 0
             )
             holder.binding.root.setOnClickListener {
-                shouldRefresh = true
-                startActivity(
-                    Intent(this@MainActivity, WebUIActivity::class.java)
-                        .setData("ksuwebui://webui/$id".toUri())
-                        .putExtra("id", id)
-                        .putExtra("name", name)
-                )
+                if (item.disabled) {
+                    MaterialAlertDialogBuilder(this@MainActivity, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
+                        .setTitle(R.string.module_disabled)
+                        .setMessage(R.string.confirm_open_disabled)
+                        .setPositiveButton(android.R.string.yes) { _, _ -> openModule(id, name) }
+                        .setNegativeButton(android.R.string.no, null)
+                        .show()
+                } else {
+                    openModule(id, name)
+                }
             }
         }
 
+    }
+
+    private fun openModule(id: String, name: String) {
+        shouldRefresh = true
+        startActivity(
+            Intent(this, WebUIActivity::class.java)
+                .setData("ksuwebui://webui/$id".toUri())
+                .putExtra("id", id)
+                .putExtra("name", name)
+        )
     }
 
     override fun onDestroy() {

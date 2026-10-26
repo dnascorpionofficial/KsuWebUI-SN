@@ -50,4 +50,17 @@
     <string name="update_label_latest_release">latest release</string>
     <string name="update_save_failed">Could not save the download</string>
     <string name="update_exit_code">exit code %d</string>
+    <string name="power_menu">Power</string>
+    <string name="reboot">Reboot</string>
+    <string name="soft_reboot">Soft reboot</string>
+    <string name="reboot_recovery">Reboot to recovery</string>
+    <string name="reboot_bootloader">Reboot to bootloader</string>
+    <string name="reboot_safe_mode">Safe mode</string>
+    <string name="confirm_reboot">Reboot the device now?</string>
+    <string name="confirm_soft_reboot">Soft reboot now? This restarts the system without a full reboot.</string>
+    <string name="confirm_reboot_recovery">Reboot to recovery now?</string>
+    <string name="confirm_reboot_bootloader">Reboot to bootloader now?</string>
+    <string name="confirm_reboot_safe_mode">Reboot into safe mode now? Modules and third-party apps stay disabled until the next normal reboot.</string>
+    <string name="module_disabled">Disabled Module</string>
+    <string name="confirm_open_disabled">This module is disabled. Continue to open its WebUI?</string>
 </resources>
