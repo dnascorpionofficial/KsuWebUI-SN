@@ -16,5 +16,6 @@
         android:id="@+id/update"
         android:title="@string/update"
         android:visible="false"
-        app:showAsAction="ifRoom|withText" />
+        app:actionLayout="@layout/action_update"
+        app:showAsAction="ifRoom" />
 </menu>

@@ -26,7 +26,6 @@ import kotlinx.coroutines.withContext
 fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
     val density = resources.displayMetrics.density
     val maxHeight = (resources.displayMetrics.heightPixels * 0.5).toInt()
-    val minHeight = (96 * density).toInt()
     val dark = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
 
     val web = WebView(this).apply {
@@ -35,7 +34,7 @@ fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
         settings.javaScriptEnabled = false
         settings.allowFileAccess = false
         settings.allowContentAccess = false
-        layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, minHeight)
+        layoutParams = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, maxHeight)
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
                 val url = request.url
@@ -47,13 +46,6 @@ fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
                     }
                 }
                 return true
-            }
-
-            override fun onPageFinished(view: WebView, url: String?) {
-                view.post {
-                    val h = (view.contentHeight * density).toInt() + (8 * density).toInt()
-                    view.layoutParams = view.layoutParams.apply { height = h.coerceIn(minHeight, maxHeight) }
-                }
             }
         }
     }
@@ -69,7 +61,7 @@ fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
         .setTitle(R.string.update_title)
         .setView(box)
         .setPositiveButton(R.string.update_download) { _, _ -> startUpdate(update) }
-        .setNegativeButton(R.string.update_later, null)
+        .setNeutralButton(R.string.update_later, null)
         .setOnDismissListener {
             (web.parent as? ViewGroup)?.removeView(web)
             web.destroy()

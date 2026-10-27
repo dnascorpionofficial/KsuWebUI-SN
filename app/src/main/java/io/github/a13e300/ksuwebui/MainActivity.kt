@@ -199,11 +199,13 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         if (prefs.getBoolean("update_check", true)) {
             if (savedInstanceState == null) {
+                UpdateChecker.available = UpdateChecker.cached()
+                showUpdate(UpdateChecker.available)
                 lifecycleScope.launch(Dispatchers.IO) {
-                    val update = UpdateChecker.check()
-                    UpdateChecker.available = update
+                    val code = UpdateChecker.check()
+                    UpdateChecker.available = code
                     withContext(Dispatchers.Main) {
-                        showUpdate(update)
+                        showUpdate(code)
                         if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
                             showMessage(UpdateChecker.status)
                         }
@@ -252,9 +254,15 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 }
             })
         }
-        menu.findItem(R.id.update).setOnMenuItemClickListener {
-            UpdateChecker.available?.let { showUpdateDialog(it) }
-            true
+        menu.findItem(R.id.update).actionView?.setOnClickListener {
+            if (UpdateChecker.available != null && !fetchingRelease) {
+                fetchingRelease = true
+                lifecycleScope.launch {
+                    val update = withContext(Dispatchers.IO) { UpdateChecker.fetchRelease() }
+                    fetchingRelease = false
+                    if (update != null) showUpdateDialog(update) else showMessage(UpdateChecker.status)
+                }
+            }
         }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
@@ -369,8 +377,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
     }
 
-    private fun showUpdate(update: UpdateChecker.Update?) {
-        binding.toolbar.menu.findItem(R.id.update)?.isVisible = update != null
+    private var fetchingRelease = false
+
+    private fun showUpdate(code: Int?) {
+        binding.toolbar.menu.findItem(R.id.update)?.isVisible = code != null
     }
 
     override fun onResume() {

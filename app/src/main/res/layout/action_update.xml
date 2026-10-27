@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:background="@null"
+    android:clickable="true"
+    android:focusable="false"
+    android:gravity="center"
+    android:minWidth="48dp"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:text="@string/update"
+    android:textAppearance="?attr/textAppearanceLabelLarge"
+    android:textColor="?attr/colorOnSurface" />

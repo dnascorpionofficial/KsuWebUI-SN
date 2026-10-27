@@ -14,12 +14,12 @@ object UpdateChecker {
     class Update(val title: String, val changelog: String, val changelogHtml: String, val apkUrl: String)
 
     @Volatile
-    var available: Update? = null
+    var available: Int? = null
 
     private fun connect(url: String): HttpURLConnection =
         (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = 8000
-            readTimeout = 15000
+            connectTimeout = 5000
+            readTimeout = 10000
             useCaches = false
             setRequestProperty("User-Agent", "KsuWebUI-SN")
             setRequestProperty("Cache-Control", "no-cache")
@@ -27,6 +27,21 @@ object UpdateChecker {
 
     @Volatile
     var status = ""
+
+    private val cachePrefs get() = App.instance.getSharedPreferences("update_cache", android.content.Context.MODE_PRIVATE)
+
+    fun cached(): Int? {
+        val code = cachePrefs.getInt("code", 0)
+        if (code <= BuildConfig.VERSION_CODE) {
+            if (code != 0) cachePrefs.edit().clear().apply()
+            return null
+        }
+        return code
+    }
+
+    private fun saveCache(code: Int) {
+        cachePrefs.edit().putInt("code", code).apply()
+    }
 
     private fun fetch(url: String, @StringRes label: Int, accept: String? = null): String {
         val conn = connect(url)
@@ -39,7 +54,7 @@ object UpdateChecker {
         }
     }
 
-    fun check(): Update? {
+    fun check(): Int? {
         val repo = BuildConfig.UPDATE_REPO
         if (repo.isEmpty()) {
             status = App.instance.getString(R.string.update_repo_not_set)
@@ -55,9 +70,21 @@ object UpdateChecker {
             }
             if (latestCode <= BuildConfig.VERSION_CODE) {
                 status = App.instance.getString(R.string.update_up_to_date, latestCode, BuildConfig.VERSION_CODE)
+                cachePrefs.edit().clear().apply()
                 return null
             }
+            status = App.instance.getString(R.string.update_title)
+            saveCache(latestCode)
+            latestCode
+        } catch (e: Exception) {
+            status = App.instance.getString(R.string.update_check_failed, e.message ?: e.javaClass.simpleName)
+            cached()
+        }
+    }
 
+    fun fetchRelease(): Update? {
+        val repo = BuildConfig.UPDATE_REPO
+        return try {
             val release = JSONObject(
                 fetch("https://api.github.com/repos/$repo/releases/latest", R.string.update_label_latest_release, "application/vnd.github.full+json")
             )
@@ -76,7 +103,6 @@ object UpdateChecker {
                 status = App.instance.getString(R.string.update_no_apk)
                 return null
             }
-            status = App.instance.getString(R.string.update_title)
             val body = release.optString("body").replace("\r\n", "\n").trim()
             var html = release.optString("body_html").trim()
             if (html.isEmpty() && body.isNotEmpty()) html = renderMarkdown(repo, body)
