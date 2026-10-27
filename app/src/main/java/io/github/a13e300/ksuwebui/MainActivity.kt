@@ -53,7 +53,9 @@ import kotlinx.coroutines.withContext
 import com.topjohnwu.superuser.nio.FileSystemManager
 import io.github.a13e300.ksuwebui.databinding.ActivityMainBinding
 import io.github.a13e300.ksuwebui.databinding.ItemModuleBinding
+import io.github.a13e300.ksuwebui.databinding.ItemPowerRowBinding
 import io.github.a13e300.ksuwebui.databinding.ItemSheetActionBinding
+import io.github.a13e300.ksuwebui.databinding.SheetPowerBinding
 import io.github.a13e300.ksuwebui.databinding.SheetModuleSettingsBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -255,23 +257,61 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
         binding.toolbar.setOnMenuItemClickListener { item ->
             when (item.itemId) {
-                R.id.power_reboot -> confirmPower(R.string.reboot, R.string.confirm_reboot, REBOOT_CMD)
-                R.id.power_soft_reboot -> confirmPower(R.string.soft_reboot, R.string.confirm_soft_reboot, SOFT_REBOOT_CMD)
-                R.id.power_recovery -> confirmPower(R.string.reboot_recovery, R.string.confirm_reboot_recovery, "svc power reboot recovery || reboot recovery")
-                R.id.power_bootloader -> confirmPower(R.string.reboot_bootloader, R.string.confirm_reboot_bootloader, "svc power reboot bootloader || reboot bootloader")
-                R.id.power_safe_mode -> confirmPower(R.string.reboot_safe_mode, R.string.confirm_reboot_safe_mode, "setprop persist.sys.safemode 1; $REBOOT_CMD")
+                R.id.power -> showPowerSheet()
                 else -> return@setOnMenuItemClickListener false
             }
             true
         }
     }
 
-    private fun confirmPower(title: Int, message: Int, cmd: String) {
+    private class PowerOption(val icon: Int, val label: Int, val desc: Int, val message: Int, val cmd: String)
+
+    private fun showPowerSheet() {
+        val options = listOf(
+            PowerOption(R.drawable.ic_reboot, R.string.reboot, R.string.reboot_desc, R.string.confirm_reboot, REBOOT_CMD),
+            PowerOption(R.drawable.ic_soft_reboot, R.string.soft_reboot, R.string.soft_reboot_desc, R.string.confirm_soft_reboot, SOFT_REBOOT_CMD),
+            PowerOption(R.drawable.ic_recovery, R.string.reboot_recovery, R.string.reboot_recovery_desc, R.string.confirm_reboot_recovery, "svc power reboot recovery || reboot recovery"),
+            PowerOption(R.drawable.ic_bootloader, R.string.reboot_bootloader, R.string.reboot_bootloader_desc, R.string.confirm_reboot_bootloader, "svc power reboot bootloader || reboot bootloader"),
+            PowerOption(R.drawable.ic_safe_mode, R.string.reboot_safe_mode, R.string.reboot_safe_mode_desc, R.string.confirm_reboot_safe_mode, "setprop persist.sys.safemode 1; $REBOOT_CMD")
+        )
+        val dialog = BottomSheetDialog(this)
+        val sheet = SheetPowerBinding.inflate(layoutInflater)
+        val density = resources.displayMetrics.density
+        options.forEachIndexed { index, option ->
+            if (index > 0) {
+                val divider = View(this)
+                divider.layoutParams = android.widget.LinearLayout.LayoutParams(
+                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, (1 * density).toInt()
+                ).apply { marginStart = (76 * density).toInt() }
+                divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider))
+                sheet.list.addView(divider)
+            }
+            val row = ItemPowerRowBinding.inflate(layoutInflater, sheet.list, false)
+            row.icon.setImageResource(option.icon)
+            row.label.setText(option.label)
+            row.desc.setText(option.desc)
+            row.root.setOnClickListener {
+                dialog.dismiss()
+                confirmPower(option)
+            }
+            sheet.list.addView(row.root)
+        }
+        dialog.setContentView(sheet.root)
+        dialog.behavior.skipCollapsed = true
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        dialog.show()
+    }
+
+    private fun confirmPower(option: PowerOption) {
+        val icon = ContextCompat.getDrawable(this, option.icon)?.mutate()?.also {
+            it.setTint(MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurfaceVariant))
+        }
         MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
-            .setTitle(title)
-            .setMessage(message)
+            .setIcon(icon)
+            .setTitle(option.label)
+            .setMessage(option.message)
             .setPositiveButton(R.string.yes) { _, _ ->
-                App.executor.execute { Shell.cmd(cmd).exec() }
+                App.executor.execute { Shell.cmd(option.cmd).exec() }
             }
             .setNegativeButton(R.string.no, null)
             .show()

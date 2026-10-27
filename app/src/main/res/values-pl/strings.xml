@@ -65,4 +65,10 @@
   <string name="confirm_open_disabled">Ten moduł jest wyłączony. Kontynuować otwieranie jego WebUI?</string>
   <string name="yes">Tak</string>
   <string name="no">Nie</string>
+  <string name="power_subtitle">Wybierz opcję restartu</string>
+  <string name="soft_reboot_desc">Restartuje tylko system, szybciej</string>
+  <string name="reboot_recovery_desc">Uruchom w trybie recovery</string>
+  <string name="reboot_bootloader_desc">Uruchom w trybie fastboot</string>
+  <string name="reboot_safe_mode_desc">Uruchom z wyłączonymi modułami</string>
+  <string name="reboot_desc">Uruchom urządzenie ponownie</string>
 </resources>

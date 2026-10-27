@@ -11,25 +11,7 @@
         android:id="@+id/power"
         android:icon="@drawable/ic_power"
         android:title="@string/power_menu"
-        app:showAsAction="always">
-        <menu>
-            <item
-                android:id="@+id/power_reboot"
-                android:title="@string/reboot" />
-            <item
-                android:id="@+id/power_soft_reboot"
-                android:title="@string/soft_reboot" />
-            <item
-                android:id="@+id/power_recovery"
-                android:title="@string/reboot_recovery" />
-            <item
-                android:id="@+id/power_bootloader"
-                android:title="@string/reboot_bootloader" />
-            <item
-                android:id="@+id/power_safe_mode"
-                android:title="@string/reboot_safe_mode" />
-        </menu>
-    </item>
+        app:showAsAction="always" />
     <item
         android:id="@+id/update"
         android:title="@string/update"
