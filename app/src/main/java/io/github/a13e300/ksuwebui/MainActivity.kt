@@ -52,6 +52,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import com.topjohnwu.superuser.nio.FileSystemManager
 import io.github.a13e300.ksuwebui.databinding.ActivityMainBinding
+import io.github.a13e300.ksuwebui.databinding.DialogConfirmBinding
 import io.github.a13e300.ksuwebui.databinding.ItemModuleBinding
 import io.github.a13e300.ksuwebui.databinding.ItemPowerRowBinding
 import io.github.a13e300.ksuwebui.databinding.ItemSheetActionBinding
@@ -303,18 +304,28 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     }
 
     private fun confirmPower(option: PowerOption) {
-        val icon = ContextCompat.getDrawable(this, option.icon)?.mutate()?.also {
-            it.setTint(MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurfaceVariant))
+        showConfirm(option.icon, option.label, option.message) {
+            App.executor.execute { Shell.cmd(option.cmd).exec() }
         }
-        MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
-            .setIcon(icon)
-            .setTitle(option.label)
-            .setMessage(option.message)
-            .setPositiveButton(R.string.yes) { _, _ ->
-                App.executor.execute { Shell.cmd(option.cmd).exec() }
-            }
-            .setNegativeButton(R.string.no, null)
-            .show()
+    }
+
+    private fun showConfirm(icon: Int?, title: Int, message: Int, onYes: () -> Unit) {
+        val view = DialogConfirmBinding.inflate(layoutInflater)
+        if (icon != null) {
+            view.icon.setImageResource(icon)
+            view.icon.visibility = View.VISIBLE
+        }
+        view.title.setText(title)
+        view.message.setText(message)
+        val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
+            .setView(view.root)
+            .create()
+        view.no.setOnClickListener { dialog.dismiss() }
+        view.yes.setOnClickListener {
+            dialog.dismiss()
+            onYes()
+        }
+        dialog.show()
     }
 
     private fun setupDrawer() {
@@ -726,12 +737,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             )
             holder.binding.root.setOnClickListener {
                 if (item.disabled) {
-                    MaterialAlertDialogBuilder(this@MainActivity, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
-                        .setTitle(R.string.module_disabled)
-                        .setMessage(R.string.confirm_open_disabled)
-                        .setPositiveButton(R.string.yes) { _, _ -> openModule(id, name) }
-                        .setNegativeButton(R.string.no, null)
-                        .show()
+                    showConfirm(null, R.string.module_disabled, R.string.confirm_open_disabled) { openModule(id, name) }
                 } else {
                     openModule(id, name)
                 }
