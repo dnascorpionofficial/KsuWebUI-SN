@@ -65,7 +65,6 @@
   <string name="confirm_open_disabled">このモジュールは無効化されています。WebUI を開きますか？</string>
   <string name="yes">はい</string>
   <string name="no">いいえ</string>
-  <string name="power_subtitle">再起動の方法を選択</string>
   <string name="soft_reboot_desc">システムのみ再起動 (高速)</string>
   <string name="reboot_recovery_desc">リカバリーモードで起動</string>
   <string name="reboot_bootloader_desc">ファストブートモードで起動</string>

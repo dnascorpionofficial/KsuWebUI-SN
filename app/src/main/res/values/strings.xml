@@ -65,7 +65,6 @@
     <string name="confirm_open_disabled">This module is disabled. Continue to open its WebUI?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="power_subtitle">Choose a restart option</string>
     <string name="soft_reboot_desc">Restart the system only, faster</string>
     <string name="reboot_recovery_desc">Boot into recovery mode</string>
     <string name="reboot_bootloader_desc">Boot into fastboot mode</string>

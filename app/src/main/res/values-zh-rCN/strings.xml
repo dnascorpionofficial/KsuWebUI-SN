@@ -65,7 +65,6 @@
     <string name="confirm_open_disabled">此模块已被禁用。是否继续打开其 WebUI？</string>
     <string name="yes">是</string>
     <string name="no">否</string>
-    <string name="power_subtitle">选择重启方式</string>
     <string name="soft_reboot_desc">仅重启系统，速度更快</string>
     <string name="reboot_recovery_desc">启动到 Recovery 模式</string>
     <string name="reboot_bootloader_desc">启动到 Fastboot 模式</string>
