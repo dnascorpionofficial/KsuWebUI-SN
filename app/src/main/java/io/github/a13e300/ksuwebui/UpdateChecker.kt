@@ -11,7 +11,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 object UpdateChecker {
-    class Update(val changelog: String, val changelogHtml: String, val apkUrl: String)
+    class Update(val title: String, val changelog: String, val changelogHtml: String, val apkUrl: String)
 
     @Volatile
     var available: Update? = null
@@ -80,7 +80,8 @@ object UpdateChecker {
             val body = release.optString("body").replace("\r\n", "\n").trim()
             var html = release.optString("body_html").trim()
             if (html.isEmpty() && body.isNotEmpty()) html = renderMarkdown(repo, body)
-            Update(body, html, apkUrl)
+            val title = release.optString("name").trim().ifEmpty { release.optString("tag_name").trim() }
+            Update(title, body, html, apkUrl)
         } catch (e: Exception) {
             status = App.instance.getString(R.string.update_check_failed, e.message ?: e.javaClass.simpleName)
             null

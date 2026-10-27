@@ -83,6 +83,7 @@ private fun AppCompatActivity.changelogPage(update: UpdateChecker.Update, textCo
         update.changelog.isNotBlank() -> "<div style=\"white-space:pre-wrap\">${TextUtils.htmlEncode(update.changelog)}</div>"
         else -> TextUtils.htmlEncode(getString(R.string.update_no_changelog))
     }
+    val heading = if (update.title.isBlank()) "" else "<h1>${TextUtils.htmlEncode(update.title)}</h1>"
     val text = String.format("#%06X", 0xFFFFFF and textColor)
     val link = if (dark) "#4493f8" else "#0969da"
     val border = if (dark) "#3d444d" else "#d1d9e0"
@@ -147,7 +148,7 @@ private fun AppCompatActivity.changelogPage(update: UpdateChecker.Update, textCo
         .markdown-alert-important{border-color:$important} .markdown-alert-important .markdown-alert-title{color:$important}
         .markdown-alert-warning{border-color:$warning} .markdown-alert-warning .markdown-alert-title{color:$warning}
         .markdown-alert-caution{border-color:$caution} .markdown-alert-caution .markdown-alert-title{color:$caution}
-        </style></head><body>$body</body></html>
+        </style></head><body>$heading$body</body></html>
     """
 }
 
