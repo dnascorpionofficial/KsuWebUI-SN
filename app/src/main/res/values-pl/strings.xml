@@ -63,4 +63,6 @@
   <string name="confirm_reboot_safe_mode">Uruchomić ponownie w trybie awaryjnym teraz? Moduły i aplikacje innych firm pozostaną wyłączone do następnego normalnego restartu.</string>
   <string name="module_disabled">Moduł wyłączony</string>
   <string name="confirm_open_disabled">Ten moduł jest wyłączony. Kontynuować otwieranie jego WebUI?</string>
+  <string name="yes">Tak</string>
+  <string name="no">Nie</string>
 </resources>

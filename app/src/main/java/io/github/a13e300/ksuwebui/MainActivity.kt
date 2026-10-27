@@ -270,10 +270,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
             .setTitle(title)
             .setMessage(message)
-            .setPositiveButton(android.R.string.yes) { _, _ ->
+            .setPositiveButton(R.string.yes) { _, _ ->
                 App.executor.execute { Shell.cmd(cmd).exec() }
             }
-            .setNegativeButton(android.R.string.no, null)
+            .setNegativeButton(R.string.no, null)
             .show()
     }
 
@@ -689,8 +689,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     MaterialAlertDialogBuilder(this@MainActivity, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
                         .setTitle(R.string.module_disabled)
                         .setMessage(R.string.confirm_open_disabled)
-                        .setPositiveButton(android.R.string.yes) { _, _ -> openModule(id, name) }
-                        .setNegativeButton(android.R.string.no, null)
+                        .setPositiveButton(R.string.yes) { _, _ -> openModule(id, name) }
+                        .setNegativeButton(R.string.no, null)
                         .show()
                 } else {
                     openModule(id, name)

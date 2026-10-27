@@ -63,4 +63,6 @@
   <string name="confirm_reboot_safe_mode">今すぐセーフモードで再起動しますか？モジュールとサードパーティ製アプリは、次回の通常起動まで無効のままになります。</string>
   <string name="module_disabled">無効化されたモジュール</string>
   <string name="confirm_open_disabled">このモジュールは無効化されています。WebUI を開きますか？</string>
+  <string name="yes">はい</string>
+  <string name="no">いいえ</string>
 </resources>

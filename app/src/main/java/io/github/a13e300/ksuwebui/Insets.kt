@@ -1,19 +1,6 @@
 package io.github.a13e300.ksuwebui
 
-/**
- * Insets data class from GitHub@MMRLApp/WebUI-X-Portable
- *
- * Data class representing insets (top, bottom, left, right) for a view.
- *
- * This class provides methods to generate CSS code that can be injected into a WebView
- * to apply these insets as CSS variables. This is useful for adapting web content
- * to the safe areas of a device screen, considering notches, status bars, and navigation bars.
- *
- * @property top The top inset value in pixels.
- * @property bottom The bottom inset value in pixels.
- * @property left The left inset value in pixels.
- * @property right The right inset value in pixels.
- */
+/** Insets data class from GitHub@MMRLApp/WebUI-X-Portable */
 data class Insets(
     val top: Int,
     val bottom: Int,

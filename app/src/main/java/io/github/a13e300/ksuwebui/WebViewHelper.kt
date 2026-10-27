@@ -23,6 +23,17 @@ import java.io.File
 private const val WEB_DOMAIN = "mui.kernelsu.org"
 private const val KSU_SCHEME = "ksu"
 private const val ICON_HOST = "icon"
+private const val ERUDA_CENTER_JS = """
+try {
+  if (!localStorage.getItem('ksu-eruda-pos')) {
+    localStorage.setItem('ksu-eruda-pos', '1');
+    eruda.position({ x: 99999, y: 99999 });
+    var p = eruda.position();
+    var s = window.innerHeight - p.y - 10;
+    eruda.position({ x: p.x, y: Math.round((window.innerHeight - s) / 2) });
+  }
+} catch (e) {}
+"""
 private const val DOWNLOAD_JS = """
     (function() {
         if (window.ksu_download_enabled) return;
@@ -130,7 +141,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
             val prefs = getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
             if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
                 view?.evaluateJavascript(
-                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$eruda\n;eruda.init();\n}",
+                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$eruda\n;eruda.init();\n$ERUDA_CENTER_JS\n}",
                     null
                 )
             }

@@ -63,4 +63,6 @@
     <string name="confirm_reboot_safe_mode">Reboot into safe mode now? Modules and third-party apps stay disabled until the next normal reboot.</string>
     <string name="module_disabled">Disabled Module</string>
     <string name="confirm_open_disabled">This module is disabled. Continue to open its WebUI?</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 </resources>

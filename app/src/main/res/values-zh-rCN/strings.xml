@@ -63,4 +63,6 @@
     <string name="confirm_reboot_safe_mode">立即重启到安全模式？模块和第三方应用将保持禁用，直到下次正常重启。</string>
     <string name="module_disabled">已禁用的模块</string>
     <string name="confirm_open_disabled">此模块已被禁用。是否继续打开其 WebUI？</string>
+    <string name="yes">是</string>
+    <string name="no">否</string>
 </resources>
