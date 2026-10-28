@@ -22,6 +22,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.CompoundButton
+import android.widget.ImageButton
 import android.graphics.drawable.GradientDrawable
 import android.widget.TextView
 import com.google.android.material.color.MaterialColors
@@ -43,6 +44,7 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.children
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
@@ -148,10 +150,15 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.toolbar.setTitle(R.string.app_name)
+        binding.toolbar.title = "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}"
         binding.toolbar.inflateMenu(R.menu.main_menu)
         binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
         binding.toolbar.setNavigationContentDescription(R.string.open_menu)
+        binding.toolbar.children.filterIsInstance<ImageButton>().firstOrNull()?.let { nav ->
+            val d = resources.displayMetrics.density
+            nav.minimumWidth = (48 * d).toInt()
+            nav.setPaddingRelative((8 * d).toInt(), nav.paddingTop, 0, nav.paddingBottom)
+        }
         binding.toolbar.setNavigationOnClickListener { binding.drawer.openDrawer(GravityCompat.START) }
         onBackPressedDispatcher.addCallback(this, searchBack)
         onBackPressedDispatcher.addCallback(this, drawerBack)
@@ -206,7 +213,9 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     UpdateChecker.available = code
                     withContext(Dispatchers.Main) {
                         showUpdate(code)
-                        if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
+                        if (code != null) {
+                            showMessage(getString(R.string.update_title))
+                        } else if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
                             showMessage(UpdateChecker.status)
                         }
                     }
