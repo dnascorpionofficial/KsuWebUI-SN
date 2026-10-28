@@ -83,7 +83,19 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/dark" />
+                android:text="@string/dark"
+                android:textColor="@color/theme_btn_text"
+                app:backgroundTint="@color/theme_btn_bg" />
+
+            <Button
+                android:id="@+id/btn_system"
+                style="?attr/materialButtonOutlinedStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/system"
+                android:textColor="@color/theme_btn_text"
+                app:backgroundTint="@color/theme_btn_bg" />
 
             <Button
                 android:id="@+id/btn_light"
@@ -91,7 +103,9 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/light" />
+                android:text="@string/light"
+                android:textColor="@color/theme_btn_text"
+                app:backgroundTint="@color/theme_btn_bg" />
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
@@ -102,16 +116,6 @@
             android:minHeight="56dp"
             android:paddingHorizontal="24dp"
             android:text="@string/update_check"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp" />
-
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/sw_debugging"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:paddingHorizontal="24dp"
-            android:text="@string/enable_webview_debugging"
             android:textColor="?attr/colorOnSurface"
             android:textSize="16sp" />
 
@@ -142,6 +146,26 @@
             android:minHeight="56dp"
             android:paddingHorizontal="24dp"
             android:text="@string/show_disabled"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_show_hidden"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:paddingHorizontal="24dp"
+            android:text="@string/show_hidden"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_debugging"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:paddingHorizontal="24dp"
+            android:text="@string/enable_webview_debugging"
             android:textColor="?attr/colorOnSurface"
             android:textSize="16sp" />
 

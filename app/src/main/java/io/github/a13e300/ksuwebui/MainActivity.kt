@@ -17,6 +17,7 @@ import android.graphics.Shader
 import android.os.Build
 import android.os.SystemClock
 import android.os.Bundle
+import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -140,6 +141,28 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         prefs.edit { putStringSet("pinned_modules", pinned) }
     }
 
+    private fun getHiddenModules(): MutableSet<String> {
+        return prefs.getStringSet("hidden_modules", emptySet<String>())?.toMutableSet() ?: mutableSetOf()
+    }
+
+    private fun getConsoleModules(): MutableSet<String> {
+        return prefs.getStringSet("console_modules", emptySet<String>())?.toMutableSet() ?: mutableSetOf()
+    }
+
+    private fun toggleHidden(item: Module) {
+        item.hidden = !item.hidden
+        val ids = getHiddenModules()
+        if (item.hidden) ids.add(item.id) else ids.remove(item.id)
+        prefs.edit { putStringSet("hidden_modules", ids) }
+        applyFilter()
+    }
+
+    private fun toggleConsole(item: Module) {
+        val ids = getConsoleModules()
+        if (!ids.add(item.id)) ids.remove(item.id)
+        prefs.edit { putStringSet("console_modules", ids) }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
@@ -151,6 +174,11 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.toolbar.title = "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}"
+        binding.toolbar.children.filterIsInstance<TextView>().firstOrNull()?.apply {
+            ellipsize = TextUtils.TruncateAt.MARQUEE
+            marqueeRepeatLimit = -1
+            isSelected = true
+        }
         binding.toolbar.inflateMenu(R.menu.main_menu)
         binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
         binding.toolbar.setNavigationContentDescription(R.string.open_menu)
@@ -356,15 +384,21 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             }
         })
         binding.themeGroup.check(
-            if (prefs.getBoolean("dark_mode", true)) R.id.btn_dark else R.id.btn_light
+            when (themeMode(prefs)) {
+                THEME_SYSTEM -> R.id.btn_system
+                THEME_DARK -> R.id.btn_dark
+                else -> R.id.btn_light
+            }
         )
         binding.themeGroup.addOnButtonCheckedListener { _, id, checked ->
-            val dark = id == R.id.btn_dark
-            if (!checked || dark == prefs.getBoolean("dark_mode", true)) return@addOnButtonCheckedListener
-            prefs.edit { putBoolean("dark_mode", dark) }
-            AppCompatDelegate.setDefaultNightMode(
-                if (dark) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
-            )
+            val mode = when (id) {
+                R.id.btn_system -> THEME_SYSTEM
+                R.id.btn_dark -> THEME_DARK
+                else -> THEME_LIGHT
+            }
+            if (!checked || mode == themeMode(prefs)) return@addOnButtonCheckedListener
+            prefs.edit { putInt("theme_mode", mode) }
+            AppCompatDelegate.setDefaultNightMode(nightMode(mode))
         }
         binding.swUpdateCheck.bindPref("update_check", true) { on ->
             if (!on) {
@@ -376,6 +410,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.swShowBanners.bindPref("show_banners", true) { refresh() }
         binding.swShowIcons.bindPref("show_icons", true) { refresh() }
         binding.swShowDisabled.bindPref("show_disabled", true) { refresh() }
+        binding.swShowHidden.bindPref("show_hidden", false) { applyFilter() }
     }
 
     private fun CompoundButton.bindPref(key: String, default: Boolean, onChange: (Boolean) -> Unit = {}) {
@@ -467,7 +502,11 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 mods.add(Module(name, id, desc, author, version, banner, icon, size, date, disabled))
             }
             val pinnedIds = getPinnedModules()
-            mods.forEach { it.pinned = it.id in pinnedIds }
+            val hiddenIds = getHiddenModules()
+            mods.forEach {
+                it.pinned = it.id in pinnedIds
+                it.hidden = it.id in hiddenIds
+            }
             mods.sortWith(moduleOrder)
             runOnUiThread {
                 allModules = mods
@@ -596,7 +635,9 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
     private fun applyFilter() {
         val q = normalize(searchQuery)
-        moduleList = (if (q.isEmpty()) allModules else allModules.filter {
+        val showHidden = prefs.getBoolean("show_hidden", false)
+        val visible = if (showHidden) allModules else allModules.filter { !it.hidden }
+        moduleList = (if (q.isEmpty()) visible else visible.filter {
             normalize(it.name).contains(q)
         }).sortedWith(moduleOrder)
         adapter.notifyDataSetChanged()
@@ -662,6 +703,14 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             refresh()
         }
         action(R.drawable.ic_add, R.string.add_to_home) { addToHomeScreen(item) }
+        action(
+            if (item.hidden) R.drawable.ic_visibility else R.drawable.ic_visibility_off,
+            if (item.hidden) R.string.unhide else R.string.hide
+        ) { toggleHidden(item) }
+        action(
+            R.drawable.ic_terminal,
+            if (item.id in getConsoleModules()) R.string.console_disable else R.string.console_enable
+        ) { toggleConsole(item) }
 
         dialog.setContentView(sheet.root)
         dialog.behavior.skipCollapsed = true
@@ -707,7 +756,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.swipeRefresh.isRefreshing = false
     }
 
-    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false)
+    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false, var hidden: Boolean = false)
 
     class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -732,8 +781,11 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.version.text = resources.getString(R.string.version, item.version)
             holder.binding.size.text = item.size
             holder.binding.size.isVisible = item.size.isNotEmpty()
-            if (item.disabled) {
-                holder.binding.date.setText(R.string.module_disabled)
+            if (item.disabled || item.hidden) {
+                holder.binding.date.text = listOfNotNull(
+                    if (item.disabled) getString(R.string.module_disabled) else null,
+                    if (item.hidden) getString(R.string.module_hidden) else null
+                ).joinToString(" · ")
                 holder.binding.date.setTextColor(DISABLED_RED)
                 holder.binding.date.isVisible = true
             } else {
