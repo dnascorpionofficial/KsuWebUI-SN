@@ -173,7 +173,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.toolbar.title = "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME}-${BuildConfig.VERSION_CODE}"
+        binding.toolbar.title = "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_SUFFIX}"
         binding.toolbar.children.filterIsInstance<TextView>().firstOrNull()?.apply {
             ellipsize = TextUtils.TruncateAt.MARQUEE
             marqueeRepeatLimit = -1

@@ -47,11 +47,10 @@
   <string name="dialog_prompt">Wprowadź wartość</string>
   <string name="update_repo_not_set">Sprawdzanie aktualizacji: repozytorium nie jest ustawione w tej wersji</string>
   <string name="update_version_invalid">Nieprawidłowe informacje o wersji: %s</string>
-  <string name="update_up_to_date">Aplikacja jest aktualna (najnowsza %1$d, zainstalowana %2$d)</string>
+  <string name="update_up_to_date">Aplikacja jest aktualna (najnowsza %1$s, zainstalowana %2$s)</string>
   <string name="update_no_apk">Najnowsze wydanie nie zawiera pliku .apk</string>
   <string name="update_check_failed">Sprawdzanie aktualizacji nie powiodło się: %s</string>
   <string name="update_http_error">HTTP %1$d (%2$s)</string>
-  <string name="update_label_version_info">informacje o wersji</string>
   <string name="update_label_latest_release">najnowsze wydanie</string>
   <string name="update_save_failed">Nie udało się zapisać pobranego pliku</string>
   <string name="update_exit_code">kod wyjścia %d</string>

@@ -47,11 +47,10 @@
     <string name="dialog_prompt">输入</string>
     <string name="update_repo_not_set">检查更新：此版本未设置仓库</string>
     <string name="update_version_invalid">版本信息无效：%s</string>
-    <string name="update_up_to_date">已是最新版本（最新 %1$d，已安装 %2$d）</string>
+    <string name="update_up_to_date">已是最新版本（最新 %1$s，已安装 %2$s）</string>
     <string name="update_no_apk">最新发布版本没有 .apk 文件</string>
     <string name="update_check_failed">检查更新失败：%s</string>
     <string name="update_http_error">HTTP %1$d (%2$s)</string>
-    <string name="update_label_version_info">版本信息</string>
     <string name="update_label_latest_release">最新发布版本</string>
     <string name="update_save_failed">无法保存下载的文件</string>
     <string name="update_exit_code">退出码 %d</string>

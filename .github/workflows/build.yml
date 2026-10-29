@@ -17,15 +17,14 @@ jobs:
       - name: Check translations
         run: python3 scripts/check_strings.py --warn-only
 
-      - name: Set app version from update.txt
+      - name: Check app version in update.txt
         run: |
           v=$(head -n 1 update.txt | tr -d '\r[:space:]')
           if ! printf '%s' "$v" | grep -Eq '^[0-9A-Za-z._-]+$'; then
             echo "update.txt line 1 must be the app version, e.g. 1.1"
             exit 1
           fi
-          sed -i "s/^val appVersionName = .*/val appVersionName = \"$v\"/" app/build.gradle.kts
-          grep -n '^val appVersionName' app/build.gradle.kts
+          echo "base version: $v"
 
       - name: Write key
         if: ${{ ( github.event_name != 'pull_request' && github.ref == 'refs/heads/master' ) || github.ref_type == 'tag' }}

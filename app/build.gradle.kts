@@ -14,11 +14,45 @@ val keystoreProperties = if (keystorePropertiesFile.exists() && keystoreProperti
     }
 } else null
 
-val appVersionName = "1.0"
 val gitCommitCount = run {
     val process = Runtime.getRuntime().exec(arrayOf("git", "rev-list", "--count", "HEAD"))
     process.inputStream.bufferedReader().use { it.readText().trim().toInt() }
 }
+
+fun gitOutput(vararg args: String): String? = try {
+    val process = ProcessBuilder(listOf("git") + args)
+        .directory(rootProject.projectDir)
+        .redirectErrorStream(true)
+        .start()
+    val out = process.inputStream.bufferedReader().use { it.readText() }.trim()
+    if (process.waitFor() == 0) out else null
+} catch (e: Exception) {
+    null
+}
+
+val commitsPerVersion = 99
+fun versionCycle(count: Int) = (maxOf(count, 1) - 1) / commitsPerVersion
+
+val baseVersion = rootProject.file("update.txt").takeIf { it.isFile }
+    ?.readLines()?.firstOrNull()?.removePrefix("\uFEFF")?.trim().orEmpty().ifEmpty { "1.0" }
+
+val versionInfo = run {
+    val match = Regex("""(\d+)\.(\d+)""").matchEntire(baseVersion)
+    if (match == null) {
+        baseVersion to gitCommitCount.toString()
+    } else {
+        val anchorHash = gitOutput("blame", "-w", "-L", "1,1", "--porcelain", "--", "update.txt")
+            ?.lineSequence()?.firstOrNull()?.substringBefore(' ')
+            ?.takeIf { it.isNotBlank() && !it.all { c -> c == '0' } }
+        val anchorCount = anchorHash?.let { gitOutput("rev-list", "--count", it)?.toIntOrNull() }
+            ?: gitCommitCount
+        val cycle = versionCycle(gitCommitCount)
+        val minor = match.groupValues[2].toInt() + (cycle - versionCycle(anchorCount))
+        "${match.groupValues[1]}.$minor" to "%02d".format(gitCommitCount - cycle * commitsPerVersion)
+    }
+}
+val appVersionName = versionInfo.first
+val buildSuffix = versionInfo.second
 
 android {
     namespace = "io.github.a13e300.ksuwebui"
@@ -45,6 +79,7 @@ android {
             ?: System.getenv("GITHUB_REPOSITORY")
             ?: ""
         buildConfigField("String", "UPDATE_REPO", "\"$updateRepo\"")
+        buildConfigField("String", "BUILD_SUFFIX", "\"$buildSuffix\"")
     }
 
     buildTypes {
@@ -90,7 +125,7 @@ android {
 
 base {
     archivesName.set(
-        "KsuWebUI-SN-${appVersionName}-${gitCommitCount}-$name"
+        "KsuWebUI-SN-${appVersionName}-${buildSuffix}-$name"
     )
 }
 

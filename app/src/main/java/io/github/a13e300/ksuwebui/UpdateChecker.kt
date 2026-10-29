@@ -30,17 +30,25 @@ object UpdateChecker {
 
     private val cachePrefs get() = App.instance.getSharedPreferences("update_cache", android.content.Context.MODE_PRIVATE)
 
-    fun cached(): Int? {
-        val code = cachePrefs.getInt("code", 0)
-        if (code <= BuildConfig.VERSION_CODE) {
-            if (code != 0) cachePrefs.edit().clear().apply()
-            return null
-        }
-        return code
+    private val versionRegex = Regex("""(\d+)\.(\d+)-(\d+)""")
+
+    private fun encode(match: MatchResult): Int {
+        val (major, minor, suffix) = match.destructured
+        return major.toInt() * 1_000_000 + minor.toInt().coerceAtMost(999) * 1_000 + suffix.toInt().coerceAtMost(999)
     }
 
-    private fun saveCache(code: Int) {
-        cachePrefs.edit().putInt("code", code).apply()
+    private fun installedLabel() = "${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_SUFFIX}"
+
+    private fun installedVersion(): Int? = versionRegex.matchEntire(installedLabel())?.let { encode(it) }
+
+    fun cached(): Int? {
+        val code = cachePrefs.getInt("latest", 0)
+        val installed = installedVersion() ?: return null
+        return if (code > installed) code else null
+    }
+
+    private fun saveCache(etag: String?, code: Int, label: String) {
+        cachePrefs.edit().remove("code").putString("etag", etag).putInt("latest", code).putString("latest_label", label).apply()
     }
 
     private fun fetch(url: String, @StringRes label: Int, accept: String? = null): String {
@@ -54,28 +62,70 @@ object UpdateChecker {
         }
     }
 
+    private class Latest(val code: Int, val label: String)
+
+    private fun latestVersion(repo: String): Latest? {
+        val conn = connect("https://api.github.com/repos/$repo/releases/latest")
+        try {
+            conn.setRequestProperty("Accept", "application/vnd.github+json")
+            val etag = cachePrefs.getString("etag", null)
+            val savedCode = cachePrefs.getInt("latest", 0)
+            val savedLabel = cachePrefs.getString("latest_label", null)
+            val canReuse = etag != null && savedCode != 0 && savedLabel != null
+            if (canReuse) conn.setRequestProperty("If-None-Match", etag)
+            val http = conn.responseCode
+            if (http == 304 && canReuse) return Latest(savedCode, savedLabel!!)
+            if (http != 200) throw IOException(App.instance.getString(R.string.update_http_error, http, App.instance.getString(R.string.update_label_latest_release)))
+            val release = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
+            val assets = release.optJSONArray("assets")
+            var apkName: String? = null
+            if (assets != null) {
+                for (i in 0 until assets.length()) {
+                    val name = assets.getJSONObject(i).optString("name")
+                    if (name.endsWith(".apk", ignoreCase = true)) {
+                        apkName = name
+                        break
+                    }
+                }
+            }
+            if (apkName == null) {
+                status = App.instance.getString(R.string.update_no_apk)
+                return null
+            }
+            val match = versionRegex.find(apkName)
+                ?: versionRegex.find(release.optString("tag_name"))
+                ?: versionRegex.find(release.optString("name"))
+            if (match == null) {
+                status = App.instance.getString(R.string.update_version_invalid, apkName.take(20))
+                return null
+            }
+            val latest = Latest(encode(match), match.value)
+            saveCache(conn.getHeaderField("ETag"), latest.code, latest.label)
+            return latest
+        } finally {
+            conn.disconnect()
+        }
+    }
+
     fun check(): Int? {
         val repo = BuildConfig.UPDATE_REPO
         if (repo.isEmpty()) {
             status = App.instance.getString(R.string.update_repo_not_set)
             return null
         }
+        val installed = installedVersion()
+        if (installed == null) {
+            status = App.instance.getString(R.string.update_version_invalid, installedLabel().take(20))
+            return null
+        }
         return try {
-            val raw = fetch("https://raw.githubusercontent.com/$repo/HEAD/update.txt?t=${System.currentTimeMillis()}", R.string.update_label_version_info)
-                .removePrefix("\uFEFF")
-            val line2 = raw.lines().getOrNull(1)?.trim().orEmpty()
-            val latestCode = line2.toIntOrNull() ?: run {
-                status = App.instance.getString(R.string.update_version_invalid, line2.take(20))
-                return null
-            }
-            if (latestCode <= BuildConfig.VERSION_CODE) {
-                status = App.instance.getString(R.string.update_up_to_date, latestCode, BuildConfig.VERSION_CODE)
-                cachePrefs.edit().clear().apply()
+            val latest = latestVersion(repo) ?: return null
+            if (latest.code <= installed) {
+                status = App.instance.getString(R.string.update_up_to_date, latest.label, installedLabel())
                 return null
             }
             status = App.instance.getString(R.string.update_title)
-            saveCache(latestCode)
-            latestCode
+            latest.code
         } catch (e: Exception) {
             status = App.instance.getString(R.string.update_check_failed, e.message ?: e.javaClass.simpleName)
             cached()

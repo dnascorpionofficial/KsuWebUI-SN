@@ -47,11 +47,10 @@
   <string name="dialog_prompt">入力</string>
   <string name="update_repo_not_set">アップデート確認: このビルドではリポジトリが設定されていません</string>
   <string name="update_version_invalid">バージョン情報が無効です: %s</string>
-  <string name="update_up_to_date">最新です (最新 %1$d、インストール済み %2$d)</string>
+  <string name="update_up_to_date">最新です (最新 %1$s、インストール済み %2$s)</string>
   <string name="update_no_apk">最新リリースに .apk ファイルがありません</string>
   <string name="update_check_failed">アップデートの確認に失敗しました: %s</string>
   <string name="update_http_error">HTTP %1$d (%2$s)</string>
-  <string name="update_label_version_info">バージョン情報</string>
   <string name="update_label_latest_release">最新リリース</string>
   <string name="update_save_failed">ダウンロードを保存できませんでした</string>
   <string name="update_exit_code">終了コード %d</string>

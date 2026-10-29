@@ -47,11 +47,10 @@
     <string name="dialog_prompt">Prompt</string>
     <string name="update_repo_not_set">Update check: repo not set in this build</string>
     <string name="update_version_invalid">Version info is invalid: %s</string>
-    <string name="update_up_to_date">Up to date (latest %1$d, installed %2$d)</string>
+    <string name="update_up_to_date">Up to date (latest %1$s, installed %2$s)</string>
     <string name="update_no_apk">Latest release has no .apk file</string>
     <string name="update_check_failed">Update check failed: %s</string>
     <string name="update_http_error">HTTP %1$d (%2$s)</string>
-    <string name="update_label_version_info">version info</string>
     <string name="update_label_latest_release">latest release</string>
     <string name="update_save_failed">Could not save the download</string>
     <string name="update_exit_code">exit code %d</string>
