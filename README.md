@@ -6,6 +6,7 @@ Special thanks to both contributors for their work, which served as the foundati
 
 - [5ec1cff — KsuWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone)
 - [KOWX712 — KsuWebUIStandalone](https://github.com/KOWX712/KsuWebUIStandalone)
+
 This project is maintained independently and is no longer a fork of the original repository.
 
 # KsuWebUI-SN
