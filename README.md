@@ -1,4 +1,12 @@
-"original credits goes to [KOWX712](https://github.com/KOWX712/KsuWebUIStandalone) and [5ec1cff](https://github.com/5ec1cff/KsuWebUIStandalone) for base code of Ksuwebui Standalone"
+## Credits
+
+This project is based on the original work by 5ec1cff , who developed the base code for **KsuWebUI Standalone**, with further improvements and fixes by KOWX712.
+
+Special thanks to both contributors for their work, which served as the foundation for this project.
+
+- [5ec1cff — KsuWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone)
+- [KOWX712 — KsuWebUIStandalone](https://github.com/KOWX712/KsuWebUIStandalone)
+This project is maintained independently and is no longer a fork of the original repository.
 
 # KsuWebUI-SN
 
