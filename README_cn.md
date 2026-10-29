@@ -1,3 +1,14 @@
+## 致谢
+
+本项目基于 5ec1cff 的原始工作，他开发了 **KsuWebUI Standalone** 的基础代码，KOWX712 随后进行了进一步的改进和修复。
+
+特别感谢两位贡献者的工作，它们为本项目奠定了基础。
+
+- [5ec1cff — KsuWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone)
+- [KOWX712 — KsuWebUIStandalone](https://github.com/KOWX712/KsuWebUIStandalone)
+
+> 本项目独立维护，不再是原始仓库的分叉（fork）。
+
 # KsuWebUI-SN
 
 [English](README.md) | 简体中文 | [Français](README_fr.md) | [日本語](README_ja.md)

@@ -1,3 +1,14 @@
+## Crédits
+
+Ce projet est basé sur le travail original de 5ec1cff, qui a développé le code de base de **KsuWebUI Standalone**, avec des améliorations et des corrections supplémentaires apportées par KOWX712.
+
+Un grand merci aux deux contributeurs pour leur travail, qui a servi de fondation à ce projet.
+
+- [5ec1cff — KsuWebUIStandalone](https://github.com/5ec1cff/KsuWebUIStandalone)
+- [KOWX712 — KsuWebUIStandalone](https://github.com/KOWX712/KsuWebUIStandalone)
+
+> Ce projet est maintenu de manière indépendante et n'est plus un fork du dépôt d'origine.
+
 # KsuWebUI-SN
 
 [English](README.md) | [简体中文](README_cn.md) | Français | [日本語](README_ja.md)
