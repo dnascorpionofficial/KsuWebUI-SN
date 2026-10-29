@@ -10,7 +10,6 @@
   <string name="update_failed">アップデートに失敗しました: %s</string>
   <string name="update_not_newer">リリース版 APK (ビルド %1$d) はインストール済みのアプリ (ビルド %2$d) より新しくありません</string>
   <string name="update_check">アップデートを確認</string>
-  <string name="enable_webview_debugging">デバッグ</string>
   <string name="please_grant_root">root 権限を許可してください</string>
   <string name="no_modules">モジュールがありません</string>
   <string name="loading">読み込み中 …</string>

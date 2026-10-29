@@ -25,16 +25,89 @@ private const val KSU_SCHEME = "ksu"
 private const val ICON_HOST = "icon"
 private const val ERUDA_CENTER_JS = """
 try {
-  if (!localStorage.getItem('ksu-eruda-pos')) {
-    localStorage.setItem('ksu-eruda-pos', '1');
-    eruda.position({ x: 99999, y: 99999 });
-    var p = eruda.position();
-    var s = window.innerHeight - p.y - 10;
-    eruda.position({ x: p.x, y: Math.round((window.innerHeight - s) / 2) });
-  }
+  eruda.position({ x: 99999, y: 99999 });
+  var p = eruda.position();
+  var s = window.innerHeight - p.y - 10;
+  eruda.position({ x: p.x, y: Math.round((window.innerHeight - s) / 2) });
 } catch (e) {}
 """
-private const val DOWNLOAD_JS = """
+private const val ERUDA_STORAGE_JS = """
+(function() {
+  try {
+    if (window.__erudaAddStorage) return;
+    window.__erudaAddStorage = true;
+    var ICON_ADD = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display:block"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>';
+    var ICON_EDIT = '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor" style="display:block"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>';
+    function makeBtn(cls, title, icon) {
+      var b = document.createElement('div');
+      b.className = 'eruda-btn ' + cls;
+      b.title = title;
+      b.innerHTML = icon;
+      return b;
+    }
+    function install(section, storeName, area) {
+      var host = document.getElementById('eruda');
+      var root = host && (host.shadowRoot || host);
+      var refresh = root && root.querySelector('.eruda-' + section + ' .eruda-refresh-storage');
+      var tool = window.eruda && eruda.get && eruda.get('resources');
+      var store = tool && tool[storeName];
+      if (!refresh || !store) return false;
+      if (root.querySelector('.eruda-' + section + ' .eruda-add-storage')) return true;
+      var add = makeBtn('eruda-add-storage', 'Add', ICON_ADD);
+      var edit = makeBtn('eruda-edit-storage eruda-btn-disabled', 'Edit', ICON_EDIT);
+      refresh.insertAdjacentElement('afterend', edit);
+      refresh.insertAdjacentElement('afterend', add);
+      function sync() {
+        if (store._selectedItem) edit.classList.remove('eruda-btn-disabled');
+        else edit.classList.add('eruda-btn-disabled');
+      }
+      var orig = store._updateButtons;
+      store._updateButtons = function() {
+        orig.apply(this, arguments);
+        sync();
+      };
+      function save(key, value) {
+        try {
+          area.setItem(key, value);
+        } catch (e) {
+          window.alert(String(e));
+          return;
+        }
+        store.refresh();
+        sync();
+      }
+      add.addEventListener('click', function() {
+        var key = window.prompt('Key');
+        if (key === null) return;
+        key = key.trim();
+        if (!key) return;
+        if (area.getItem(key) !== null) {
+          window.alert('"' + key + '" already exists. Select it and use the edit button.');
+          return;
+        }
+        var value = window.prompt('Value', '');
+        if (value === null) return;
+        save(key, value);
+      });
+      edit.addEventListener('click', function() {
+        var key = store._selectedItem;
+        if (!key) return;
+        var value = window.prompt('Value for "' + key + '"', area.getItem(key) || '');
+        if (value === null) return;
+        save(key, value);
+      });
+      return true;
+    }
+    var tries = 0;
+    var timer = setInterval(function() {
+      var a = install('local-storage', '_localStorage', localStorage);
+      var b = install('session-storage', '_sessionStorage', sessionStorage);
+      if ((a && b) || ++tries > 40) clearInterval(timer);
+    }, 250);
+  } catch (e) {}
+})();
+"""
+private fun downloadJs(domain: String) = """
     (function() {
         if (window.ksu_download_enabled) return;
         window.ksu_download_enabled = true;
@@ -54,7 +127,7 @@ private const val DOWNLOAD_JS = """
             const urlParsed = new URL(a.href, location.href);
             const url = urlParsed.href;
             const fileName = a.download || url.split("/").pop().split("?")[0] || "download.bin";
-            const isInternal = urlParsed.hostname === '$WEB_DOMAIN';
+            const isInternal = urlParsed.hostname === '$domain' || urlParsed.hostname === '$WEB_DOMAIN';
             if (url.startsWith('blob:') || url.startsWith('data:') || isInternal) {
                 const blob = (url.startsWith('blob:') && blobMap.has(url)) ? blobMap.get(url) : await (await fetch(url)).blob();
                 if (blob.size > 16 * 1024 * 1024) {
@@ -84,6 +157,16 @@ private const val DOWNLOAD_JS = """
     })();
 """
 
+private fun moduleDomain(moduleId: String): String {
+    val slug = moduleId.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').take(40).trim('-')
+    val hash = java.security.MessageDigest.getInstance("SHA-256")
+        .digest(moduleId.toByteArray())
+        .take(4)
+        .joinToString("") { "%02x".format(it) }
+    val label = if (slug.isEmpty()) "m-$hash" else "$slug-$hash"
+    return "$label.$WEB_DOMAIN"
+}
+
 fun WebUIActivity.prepareWebView(state: WebUIState): Boolean {
     val moduleId = intent.getStringExtra("id")
     if (moduleId == null) {
@@ -97,19 +180,23 @@ fun WebUIActivity.prepareWebView(state: WebUIState): Boolean {
 
 fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
     val webRoot = File("${state.moduleDir}/webroot")
+    val moduleId = state.moduleDir.substringAfterLast('/')
+    val domain = moduleDomain(moduleId)
+    val pathHandler = RemoteFsPathHandler(
+        webRoot,
+        fs,
+        { state.insets },
+        { enable ->
+            enableEdgeToEdge(enable)
+        }
+    )
     val webViewAssetLoader = WebViewAssetLoader.Builder()
+        .setDomain(domain)
+        .addPathHandler("/", pathHandler)
+        .build()
+    val internalAssetLoader = WebViewAssetLoader.Builder()
         .setDomain(WEB_DOMAIN)
-        .addPathHandler(
-            "/",
-            RemoteFsPathHandler(
-                webRoot,
-                fs,
-                { state.insets },
-                { enable ->
-                    enableEdgeToEdge(enable) 
-                }
-            )
-        )
+        .addPathHandler("/internal/") { path -> pathHandler.handle("internal/$path") }
         .build()
 
     val eruda by lazy { assets.open("eruda.min.js").bufferedReader().use { it.readText() } }
@@ -135,18 +222,22 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
             }
 
             return webViewAssetLoader.shouldInterceptRequest(url)
+                ?: internalAssetLoader.shouldInterceptRequest(url)
         }
 
         override fun onPageFinished(view: WebView?, url: String?) {
             val prefs = getSharedPreferences("settings", android.content.Context.MODE_PRIVATE)
             val consoleModules = prefs.getStringSet("console_modules", emptySet()).orEmpty()
-            if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG) || state.moduleDir.substringAfterLast('/') in consoleModules) {
+            if (moduleId in consoleModules) {
+                val centered = prefs.getStringSet("eruda_centered", emptySet()).orEmpty()
+                val center = moduleId !in centered
                 view?.evaluateJavascript(
-                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$eruda\n;eruda.init();\n$ERUDA_CENTER_JS\n}",
+                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$eruda\n;eruda.init();\n${if (center) ERUDA_CENTER_JS else ""}\n$ERUDA_STORAGE_JS\n}",
                     null
                 )
+                if (center) prefs.edit().putStringSet("eruda_centered", centered + moduleId).apply()
             }
-            view?.evaluateJavascript(DOWNLOAD_JS, null)
+            view?.evaluateJavascript(downloadJs(domain), null)
             view?.evaluateJavascript(SYSTEM_BARS_JS, null)
         }
     }
@@ -237,6 +328,6 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 return true
             }
         }
-        loadUrl("https://$WEB_DOMAIN/index.html")
+        loadUrl("https://$domain/index.html")
     }
 }

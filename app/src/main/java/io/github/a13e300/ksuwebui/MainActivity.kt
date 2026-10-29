@@ -241,11 +241,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     UpdateChecker.available = code
                     withContext(Dispatchers.Main) {
                         showUpdate(code)
-                        if (code != null) {
-                            showMessage(getString(R.string.update_title))
-                        } else if (prefs.getBoolean("enable_web_debugging", BuildConfig.DEBUG)) {
-                            showMessage(UpdateChecker.status)
-                        }
+                        if (code != null) showMessage(getString(R.string.update_title))
                     }
                 }
             } else {
@@ -406,7 +402,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 showUpdate(null)
             }
         }
-        binding.swDebugging.bindPref("enable_web_debugging", BuildConfig.DEBUG)
         binding.swShowBanners.bindPref("show_banners", true) { refresh() }
         binding.swShowIcons.bindPref("show_icons", true) { refresh() }
         binding.swShowDisabled.bindPref("show_disabled", true) { refresh() }

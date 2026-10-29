@@ -10,7 +10,6 @@
     <string name="update_failed">Update failed: %s</string>
     <string name="update_not_newer">the release APK (build %1$d) is not newer than the installed app (build %2$d)</string>
     <string name="update_check">Update check</string>
-    <string name="enable_webview_debugging">Debugging</string>
     <string name="please_grant_root">Please grant root</string>
     <string name="no_modules">No modules</string>
     <string name="loading">Loading …</string>
