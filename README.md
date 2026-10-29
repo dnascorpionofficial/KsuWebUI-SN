@@ -1,3 +1,5 @@
+"original credits goes to [KOWX712](https://github.com/KOWX712/KsuWebUIStandalone) and [5ec1cff](https://github.com/5ec1cff/KsuWebUIStandalone) for base code of Ksuwebui Standalone"
+
 # KsuWebUI-SN
 
 English | [简体中文](README_cn.md) | [Français](README_fr.md) | [日本語](README_ja.md)
