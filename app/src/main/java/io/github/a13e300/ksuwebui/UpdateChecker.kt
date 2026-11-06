@@ -74,7 +74,7 @@ object UpdateChecker {
             val canReuse = etag != null && savedCode != 0 && savedLabel != null
             if (canReuse) conn.setRequestProperty("If-None-Match", etag)
             val http = conn.responseCode
-            if (http == 304 && canReuse) return Latest(savedCode, savedLabel!!)
+            if (http == 304 && canReuse) return Latest(savedCode, savedLabel)
             if (http != 200) throw IOException(App.instance.getString(R.string.update_http_error, http, App.instance.getString(R.string.update_label_latest_release)))
             val release = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
             val assets = release.optJSONArray("assets")
