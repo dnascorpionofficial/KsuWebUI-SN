@@ -32,6 +32,39 @@ try {
   eruda.position({ x: p.x, y: Math.round((window.innerHeight - s) / 2) });
 } catch (e) {}
 """
+private const val ERUDA_POS_SAVE_JS = """
+var __ksuPos = null;
+try {
+  var __raw = localStorage.getItem('eruda-entry-button');
+  if (__raw) {
+    var __o = JSON.parse(__raw);
+    if (__o && __o.pos && typeof __o.pos.x === 'number' && typeof __o.pos.y === 'number') __ksuPos = __o.pos;
+  }
+} catch (e) {}
+"""
+private const val ERUDA_POS_FIX_JS = """
+try {
+  var __eb = eruda._entryBtn;
+  if (__eb && !__eb.__ksuFixed) {
+    __eb.__ksuFixed = true;
+    __eb.setPos = function(p) {
+      var d = this._getDefPos();
+      var x = Math.min(Math.max(p.x, 0), Math.max(d.x, 0));
+      var y = Math.min(Math.max(p.y, 0), Math.max(d.y, 0));
+      this._$el.css({ left: x, top: y });
+      if (p.x >= 0 && p.x <= d.x + 10 && p.y >= 0 && p.y <= d.y + 10) this.config.set('pos', p);
+    };
+    __eb._resetPos = function() {
+      var p = this.config.get('rememberPos') ? this.config.get('pos') : this._getDefPos();
+      this.setPos(p);
+    };
+    if (__ksuRestore && __ksuPos) {
+      __eb.config.set('pos', __ksuPos);
+      __eb.setPos(__ksuPos);
+    }
+  }
+} catch (e) {}
+"""
 private const val ERUDA_STORAGE_JS = """
 (function() {
   try {
@@ -244,7 +277,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 val centered = prefs.getStringSet("eruda_centered", emptySet()).orEmpty()
                 val center = moduleId !in centered
                 view?.evaluateJavascript(
-                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$eruda\n;eruda.init();\n${if (center) ERUDA_CENTER_JS else ""}\n$ERUDA_STORAGE_JS\n}",
+                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$ERUDA_POS_SAVE_JS\n$eruda\n;eruda.init();\n${if (center) ERUDA_CENTER_JS else ""}\nvar __ksuRestore = ${!center};\n$ERUDA_POS_FIX_JS\n$ERUDA_STORAGE_JS\n}",
                     null
                 )
                 if (center) prefs.edit().putStringSet("eruda_centered", centered + moduleId).apply()
