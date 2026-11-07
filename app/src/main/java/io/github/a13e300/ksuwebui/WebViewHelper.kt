@@ -51,7 +51,7 @@ try {
       var d = this._getDefPos();
       var x = Math.min(Math.max(p.x, 0), Math.max(d.x, 0));
       var y = Math.min(Math.max(p.y, 0), Math.max(d.y, 0));
-      this._$el.css({ left: x, top: y });
+      this._${'$'}el.css({ left: x, top: y });
       if (p.x >= 0 && p.x <= d.x + 10 && p.y >= 0 && p.y <= d.y + 10) this.config.set('pos', p);
     };
     __eb._resetPos = function() {
@@ -62,6 +62,18 @@ try {
       __eb.config.set('pos', __ksuPos);
       __eb.setPos(__ksuPos);
     }
+  }
+} catch (e) {}
+"""
+private const val ERUDA_INSET_JS = """
+try {
+  var __h = document.getElementById('eruda');
+  var __r = __h && (__h.shadowRoot || __h);
+  if (__r && !__r.querySelector('#ksu-eruda-inset')) {
+    var __st = document.createElement('style');
+    __st.id = 'ksu-eruda-inset';
+    __st.textContent = '.eruda-dev-tools{bottom:var(--safe-area-inset-bottom,0px)!important;}';
+    __r.appendChild(__st);
   }
 } catch (e) {}
 """
@@ -277,7 +289,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 val centered = prefs.getStringSet("eruda_centered", emptySet()).orEmpty()
                 val center = moduleId !in centered
                 view?.evaluateJavascript(
-                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$ERUDA_POS_SAVE_JS\n$eruda\n;eruda.init();\n${if (center) ERUDA_CENTER_JS else ""}\nvar __ksuRestore = ${!center};\n$ERUDA_POS_FIX_JS\n$ERUDA_STORAGE_JS\n}",
+                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$ERUDA_POS_SAVE_JS\n$eruda\n;eruda.init();\n${if (center) ERUDA_CENTER_JS else ""}\nvar __ksuRestore = ${!center};\n$ERUDA_POS_FIX_JS\n$ERUDA_INSET_JS\n$ERUDA_STORAGE_JS\n}",
                     null
                 )
                 if (center) prefs.edit().putStringSet("eruda_centered", centered + moduleId).apply()
