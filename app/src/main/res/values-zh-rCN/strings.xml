@@ -45,6 +45,9 @@
     <string name="dialog_alert">警告</string>
     <string name="dialog_confirm">确认</string>
     <string name="dialog_prompt">输入</string>
+    <string name="reload_title">重新加载</string>
+    <string name="reload_table">重新加载表格</string>
+    <string name="reload_webui">重新加载 WebUI</string>
     <string name="update_repo_not_set">检查更新：此版本未设置仓库</string>
     <string name="update_version_invalid">版本信息无效：%s</string>
     <string name="update_up_to_date">已是最新版本（最新 %1$s，已安装 %2$s）</string>

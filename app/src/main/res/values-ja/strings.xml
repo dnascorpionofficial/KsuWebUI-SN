@@ -45,6 +45,9 @@
   <string name="dialog_alert">警告</string>
   <string name="dialog_confirm">確認</string>
   <string name="dialog_prompt">入力</string>
+  <string name="reload_title">再読み込み</string>
+  <string name="reload_table">テーブルを再読み込み</string>
+  <string name="reload_webui">WebUIを再読み込み</string>
   <string name="update_repo_not_set">アップデート確認: このビルドではリポジトリが設定されていません</string>
   <string name="update_version_invalid">バージョン情報が無効です: %s</string>
   <string name="update_up_to_date">最新です (最新 %1$s、インストール済み %2$s)</string>

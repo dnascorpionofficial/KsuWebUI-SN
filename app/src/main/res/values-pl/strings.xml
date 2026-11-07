@@ -45,6 +45,9 @@
   <string name="dialog_alert">Alert</string>
   <string name="dialog_confirm">Potwierdź</string>
   <string name="dialog_prompt">Wprowadź wartość</string>
+  <string name="reload_title">Odśwież</string>
+  <string name="reload_table">Odśwież tabelę</string>
+  <string name="reload_webui">Przeładuj WebUI</string>
   <string name="update_repo_not_set">Sprawdzanie aktualizacji: repozytorium nie jest ustawione w tej wersji</string>
   <string name="update_version_invalid">Nieprawidłowe informacje o wersji: %s</string>
   <string name="update_up_to_date">Aplikacja jest aktualna (najnowsza %1$s, zainstalowana %2$s)</string>

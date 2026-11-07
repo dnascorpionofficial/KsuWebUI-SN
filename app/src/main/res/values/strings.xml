@@ -45,6 +45,9 @@
     <string name="dialog_alert">Alert</string>
     <string name="dialog_confirm">Confirm</string>
     <string name="dialog_prompt">Prompt</string>
+    <string name="reload_title">Reload</string>
+    <string name="reload_table">Reload table</string>
+    <string name="reload_webui">Reload WebUI</string>
     <string name="update_repo_not_set">Update check: repo not set in this build</string>
     <string name="update_version_invalid">Version info is invalid: %s</string>
     <string name="update_up_to_date">Up to date (latest %1$s, installed %2$s)</string>

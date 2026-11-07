@@ -16,6 +16,7 @@ import android.widget.EditText
 import android.widget.FrameLayout
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.a13e300.ksuwebui.databinding.DialogReloadBinding
 import com.topjohnwu.superuser.nio.FileSystemManager
 import java.io.File
 
@@ -57,6 +58,17 @@ private const val ERUDA_STORAGE_JS = """
       var edit = makeBtn('eruda-edit-storage eruda-btn-disabled', 'Edit', ICON_EDIT);
       refresh.insertAdjacentElement('afterend', edit);
       refresh.insertAdjacentElement('afterend', add);
+      refresh.addEventListener('click', function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        var choice = window.prompt('__ksu_reload__');
+        if (choice === 'webui') {
+          location.reload();
+        } else if (choice === 'table') {
+          store.refresh();
+          sync();
+        }
+      }, true);
       function sync() {
         if (store._selectedItem) edit.classList.remove('eruda-btn-disabled');
         else edit.classList.add('eruda-btn-disabled');
@@ -307,6 +319,23 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
             }
 
             override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
+                if (message == "__ksu_reload__") {
+                    val view = DialogReloadBinding.inflate(layoutInflater)
+                    val dialog = MaterialAlertDialogBuilder(this@initWebView, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
+                        .setView(view.root)
+                        .setOnCancelListener { result?.cancel() }
+                        .create()
+                    view.table.setOnClickListener {
+                        result?.confirm("table")
+                        dialog.dismiss()
+                    }
+                    view.webui.setOnClickListener {
+                        result?.confirm("webui")
+                        dialog.dismiss()
+                    }
+                    dialog.show()
+                    return true
+                }
                 val input = EditText(this@initWebView).apply {
                     if (defaultValue != null) setText(defaultValue)
                 }
