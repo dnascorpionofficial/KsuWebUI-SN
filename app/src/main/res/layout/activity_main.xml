@@ -110,16 +110,6 @@
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
         <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/sw_update_check"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:paddingHorizontal="24dp"
-            android:text="@string/update_check"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp" />
-
-        <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/sw_show_banners"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -9,7 +9,6 @@
   <string name="update_installing">Instalowanie …</string>
   <string name="update_failed">Aktualizacja nieudana: %s</string>
   <string name="update_not_newer">wydanie APK (build %1$d) nie jest nowsze niż zainstalowana aplikacja (build %2$d)</string>
-  <string name="update_check">Sprawdź aktualizacje</string>
   <string name="please_grant_root">Proszę o nadanie roota</string>
   <string name="no_modules">Brak modułów</string>
   <string name="loading">Ładowanie&#x2026;</string>

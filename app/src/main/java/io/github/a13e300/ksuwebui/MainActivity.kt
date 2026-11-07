@@ -232,21 +232,19 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             lifecycleScope.launch(Dispatchers.IO) { UpdateChecker.cleanup() }
         }
 
-        if (prefs.getBoolean("update_check", true)) {
-            if (savedInstanceState == null) {
-                UpdateChecker.available = UpdateChecker.cached()
-                showUpdate(UpdateChecker.available)
-                lifecycleScope.launch(Dispatchers.IO) {
-                    val code = UpdateChecker.check()
-                    UpdateChecker.available = code
-                    withContext(Dispatchers.Main) {
-                        showUpdate(code)
-                        if (code != null) showMessage(getString(R.string.update_title))
-                    }
+        if (savedInstanceState == null) {
+            UpdateChecker.available = UpdateChecker.cached()
+            showUpdate(UpdateChecker.available)
+            lifecycleScope.launch(Dispatchers.IO) {
+                val code = UpdateChecker.check()
+                UpdateChecker.available = code
+                withContext(Dispatchers.Main) {
+                    showUpdate(code)
+                    if (code != null) showMessage(getString(R.string.update_title))
                 }
-            } else {
-                showUpdate(UpdateChecker.available)
             }
+        } else {
+            showUpdate(UpdateChecker.available)
         }
 
         adapter = Adapter()
@@ -395,12 +393,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             if (!checked || mode == themeMode(prefs)) return@addOnButtonCheckedListener
             prefs.edit { putInt("theme_mode", mode) }
             AppCompatDelegate.setDefaultNightMode(nightMode(mode))
-        }
-        binding.swUpdateCheck.bindPref("update_check", true) { on ->
-            if (!on) {
-                UpdateChecker.available = null
-                showUpdate(null)
-            }
         }
         binding.swShowBanners.bindPref("show_banners", true) { refresh() }
         binding.swShowIcons.bindPref("show_icons", true) { refresh() }

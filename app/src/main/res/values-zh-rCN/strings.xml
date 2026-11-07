@@ -9,7 +9,6 @@
     <string name="update_installing">安装中 …</string>
     <string name="update_failed">更新失败：%s</string>
     <string name="update_not_newer">发布的 APK（版本号 %1$d）不比已安装的应用（版本号 %2$d）更新</string>
-    <string name="update_check">检查更新</string>
     <string name="please_grant_root">请授予 Root 权限</string>
     <string name="no_modules">无可用模块</string>
     <string name="loading">加载中 …</string>
