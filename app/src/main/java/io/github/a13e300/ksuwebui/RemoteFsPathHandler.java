@@ -19,7 +19,7 @@ import java.util.zip.GZIPInputStream;
 public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler {
     private static final String TAG = "FsServicePathHandler";
 
-    public static final String DEFAULT_MIME_TYPE = "text/plain";
+    private static final String DEFAULT_MIME_TYPE = "text/plain";
 
     private static final String[] FORBIDDEN_DATA_DIRS =
             new String[] {"/data/data", "/data/system"};
@@ -114,13 +114,13 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
         return new WebResourceResponse(null, null, null);
     }
 
-    public static String getCanonicalDirPath(@NonNull File file) throws IOException {
+    private static String getCanonicalDirPath(@NonNull File file) throws IOException {
         String canonicalPath = file.getCanonicalPath();
         if (!canonicalPath.endsWith("/")) canonicalPath += "/";
         return canonicalPath;
     }
 
-    public static File getCanonicalFileIfChild(@NonNull File parent, @NonNull String child)
+    private static File getCanonicalFileIfChild(@NonNull File parent, @NonNull String child)
             throws IOException {
         String parentCanonicalPath = getCanonicalDirPath(parent);
         String childCanonicalPath = new File(parent, child).getCanonicalPath();
@@ -136,12 +136,12 @@ public final class RemoteFsPathHandler implements WebViewAssetLoader.PathHandler
         return path.endsWith(".svgz") ? new GZIPInputStream(stream) : stream;
     }
 
-    public static InputStream openFile(@NonNull File file, @NonNull FileSystemManager fs) throws IOException {
+    private static InputStream openFile(@NonNull File file, @NonNull FileSystemManager fs) throws IOException {
         return handleSvgzStream(file.getPath(), fs.getFile(file.getAbsolutePath()).newInputStream());
     }
 
     @NonNull
-    public static String guessMimeType(@NonNull String filePath) {
+    private static String guessMimeType(@NonNull String filePath) {
         String mimeType = MimeUtil.getMimeFromFileName(filePath);
         return mimeType == null ? DEFAULT_MIME_TYPE : mimeType;
     }

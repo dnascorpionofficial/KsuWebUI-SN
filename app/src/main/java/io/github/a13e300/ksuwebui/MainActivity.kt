@@ -24,6 +24,7 @@ import android.view.MenuItem
 import android.view.View
 import android.widget.CompoundButton
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.graphics.drawable.GradientDrawable
 import android.widget.TextView
 import com.google.android.material.color.MaterialColors
@@ -72,6 +73,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+private const val KEY_SHOW_BANNERS = "show_banners"
+private const val KEY_SHOW_ICONS = "show_icons"
+private const val KEY_SHOW_DISABLED = "show_disabled"
+private const val KEY_SHOW_HIDDEN = "show_hidden"
+private const val KEY_PINNED = "pinned_modules"
+private const val KEY_HIDDEN = "hidden_modules"
 private const val DISABLED_RED = 0xFFE53935.toInt()
 private const val REBOOT_CMD = "svc power reboot || reboot"
 private const val SOFT_REBOOT_CMD = "setprop ctl.restart zygote || killall zygote"
@@ -103,7 +110,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         override fun handleOnBackPressed() = binding.drawer.closeDrawer(GravityCompat.START)
     }
     private lateinit var adapter: Adapter
-    private val prefs by lazy { getSharedPreferences("settings", MODE_PRIVATE) }
+    private val prefs by lazy { getSharedPreferences(PREFS_SETTINGS, MODE_PRIVATE) }
     private var shouldRefresh = false
     private var pickTarget: Pair<String, Boolean>? = null
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -133,34 +140,29 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
     }
 
-    private fun getPinnedModules(): MutableSet<String> {
-        return prefs.getStringSet("pinned_modules", emptySet<String>())?.toMutableSet() ?: mutableSetOf()
+    private fun stringSet(key: String): MutableSet<String> =
+        prefs.getStringSet(key, emptySet())?.toMutableSet() ?: mutableSetOf()
+
+    private fun setMember(key: String, id: String, on: Boolean) {
+        val ids = stringSet(key)
+        if (on) ids.add(id) else ids.remove(id)
+        prefs.edit { putStringSet(key, ids) }
     }
 
-    private fun savePinnedModules(pinned: Set<String>) {
-        prefs.edit { putStringSet("pinned_modules", pinned) }
-    }
-
-    private fun getHiddenModules(): MutableSet<String> {
-        return prefs.getStringSet("hidden_modules", emptySet<String>())?.toMutableSet() ?: mutableSetOf()
-    }
-
-    private fun getConsoleModules(): MutableSet<String> {
-        return prefs.getStringSet("console_modules", emptySet<String>())?.toMutableSet() ?: mutableSetOf()
+    private fun togglePin(item: Module) {
+        item.pinned = !item.pinned
+        setMember(KEY_PINNED, item.id, item.pinned)
+        applyFilter()
     }
 
     private fun toggleHidden(item: Module) {
         item.hidden = !item.hidden
-        val ids = getHiddenModules()
-        if (item.hidden) ids.add(item.id) else ids.remove(item.id)
-        prefs.edit { putStringSet("hidden_modules", ids) }
+        setMember(KEY_HIDDEN, item.id, item.hidden)
         applyFilter()
     }
 
     private fun toggleConsole(item: Module) {
-        val ids = getConsoleModules()
-        if (!ids.add(item.id)) ids.remove(item.id)
-        prefs.edit { putStringSet("console_modules", ids) }
+        setMember(KEY_CONSOLE_MODULES, item.id, item.id !in stringSet(KEY_CONSOLE_MODULES))
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -173,7 +175,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        binding.toolbar.title = "${getString(R.string.app_name)} ${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_SUFFIX}"
+        binding.toolbar.title = "${getString(R.string.app_name)} ${UpdateChecker.installedLabel()}"
         binding.toolbar.children.filterIsInstance<TextView>().firstOrNull()?.apply {
             ellipsize = TextUtils.TruncateAt.MARQUEE
             marqueeRepeatLimit = -1
@@ -230,17 +232,14 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
         if (savedInstanceState == null) {
             lifecycleScope.launch(Dispatchers.IO) { UpdateChecker.cleanup() }
-        }
-
-        if (savedInstanceState == null) {
             UpdateChecker.available = UpdateChecker.cached()
             showUpdate(UpdateChecker.available)
             lifecycleScope.launch(Dispatchers.IO) {
-                val code = UpdateChecker.check()
-                UpdateChecker.available = code
+                val found = UpdateChecker.check()
+                UpdateChecker.available = found
                 withContext(Dispatchers.Main) {
-                    showUpdate(code)
-                    if (code != null) showMessage(getString(R.string.update_title))
+                    showUpdate(found)
+                    if (found) showMessage(getString(R.string.update_title))
                 }
             }
         } else {
@@ -286,7 +285,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             })
         }
         menu.findItem(R.id.update).actionView?.setOnClickListener {
-            if (UpdateChecker.available != null && !fetchingRelease) {
+            if (UpdateChecker.available && !fetchingRelease) {
                 fetchingRelease = true
                 lifecycleScope.launch {
                     val update = withContext(Dispatchers.IO) { UpdateChecker.fetchRelease() }
@@ -320,8 +319,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         options.forEachIndexed { index, option ->
             if (index > 0) {
                 val divider = View(this)
-                divider.layoutParams = android.widget.LinearLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT, (1 * density).toInt()
+                divider.layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT, (1 * density).toInt()
                 ).apply { marginStart = (76 * density).toInt() }
                 divider.setBackgroundColor(ContextCompat.getColor(this, R.color.divider))
                 sheet.list.addView(divider)
@@ -394,10 +393,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             prefs.edit { putInt("theme_mode", mode) }
             AppCompatDelegate.setDefaultNightMode(nightMode(mode))
         }
-        binding.swShowBanners.bindPref("show_banners", true) { refresh() }
-        binding.swShowIcons.bindPref("show_icons", true) { refresh() }
-        binding.swShowDisabled.bindPref("show_disabled", true) { refresh() }
-        binding.swShowHidden.bindPref("show_hidden", false) { applyFilter() }
+        binding.swShowBanners.bindPref(KEY_SHOW_BANNERS, true) { refresh() }
+        binding.swShowIcons.bindPref(KEY_SHOW_ICONS, true) { refresh() }
+        binding.swShowDisabled.bindPref(KEY_SHOW_DISABLED, true) { refresh() }
+        binding.swShowHidden.bindPref(KEY_SHOW_HIDDEN, false) { applyFilter() }
     }
 
     private fun CompoundButton.bindPref(key: String, default: Boolean, onChange: (Boolean) -> Unit = {}) {
@@ -410,8 +409,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
     private var fetchingRelease = false
 
-    private fun showUpdate(code: Int?) {
-        binding.toolbar.menu.findItem(R.id.update)?.isVisible = code != null
+    private fun showUpdate(visible: Boolean) {
+        binding.toolbar.menu.findItem(R.id.update)?.isVisible = visible
     }
 
     override fun onResume() {
@@ -435,9 +434,9 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     override fun onServiceAvailable(fs: FileSystemManager) {
         App.executor.submit {
             val mods = mutableListOf<Module>()
-            val showDisabled = prefs.getBoolean("show_disabled", true)
-            val showBanners = prefs.getBoolean("show_banners", true)
-            val showIcons = prefs.getBoolean("show_icons", true)
+            val showDisabled = prefs.getBoolean(KEY_SHOW_DISABLED, true)
+            val showBanners = prefs.getBoolean(KEY_SHOW_BANNERS, true)
+            val showIcons = prefs.getBoolean(KEY_SHOW_ICONS, true)
             val sizes = HashMap<String, Long>()
             try {
                 Shell.cmd("du -sk /data/adb/modules/*").exec().out.forEach { l ->
@@ -462,14 +461,15 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     it.lines().forEach { l ->
                         val ls = l.split("=", limit = 2)
                         if (ls.size == 2) {
-                            if (ls[0] == "name") name = ls[1]
-                            else if (ls[0] == "description") desc = ls[1]
-                            else if (ls[0] == "author") author = ls[1]
-                            else if (ls[0] == "version") version = ls[1]
-                            else if (ls[0] == "banner") bannerRaw = ls[1]
-                            else if (ls[0] == "cover") coverRaw = ls[1]
+                            when (ls[0]) {
+                                "name" -> name = ls[1]
+                                "description" -> desc = ls[1]
+                                "author" -> author = ls[1]
+                                "version" -> version = ls[1]
+                                "banner" -> bannerRaw = ls[1]
+                                "cover" -> coverRaw = ls[1]
+                            }
                         }
-
                     }
                 }
                 val banner = if (showBanners) loadBanner(fs, f.path, bannerRaw ?: coverRaw, id) else null
@@ -488,13 +488,12 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 val disabled = fs.getFile(f, "disable").exists()
                 mods.add(Module(name, id, desc, author, version, banner, icon, size, date, disabled))
             }
-            val pinnedIds = getPinnedModules()
-            val hiddenIds = getHiddenModules()
+            val pinnedIds = stringSet(KEY_PINNED)
+            val hiddenIds = stringSet(KEY_HIDDEN)
             mods.forEach {
                 it.pinned = it.id in pinnedIds
                 it.hidden = it.id in hiddenIds
             }
-            mods.sortWith(moduleOrder)
             runOnUiThread {
                 allModules = mods
                 applyFilter()
@@ -606,23 +605,11 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         .thenByDescending { it.banner != null }
         .thenBy { it.name.lowercase() }
 
-    private fun togglePin(item: Module) {
-        item.pinned = !item.pinned
-        val pinnedIds = getPinnedModules()
-        if (item.pinned) {
-            pinnedIds.add(item.id)
-        } else {
-            pinnedIds.remove(item.id)
-        }
-        savePinnedModules(pinnedIds)
-        applyFilter()
-    }
-
     private fun normalize(s: String) = s.lowercase().filter { it.isLetterOrDigit() }
 
     private fun applyFilter() {
         val q = normalize(searchQuery)
-        val showHidden = prefs.getBoolean("show_hidden", false)
+        val showHidden = prefs.getBoolean(KEY_SHOW_HIDDEN, false)
         val visible = if (showHidden) allModules else allModules.filter { !it.hidden }
         moduleList = (if (q.isEmpty()) visible else visible.filter {
             normalize(it.name).contains(q)
@@ -669,24 +656,28 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
 
         action(R.drawable.ic_push_pin, if (item.pinned) R.string.unpin else R.string.pin) { togglePin(item) }
-        if (prefs.getBoolean("show_banners", true)) {
+        val showBanners = prefs.getBoolean(KEY_SHOW_BANNERS, true)
+        val showIcons = prefs.getBoolean(KEY_SHOW_ICONS, true)
+        val bannerFile = customFile("banner_${item.id}.png")
+        val iconFile = customFile("icon_${item.id}.png")
+        if (showBanners) {
             action(R.drawable.ic_image, R.string.set_background) {
                 pickTarget = item.id to true
                 pickImage.launch("image/*")
             }
         }
-        if (prefs.getBoolean("show_icons", true)) {
+        if (showIcons) {
             action(R.drawable.ic_account_circle, R.string.set_icon) {
                 pickTarget = item.id to false
                 pickImage.launch("image/*")
             }
         }
-        if (prefs.getBoolean("show_banners", true) && customFile("banner_${item.id}.png").exists()) action(R.drawable.ic_delete, R.string.remove_background) {
-            customFile("banner_${item.id}.png").delete()
+        if (showBanners && bannerFile.exists()) action(R.drawable.ic_delete, R.string.remove_background) {
+            bannerFile.delete()
             refresh()
         }
-        if (prefs.getBoolean("show_icons", true) && customFile("icon_${item.id}.png").exists()) action(R.drawable.ic_delete, R.string.remove_icon) {
-            customFile("icon_${item.id}.png").delete()
+        if (showIcons && iconFile.exists()) action(R.drawable.ic_delete, R.string.remove_icon) {
+            iconFile.delete()
             refresh()
         }
         action(R.drawable.ic_add, R.string.add_to_home) { addToHomeScreen(item) }
@@ -696,8 +687,14 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         ) { toggleHidden(item) }
         action(
             R.drawable.ic_terminal,
-            if (item.id in getConsoleModules()) R.string.console_disable else R.string.console_enable
+            if (item.id in stringSet(KEY_CONSOLE_MODULES)) R.string.console_disable else R.string.console_enable
         ) { toggleConsole(item) }
+        action(R.drawable.ic_delete, R.string.clear_module_data) {
+            showConfirm(R.drawable.ic_delete, R.string.clear_module_data, R.string.clear_module_data_message) {
+                clearModuleData(item.id)
+                showMessage(getString(R.string.module_data_cleared))
+            }
+        }
 
         dialog.setContentView(sheet.root)
         dialog.behavior.skipCollapsed = true
@@ -785,7 +782,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.desc.text = item.desc
             holder.binding.banner.setImageBitmap(item.banner)
             holder.binding.banner.isVisible = item.banner != null
-            val iconsOn = prefs.getBoolean("show_icons", true)
+            val iconsOn = prefs.getBoolean(KEY_SHOW_ICONS, true)
             holder.binding.icon.isVisible = iconsOn
             if (item.icon != null) holder.binding.icon.setImageBitmap(item.icon)
             else holder.binding.icon.setImageResource(R.drawable.ic_module_default)

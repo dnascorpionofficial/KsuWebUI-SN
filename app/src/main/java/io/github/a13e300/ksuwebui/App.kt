@@ -19,10 +19,13 @@ class App : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
-        AppCompatDelegate.setDefaultNightMode(nightMode(themeMode(getSharedPreferences("settings", MODE_PRIVATE))))
+        AppCompatDelegate.setDefaultNightMode(nightMode(themeMode(getSharedPreferences(PREFS_SETTINGS, MODE_PRIVATE))))
         Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
     }
 }
+
+const val PREFS_SETTINGS = "settings"
+const val KEY_CONSOLE_MODULES = "console_modules"
 
 const val THEME_SYSTEM = 0
 const val THEME_DARK = 1

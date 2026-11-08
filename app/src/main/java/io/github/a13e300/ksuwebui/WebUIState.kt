@@ -1,5 +1,7 @@
 package io.github.a13e300.ksuwebui
 
+import android.net.Uri
+import android.webkit.ValueCallback
 import android.webkit.WebView
 
 class WebUIState {
@@ -9,6 +11,6 @@ class WebUIState {
     var moduleName: String = ""
     var insets: Insets = Insets(0, 0, 0, 0)
     var isEdgeToEdgeEnabled = false
-    var filePathCallback: android.webkit.ValueCallback<Array<android.net.Uri>>? = null
+    var filePathCallback: ValueCallback<Array<Uri>>? = null
     var onSaveFileRequest: ((ByteArray, String, String) -> Unit)? = null
 }

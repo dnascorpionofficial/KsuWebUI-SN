@@ -33,6 +33,9 @@
   <string name="unhide">表示する</string>
   <string name="console_enable">コンソールデバッグを有効化</string>
   <string name="console_disable">コンソールデバッグを無効化</string>
+  <string name="clear_module_data">このモジュールのWebUIストレージを消去</string>
+  <string name="clear_module_data_message">このモジュールのWebUIストレージ（ローカルストレージ、Cookie、データベース）を削除しますか？次回開くときは初期状態から始まります。</string>
+  <string name="module_data_cleared">モジュールのWebUIストレージを消去しました</string>
   <string name="set_background">背景を設定</string>
   <string name="set_icon">アイコンを設定</string>
   <string name="add_to_home">ホーム画面に追加</string>

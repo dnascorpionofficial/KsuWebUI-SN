@@ -2,7 +2,6 @@ package io.github.a13e300.ksuwebui
 
 import android.app.Activity
 import android.content.pm.ApplicationInfo
-import android.text.TextUtils
 import android.app.DownloadManager
 import android.content.Context
 import android.os.Environment
@@ -31,7 +30,7 @@ import java.util.UUID
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.ConcurrentHashMap
 
-const val TAG = "WebViewInterface"
+private const val TAG = "WebViewInterface"
 
 class WebViewInterface(private val state: WebUIState) {
 
@@ -41,7 +40,7 @@ class WebViewInterface(private val state: WebUIState) {
 
     @JavascriptInterface
     fun exec(cmd: String): String {
-        return withNewRootShell(true) { ShellUtils.fastCmd(this, cmd) }
+        return withNewRootShell { ShellUtils.fastCmd(this, cmd) }
     }
 
     @JavascriptInterface
@@ -55,7 +54,7 @@ class WebViewInterface(private val state: WebUIState) {
         }
 
         val cwd = opts.optString("cwd")
-        if (!TextUtils.isEmpty(cwd)) {
+        if (cwd.isNotEmpty()) {
             sb.append("cd ${cwd};")
         }
 
@@ -76,7 +75,7 @@ class WebViewInterface(private val state: WebUIState) {
         processOptions(finalCommand, options)
         finalCommand.append(cmd)
 
-        val result = withNewRootShell(true) {
+        val result = withNewRootShell {
             newJob().add(finalCommand.toString()).to(ArrayList(), ArrayList()).exec()
         }
         val stdout = result.out.joinToString(separator = "\n")
@@ -99,7 +98,7 @@ class WebViewInterface(private val state: WebUIState) {
 
         processOptions(finalCommand, options)
 
-        if (!TextUtils.isEmpty(args)) {
+        if (args.isNotEmpty()) {
             finalCommand.append(command).append(" ")
             JSONArray(args).let { argsArray ->
                 for (i in 0 until argsArray.length()) {
@@ -111,7 +110,7 @@ class WebViewInterface(private val state: WebUIState) {
             finalCommand.append(command)
         }
 
-        val shell = createRootShell(true)
+        val shell = createRootShell()
 
         val emitData = fun(name: String, data: String) {
             val jsCode =
@@ -223,11 +222,7 @@ class WebViewInterface(private val state: WebUIState) {
             .map { it.packageName }
             .sorted()
 
-        val jsonArray = JSONArray()
-        for (pkgName in packageNames) {
-            jsonArray.put(pkgName)
-        }
-        return jsonArray.toString()
+        return JSONArray(packageNames).toString()
     }
 
     @JavascriptInterface
@@ -267,7 +262,7 @@ class WebViewInterface(private val state: WebUIState) {
         }
     }
 
-    val fileOutputStream = FileOutputStreamInterface()
+    private val fileOutputStream = FileOutputStreamInterface()
 
     @JavascriptInterface
     fun fileOutputStream(): FileOutputStreamInterface {
@@ -348,42 +343,27 @@ class FileOutputStreamInterface {
         return open(path, false)
     }
 
-    @JavascriptInterface
-    fun writeByte(id: String, b: Int): Boolean {
+    private inline fun withStream(id: String, name: String, block: (BufferedOutputStream) -> Unit): Boolean {
+        val bos = openStreams[id] ?: return false
         return runCatching {
-            val bos = openStreams[id] ?: return false
-            synchronized(bos) { bos.write(b) }
+            synchronized(bos) { block(bos) }
             true
         }.getOrElse {
-            Log.e(TAG, "writeByte failed", it)
+            Log.e(TAG, "$name failed", it)
             false
         }
     }
 
     @JavascriptInterface
-    fun write(id: String, base64: String): Boolean {
-        return runCatching {
-            val bos = openStreams[id] ?: return false
-            val data = Base64.decode(base64, Base64.NO_WRAP)
-            synchronized(bos) { bos.write(data) }
-            true
-        }.getOrElse {
-            Log.e(TAG, "write failed", it)
-            false
-        }
+    fun writeByte(id: String, b: Int): Boolean = withStream(id, "writeByte") { it.write(b) }
+
+    @JavascriptInterface
+    fun write(id: String, base64: String): Boolean = withStream(id, "write") {
+        it.write(Base64.decode(base64, Base64.NO_WRAP))
     }
 
     @JavascriptInterface
-    fun flush(id: String): Boolean {
-        return runCatching {
-            val bos = openStreams[id] ?: return false
-            synchronized(bos) { bos.flush() }
-            true
-        }.getOrElse {
-            Log.e(TAG, "flush failed", it)
-            false
-        }
-    }
+    fun flush(id: String): Boolean = withStream(id, "flush") { it.flush() }
 
     @JavascriptInterface
     fun close(id: String): Boolean {

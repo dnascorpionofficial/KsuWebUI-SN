@@ -11,7 +11,7 @@ import androidx.core.graphics.scale
 
 object AppIconUtil {
     private const val CACHE_SIZE = 200
-    private val iconCache = LruCache<String?, Bitmap?>(CACHE_SIZE)
+    private val iconCache = LruCache<String, Bitmap>(CACHE_SIZE)
 
     fun getAppIconDrawable(context: Context, packageName: String): Drawable? {
         val appList = AppList.getApplist()

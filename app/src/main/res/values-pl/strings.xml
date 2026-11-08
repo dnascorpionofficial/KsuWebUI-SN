@@ -33,6 +33,9 @@
   <string name="unhide">Pokaż</string>
   <string name="console_enable">Włącz debugowanie konsoli</string>
   <string name="console_disable">Wyłącz debugowanie konsoli</string>
+  <string name="clear_module_data">Wyczyść pamięć WebUI tego modułu</string>
+  <string name="clear_module_data_message">Usunąć pamięć WebUI tego modułu (pamięć lokalna, pliki cookie, bazy danych)? Przy następnym otwarciu zacznie od zera.</string>
+  <string name="module_data_cleared">Pamięć WebUI modułu wyczyszczona</string>
   <string name="set_background">Ustaw tło</string>
   <string name="set_icon">Ustaw ikonę</string>
   <string name="add_to_home">Dodaj do ekranu głównego</string>

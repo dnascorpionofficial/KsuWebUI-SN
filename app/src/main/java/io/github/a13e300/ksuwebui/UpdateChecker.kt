@@ -1,5 +1,6 @@
 package io.github.a13e300.ksuwebui
 
+import android.content.Context
 import androidx.annotation.StringRes
 import com.topjohnwu.superuser.Shell
 import kotlinx.coroutines.currentCoroutineContext
@@ -14,7 +15,10 @@ object UpdateChecker {
     class Update(val title: String, val changelog: String, val changelogHtml: String, val apkUrl: String)
 
     @Volatile
-    var available: Int? = null
+    var available = false
+
+    @Volatile
+    var status = ""
 
     private fun connect(url: String): HttpURLConnection =
         (URL(url).openConnection() as HttpURLConnection).apply {
@@ -25,10 +29,7 @@ object UpdateChecker {
             setRequestProperty("Cache-Control", "no-cache")
         }
 
-    @Volatile
-    var status = ""
-
-    private val cachePrefs get() = App.instance.getSharedPreferences("update_cache", android.content.Context.MODE_PRIVATE)
+    private val cachePrefs get() = App.instance.getSharedPreferences("update_cache", Context.MODE_PRIVATE)
 
     private val versionRegex = Regex("""(\d+)\.(\d+)-(\d+)""")
 
@@ -37,18 +38,18 @@ object UpdateChecker {
         return major.toInt() * 1_000_000 + minor.toInt().coerceAtMost(999) * 1_000 + suffix.toInt().coerceAtMost(999)
     }
 
-    private fun installedLabel() = "${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_SUFFIX}"
+    fun installedLabel() = "${BuildConfig.VERSION_NAME}-${BuildConfig.BUILD_SUFFIX}"
 
     private fun installedVersion(): Int? = versionRegex.matchEntire(installedLabel())?.let { encode(it) }
 
-    fun cached(): Int? {
+    fun cached(): Boolean {
         val code = cachePrefs.getInt("latest", 0)
-        val installed = installedVersion() ?: return null
-        return if (code > installed) code else null
+        val installed = installedVersion() ?: return false
+        return code > installed
     }
 
     private fun saveCache(etag: String?, code: Int, label: String) {
-        cachePrefs.edit().remove("code").putString("etag", etag).putInt("latest", code).putString("latest_label", label).apply()
+        cachePrefs.edit().putString("etag", etag).putInt("latest", code).putString("latest_label", label).apply()
     }
 
     private fun fetch(url: String, @StringRes label: Int, accept: String? = null): String {
@@ -64,6 +65,13 @@ object UpdateChecker {
 
     private class Latest(val code: Int, val label: String)
 
+    private fun apkAssets(release: JSONObject): Sequence<JSONObject> {
+        val assets = release.optJSONArray("assets") ?: return emptySequence()
+        return (0 until assets.length()).asSequence()
+            .map { assets.getJSONObject(it) }
+            .filter { it.optString("name").endsWith(".apk", ignoreCase = true) }
+    }
+
     private fun latestVersion(repo: String): Latest? {
         val conn = connect("https://api.github.com/repos/$repo/releases/latest")
         try {
@@ -77,17 +85,7 @@ object UpdateChecker {
             if (http == 304 && canReuse) return Latest(savedCode, savedLabel)
             if (http != 200) throw IOException(App.instance.getString(R.string.update_http_error, http, App.instance.getString(R.string.update_label_latest_release)))
             val release = JSONObject(conn.inputStream.bufferedReader().use { it.readText() })
-            val assets = release.optJSONArray("assets")
-            var apkName: String? = null
-            if (assets != null) {
-                for (i in 0 until assets.length()) {
-                    val name = assets.getJSONObject(i).optString("name")
-                    if (name.endsWith(".apk", ignoreCase = true)) {
-                        apkName = name
-                        break
-                    }
-                }
-            }
+            val apkName = apkAssets(release).firstOrNull()?.optString("name")
             if (apkName == null) {
                 status = App.instance.getString(R.string.update_no_apk)
                 return null
@@ -107,25 +105,25 @@ object UpdateChecker {
         }
     }
 
-    fun check(): Int? {
+    fun check(): Boolean {
         val repo = BuildConfig.UPDATE_REPO
         if (repo.isEmpty()) {
             status = App.instance.getString(R.string.update_repo_not_set)
-            return null
+            return false
         }
         val installed = installedVersion()
         if (installed == null) {
             status = App.instance.getString(R.string.update_version_invalid, installedLabel().take(20))
-            return null
+            return false
         }
         return try {
-            val latest = latestVersion(repo) ?: return null
+            val latest = latestVersion(repo) ?: return false
             if (latest.code <= installed) {
                 status = App.instance.getString(R.string.update_up_to_date, latest.label, installedLabel())
-                return null
+                return false
             }
             status = App.instance.getString(R.string.update_title)
-            latest.code
+            true
         } catch (e: Exception) {
             status = App.instance.getString(R.string.update_check_failed, e.message ?: e.javaClass.simpleName)
             cached()
@@ -138,17 +136,9 @@ object UpdateChecker {
             val release = JSONObject(
                 fetch("https://api.github.com/repos/$repo/releases/latest", R.string.update_label_latest_release, "application/vnd.github.full+json")
             )
-            val assets = release.optJSONArray("assets")
-            var apkUrl: String? = null
-            if (assets != null) {
-                for (i in 0 until assets.length()) {
-                    val a = assets.getJSONObject(i)
-                    if (a.optString("name").endsWith(".apk", ignoreCase = true)) {
-                        apkUrl = a.optString("browser_download_url").ifEmpty { null }
-                        if (apkUrl != null) break
-                    }
-                }
-            }
+            val apkUrl = apkAssets(release)
+                .map { it.optString("browser_download_url") }
+                .firstOrNull { it.isNotEmpty() }
             if (apkUrl == null) {
                 status = App.instance.getString(R.string.update_no_apk)
                 return null

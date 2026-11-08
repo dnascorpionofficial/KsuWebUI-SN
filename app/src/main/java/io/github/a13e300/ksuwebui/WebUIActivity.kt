@@ -5,12 +5,12 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.webkit.WebChromeClient
 import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -59,20 +59,7 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
         fileChooserLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
         ) { result ->
-            val uris: Array<Uri>? = when (result.resultCode) {
-                RESULT_OK -> result.data?.let { data ->
-                    when {
-                        data.clipData != null -> {
-                            Array(data.clipData!!.itemCount) { i ->
-                                data.clipData!!.getItemAt(i).uri
-                            }
-                        }
-                        data.data != null -> { arrayOf(data.data!!) }
-                        else -> null
-                    }
-                }
-                else -> null
-            }
+            val uris = WebChromeClient.FileChooserParams.parseResult(result.resultCode, result.data)
             webUIState.filePathCallback?.onReceiveValue(uris)
             webUIState.filePathCallback = null
         }
@@ -113,9 +100,7 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
-            if (AppList.getApplist().isEmpty()) {
-                AppList.getApps(this@WebUIActivity)
-            }
+            AppList.getApps(this@WebUIActivity)
             withContext(Dispatchers.Main) {
                 if (prepareWebView(webUIState)) {
                     val container = FrameLayout(this@WebUIActivity)

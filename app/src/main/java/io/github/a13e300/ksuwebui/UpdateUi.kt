@@ -85,7 +85,6 @@ private fun AppCompatActivity.changelogPage(update: UpdateChecker.Update, textCo
     val important = if (dark) "#ab7df8" else "#8250df"
     val warning = if (dark) "#d29922" else "#9a6700"
     val caution = if (dark) "#f85149" else "#d1242f"
-    val plComment = muted
     val plKeyword = if (dark) "#ff7b72" else "#cf222e"
     val plString = if (dark) "#a5d6ff" else "#0a3069"
     val plConst = if (dark) "#79c0ff" else "#0550ae"
@@ -127,7 +126,7 @@ private fun AppCompatActivity.changelogPage(update: UpdateChecker.Update, textCo
         sub,sup{font-size:.75em}
         .user-mention,.issue-link,.commit-link,.team-mention{font-weight:500}
         .highlight{margin:0 0 12px} .highlight pre{margin:0}
-        .pl-c{color:$plComment} .pl-k{color:$plKeyword} .pl-s,.pl-pds,.pl-sr{color:$plString}
+        .pl-c{color:$muted} .pl-k{color:$plKeyword} .pl-s,.pl-pds,.pl-sr{color:$plString}
         .pl-c1,.pl-sra,.pl-smi{color:$plConst} .pl-en{color:$plEntity} .pl-v,.pl-smw{color:$plVar}
         .pl-ent{color:$plTag} .pl-mi1{color:$plAdd;background:rgba(46,160,67,.15)}
         .pl-md{color:$plDel;background:rgba(248,81,73,.15)} .pl-mi{font-style:italic}

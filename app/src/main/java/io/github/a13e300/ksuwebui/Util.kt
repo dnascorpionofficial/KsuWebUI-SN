@@ -2,17 +2,7 @@ package io.github.a13e300.ksuwebui
 
 import com.topjohnwu.superuser.Shell
 
-inline fun <T> withNewRootShell(
-    globalMnt: Boolean = false,
-    block: Shell.() -> T
-): T {
-    return createRootShell(globalMnt).use(block)
-}
+inline fun <T> withNewRootShell(block: Shell.() -> T): T = createRootShell().use(block)
 
-fun createRootShell(globalMnt: Boolean = false): Shell {
-    val builder = Shell.Builder.create()
-    if (globalMnt) {
-        builder.setFlags(Shell.FLAG_MOUNT_MASTER)
-    }
-    return builder.build()
-}
+fun createRootShell(): Shell =
+    Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER).build()
