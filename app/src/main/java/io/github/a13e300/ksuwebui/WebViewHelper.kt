@@ -1,6 +1,9 @@
 package io.github.a13e300.ksuwebui
 
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.view.ViewGroup
@@ -14,8 +17,10 @@ import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.FrameLayout
+import android.widget.Toast
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.a13e300.ksuwebui.databinding.DialogConfirmBinding
 import io.github.a13e300.ksuwebui.databinding.DialogReloadBinding
 import com.topjohnwu.superuser.nio.FileSystemManager
 import java.io.File
@@ -77,6 +82,141 @@ try {
   }
 } catch (e) {}
 """
+private const val ERUDA_GUARD_JS = """
+(function() {
+  window.__ksuGuard = function(btn, detail) {
+    if (!btn || btn.__ksuGuard) return;
+    btn.__ksuGuard = true;
+    btn.addEventListener('click', function(e) {
+      if (btn.__ksuOk) {
+        btn.__ksuOk = false;
+        return;
+      }
+      var text = detail();
+      if (text === undefined) return;
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (text === null) return;
+      if (window.prompt('__ksu_confirm__', text) === 'yes') {
+        btn.__ksuOk = true;
+        (e.target || btn).click();
+      }
+    }, true);
+  };
+})();
+"""
+private const val ERUDA_UX_JS = """
+(function() {
+  try {
+    if (window.__ksuUx) return;
+    window.__ksuUx = true;
+    var host = document.getElementById('eruda');
+    var root = host && (host.shadowRoot || host);
+    if (!host || !root) return;
+    var st = document.createElement('style');
+    st.textContent = '.eruda-container .luna-tab-item:hover:not(.luna-tab-selected) { background: none !important; color: var(--foreground) !important; }';
+    root.appendChild(st);
+    function info(e) {
+      var path = e.composedPath ? e.composedPath() : [];
+      var inPanel = false;
+      var skip = false;
+      for (var i = 0; i < path.length; i++) {
+        var n = path[i];
+        if (!n || !n.classList) continue;
+        if (n.classList.contains('eruda-dev-tools')) inPanel = true;
+        if (n.classList.contains('eruda-resizer') || n.classList.contains('luna-data-grid-resizer') || n.classList.contains('eruda-entry-btn')) skip = true;
+      }
+      return { path: path, inPanel: inPanel, skip: skip };
+    }
+    function hScrollable(path) {
+      for (var i = 0; i < path.length; i++) {
+        var n = path[i];
+        if (!n || n.nodeType !== 1) continue;
+        if (n.classList && n.classList.contains('eruda-dev-tools')) break;
+        var tag = n.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || n.isContentEditable) return true;
+        if (n.classList && n.classList.contains('luna-tab')) return true;
+        var cs = getComputedStyle(n);
+        if ((cs.overflowX === 'auto' || cs.overflowX === 'scroll') && n.scrollWidth > n.clientWidth + 1) return true;
+      }
+      return false;
+    }
+    function switchTool(step) {
+      var sel = root.querySelector('.luna-tab-item.luna-tab-selected');
+      var next = sel;
+      while (next) {
+        next = step > 0 ? next.nextElementSibling : next.previousElementSibling;
+        if (next && next.classList && next.classList.contains('luna-tab-item')) break;
+      }
+      if (next) next.click();
+    }
+    var sx = 0;
+    var sy = 0;
+    var sInfo = null;
+    host.addEventListener('touchstart', function(e) {
+      sInfo = info(e);
+      var t = e.touches[0];
+      if (t) { sx = t.clientX; sy = t.clientY; }
+    }, { passive: true });
+    host.addEventListener('touchend', function(e) {
+      if (!sInfo || !sInfo.inPanel || sInfo.skip) return;
+      var t = e.changedTouches[0];
+      if (!t) return;
+      var dx = t.clientX - sx;
+      var dy = t.clientY - sy;
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && !hScrollable(sInfo.path)) switchTool(dx < 0 ? 1 : -1);
+    }, { passive: true });
+    function fixLevels() {
+      var ctrl = root.querySelector('.eruda-console .eruda-control');
+      if (!ctrl) return false;
+      if (ctrl.__ksuLevels) return true;
+      ctrl.__ksuLevels = true;
+      ctrl.addEventListener('click', function(e) {
+        var t = e.target;
+        while (t && t !== ctrl && !(t.classList && t.classList.contains('eruda-level'))) t = t.parentNode;
+        if (!t || t === ctrl) return;
+        var items = ctrl.querySelectorAll('.eruda-level');
+        for (var i = 0; i < items.length; i++) {
+          if (items[i] === t) items[i].classList.add('eruda-active');
+          else items[i].classList.remove('eruda-active');
+        }
+      });
+      return true;
+    }
+    function guards() {
+      var g = window.__ksuGuard;
+      if (!g) return false;
+      var consoleBtn = root.querySelector('.eruda-console .eruda-clear-console');
+      var netBtn = root.querySelector('.eruda-network .eruda-clear-request');
+      var nodeBtn = root.querySelector('.eruda-elements .eruda-delete-node');
+      var restoreBtn = null;
+      var items = root.querySelectorAll('.luna-setting-item-button');
+      for (var i = 0; i < items.length; i++) {
+        if ((items[i].textContent || '').indexOf('Restore defaults') >= 0) restoreBtn = items[i];
+      }
+      g(consoleBtn, function() { return window.ksuText.clearConsole; });
+      g(netBtn, function() { return window.ksuText.clearNetwork; });
+      g(nodeBtn, function() {
+        var el = window.eruda && eruda.get && eruda.get('elements');
+        var n = el && el._curNode;
+        if (!n || n.nodeType !== 1) return undefined;
+        var label = n.tagName.toLowerCase();
+        if (n.id) label += '#' + n.id;
+        else if (n.classList && n.classList.length) label += '.' + n.classList[0];
+        return window.ksuText.deleteItem.replace('%s', label);
+      });
+      g(restoreBtn, function() { return window.ksuText.restoreDefaults; });
+      return !!(consoleBtn && netBtn && nodeBtn && restoreBtn);
+    }
+    var tries = 0;
+    var timer = setInterval(function() {
+      var a = fixLevels();
+      var b = guards();
+      if ((a && b) || ++tries > 40) clearInterval(timer);
+    }, 250);
+  } catch (e) {}
+})();
+"""
 private const val ERUDA_STORAGE_JS = """
 (function() {
   try {
@@ -98,9 +238,9 @@ private const val ERUDA_STORAGE_JS = """
       var tool = window.eruda && eruda.get && eruda.get('resources');
       var store = tool && tool[storeName];
       if (!refresh || !store) return false;
-      if (root.querySelector('.eruda-' + section + ' .eruda-add-storage')) return true;
-      var add = makeBtn('eruda-add-storage', 'Add', ICON_ADD);
-      var edit = makeBtn('eruda-edit-storage eruda-btn-disabled', 'Edit', ICON_EDIT);
+      if (root.querySelector('.eruda-' + section + ' .eruda-edit-storage')) return true;
+      var add = makeBtn('eruda-add-storage', window.ksuText.add, ICON_ADD);
+      var edit = makeBtn('eruda-edit-storage eruda-btn-disabled', window.ksuText.edit, ICON_EDIT);
       refresh.insertAdjacentElement('afterend', edit);
       refresh.insertAdjacentElement('afterend', add);
       refresh.addEventListener('click', function(e) {
@@ -134,25 +274,134 @@ private const val ERUDA_STORAGE_JS = """
         sync();
       }
       add.addEventListener('click', function() {
-        var key = window.prompt('Key');
+        var key = window.prompt(window.ksuText.key);
         if (key === null) return;
         key = key.trim();
         if (!key) return;
         if (area.getItem(key) !== null) {
-          window.alert('"' + key + '" already exists. Select it and use the edit button.');
+          window.alert(window.ksuText.existsHint.replace('%s', key));
           return;
         }
-        var value = window.prompt('Value', '');
+        var value = window.prompt(window.ksuText.value, '');
         if (value === null) return;
         save(key, value);
       });
+      var copyBtn = root.querySelector('.eruda-' + section + ' .eruda-copy-storage');
+      var viewBtn = root.querySelector('.eruda-' + section + ' .eruda-show-detail');
+      function pick(kind) {
+        return window.prompt('__ksu_pick__:' + kind);
+      }
+      function showSource(type, val) {
+        var src = window.eruda && eruda.get && eruda.get('sources');
+        if (!src) return;
+        src.set(type, val);
+        eruda.show('sources');
+      }
+      if (copyBtn) {
+        copyBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          var key = store._selectedItem;
+          if (!key) return;
+          var c = pick('copy');
+          if (c === 'key') window.prompt('__ksu_copy__', key);
+          else if (c === 'value') window.prompt('__ksu_copy__', area.getItem(key) || '');
+        }, true);
+      }
+      if (viewBtn) {
+        viewBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          var key = store._selectedItem;
+          if (!key) return;
+          var c = pick('view');
+          if (c === 'key') {
+            showSource('raw', key);
+          } else if (c === 'value') {
+            var v = area.getItem(key) || '';
+            try {
+              showSource('object', JSON.parse(v));
+            } catch (err) {
+              showSource('raw', v);
+            }
+          }
+        }, true);
+      }
       edit.addEventListener('click', function() {
         var key = store._selectedItem;
         if (!key) return;
-        var value = window.prompt('Value for "' + key + '"', area.getItem(key) || '');
-        if (value === null) return;
-        save(key, value);
+        var c = pick('edit');
+        if (c === 'value') {
+          var value = window.prompt(window.ksuText.valueFor.replace('%s', key), area.getItem(key) || '');
+          if (value === null) return;
+          save(key, value);
+        } else if (c === 'key') {
+          var nk = window.prompt(window.ksuText.key, key);
+          if (nk === null) return;
+          nk = nk.trim();
+          if (!nk || nk === key) return;
+          if (area.getItem(nk) !== null) {
+            window.alert(window.ksuText.exists.replace('%s', nk));
+            return;
+          }
+          var old = area.getItem(key);
+          try {
+            area.setItem(nk, old === null ? '' : old);
+            area.removeItem(key);
+          } catch (err) {
+            window.alert(String(err));
+            return;
+          }
+          store._selectedItem = null;
+          store.refresh();
+          sync();
+        }
       });
+      var canvas = document.createElement('canvas');
+      function fit() {
+        try {
+          var dg = store._dataGrid;
+          if (!dg || !dg.options || !dg.container) return;
+          var cols = dg.options.columns;
+          var w = dg.container.offsetWidth;
+          if (w <= 0) return;
+          var cs = getComputedStyle(dg.container);
+          var ctx = canvas.getContext('2d');
+          ctx.font = cs.fontSize + ' ' + cs.fontFamily;
+          var max = ctx.measureText('Key').width;
+          var data = store._storeData || [];
+          for (var i = 0; i < data.length; i++) {
+            var m = ctx.measureText(String(data[i].key)).width;
+            if (m > max) max = m;
+          }
+          var scale = (parseFloat(cs.fontSize) || 12) / 12;
+          var keyPx = Math.ceil(max + 10 * scale);
+          keyPx = Math.max(40, Math.min(keyPx, Math.floor(w * 0.6)));
+          var total = cols[0].weight + cols[1].weight;
+          cols[0].weight = total * keyPx / w;
+          cols[1].weight = total - cols[0].weight;
+          dg.applyColWeights();
+        } catch (err) {}
+      }
+      var origRefresh = store.refresh;
+      store.refresh = function() {
+        origRefresh.apply(this, arguments);
+        fit();
+      };
+      window.addEventListener('resize', fit);
+      fit();
+      var delBtn = root.querySelector('.eruda-' + section + ' .eruda-delete-storage');
+      var clrBtn = root.querySelector('.eruda-' + section + ' .eruda-clear-storage');
+      var clearText = section === 'local-storage' ? window.ksuText.clearLocal : window.ksuText.clearSession;
+      if (window.__ksuGuard) {
+        window.__ksuGuard(delBtn, function() {
+          var k = store._selectedItem;
+          return k ? window.ksuText.deleteItem.replace('%s', k) : undefined;
+        });
+        window.__ksuGuard(clrBtn, function() {
+          return clearText;
+        });
+      }
       return true;
     }
     var tries = 0;
@@ -164,6 +413,25 @@ private const val ERUDA_STORAGE_JS = """
   } catch (e) {}
 })();
 """
+private fun Context.erudaTextJs(): String {
+    val entries = mapOf(
+        "add" to getString(R.string.eruda_add),
+        "edit" to getString(R.string.edit_title),
+        "key" to getString(R.string.choose_key),
+        "value" to getString(R.string.choose_value),
+        "valueFor" to getString(R.string.eruda_value_for, "%s"),
+        "exists" to getString(R.string.eruda_exists, "%s"),
+        "existsHint" to getString(R.string.eruda_exists_hint, "%s"),
+        "deleteItem" to getString(R.string.eruda_delete_item, "%s"),
+        "clearLocal" to getString(R.string.eruda_clear_local),
+        "clearSession" to getString(R.string.eruda_clear_session),
+        "clearConsole" to getString(R.string.eruda_clear_console),
+        "clearNetwork" to getString(R.string.eruda_clear_network),
+        "restoreDefaults" to getString(R.string.eruda_restore_defaults)
+    )
+    return "window.ksuText = " + org.json.JSONObject(entries).toString() + ";"
+}
+
 private fun downloadJs(domain: String) = """
     (function() {
         if (window.ksu_download_enabled) return;
@@ -289,7 +557,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 val centered = prefs.getStringSet("eruda_centered", emptySet()).orEmpty()
                 val center = moduleId !in centered
                 view?.evaluateJavascript(
-                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$ERUDA_POS_SAVE_JS\n$eruda\n;eruda.init();\n${if (center) ERUDA_CENTER_JS else ""}\nvar __ksuRestore = ${!center};\n$ERUDA_POS_FIX_JS\n$ERUDA_INSET_JS\n$ERUDA_STORAGE_JS\n}",
+                    "if (!window.__erudaInit) {\nwindow.__erudaInit = true;\n$ERUDA_POS_SAVE_JS\n$eruda\n;eruda.init();\n${if (center) ERUDA_CENTER_JS else ""}\nvar __ksuRestore = ${!center};\n$ERUDA_POS_FIX_JS\n$ERUDA_INSET_JS\n${erudaTextJs()}\n$ERUDA_GUARD_JS\n$ERUDA_STORAGE_JS\n$ERUDA_UX_JS\n}",
                     null
                 )
                 if (center) prefs.edit().putStringSet("eruda_centered", centered + moduleId).apply()
@@ -364,18 +632,57 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
             }
 
             override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
-                if (message == "__ksu_reload__") {
-                    val view = DialogReloadBinding.inflate(layoutInflater)
+                val msg = message.orEmpty()
+                if (msg == "__ksu_confirm__") {
+                    val confirm = DialogConfirmBinding.inflate(layoutInflater)
+                    confirm.title.text = defaultValue.orEmpty()
+                    confirm.message.visibility = android.view.View.GONE
                     val dialog = MaterialAlertDialogBuilder(this@initWebView, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
-                        .setView(view.root)
+                        .setView(confirm.root)
                         .setOnCancelListener { result?.cancel() }
                         .create()
-                    view.table.setOnClickListener {
-                        result?.confirm("table")
+                    confirm.no.setOnClickListener {
+                        result?.cancel()
                         dialog.dismiss()
                     }
-                    view.webui.setOnClickListener {
-                        result?.confirm("webui")
+                    confirm.yes.setOnClickListener {
+                        result?.confirm("yes")
+                        dialog.dismiss()
+                    }
+                    dialog.show()
+                    return true
+                }
+                if (msg == "__ksu_copy__") {
+                    val clipboard = this@initWebView.getSystemService(ClipboardManager::class.java)
+                    clipboard?.setPrimaryClip(ClipData.newPlainText("text", defaultValue.orEmpty()))
+                    Toast.makeText(this@initWebView, R.string.copied, Toast.LENGTH_SHORT).show()
+                    result?.confirm("")
+                    return true
+                }
+                if (msg == "__ksu_reload__" || msg.startsWith("__ksu_pick__:")) {
+                    val reload = msg == "__ksu_reload__"
+                    val choice = DialogReloadBinding.inflate(layoutInflater)
+                    if (!reload) {
+                        choice.title.setText(
+                            when (msg.removePrefix("__ksu_pick__:")) {
+                                "copy" -> R.string.copy_title
+                                "view" -> R.string.view_title
+                                else -> R.string.edit_title
+                            }
+                        )
+                        choice.first.setText(R.string.choose_key)
+                        choice.second.setText(R.string.choose_value)
+                    }
+                    val dialog = MaterialAlertDialogBuilder(this@initWebView, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
+                        .setView(choice.root)
+                        .setOnCancelListener { result?.cancel() }
+                        .create()
+                    choice.first.setOnClickListener {
+                        result?.confirm(if (reload) "table" else "key")
+                        dialog.dismiss()
+                    }
+                    choice.second.setOnClickListener {
+                        result?.confirm(if (reload) "webui" else "value")
                         dialog.dismiss()
                     }
                     dialog.show()

@@ -10,6 +10,7 @@
     android:paddingBottom="20dp">
 
     <TextView
+        android:id="@+id/title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
@@ -26,7 +27,7 @@
         android:orientation="horizontal">
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/table"
+            android:id="@+id/first"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginEnd="6dp"
@@ -39,7 +40,7 @@
             app:cornerRadius="26dp" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/webui"
+            android:id="@+id/second"
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginStart="6dp"
