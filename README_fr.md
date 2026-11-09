@@ -20,7 +20,7 @@ Compatible avec Magisk, KernelSU et APatch
 ## Traduction
 
 Tous les textes de l'interface se trouvent dans `app/src/main/res/values*/strings.xml`. L'anglais (`values/`) est la langue source ;
-le polonais (`values-pl`), le japonais (`values-ja`) et le chinois simplifié (`values-zh-rCN`) sont des traductions.
+l'arabe (`values-ar`), le polonais (`values-pl`), le japonais (`values-ja`) et le chinois simplifié (`values-zh-rCN`) sont des traductions.
 
 ### Ajouter une langue
 
