@@ -449,7 +449,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 if (!f.isDirectory) return@forEach
                 if (!fs.getFile(f, "webroot").isDirectory) return@forEach
                 if (!fs.getFile(f, "module.prop").exists()) return@forEach
-                if (fs.getFile(f, "disable").exists() && !showDisabled) return@forEach
+                val disabled = fs.getFile(f, "disable").exists()
+                if (disabled && !showDisabled) return@forEach
                 var name = f.name
                 val id = f.name
                 var author = "?"
@@ -485,7 +486,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 } else {
                     ""
                 }
-                val disabled = fs.getFile(f, "disable").exists()
                 mods.add(Module(name, id, desc, author, version, banner, icon, size, date, disabled))
             }
             val pinnedIds = stringSet(KEY_PINNED)
