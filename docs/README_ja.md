@@ -11,7 +11,7 @@
 
 # KsuWebUI-SN
 
-[English](README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | 日本語 | [العربية](README_ar.md)
+[English](../README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | 日本語 | [العربية](README_ar.md) | [Polski](README_pl.md)
 
 [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html) アプリのスタンドアロン実装
 
@@ -20,12 +20,12 @@ Magisk、KernelSU、APatch に対応しています
 ## 翻訳
 
 UI のテキストはすべて `app/src/main/res/values*/strings.xml` にあります。英語（`values/`）が基準言語で、
-アラビア語（`values-ar`）、ポーランド語（`values-pl`）、日本語（`values-ja`）、簡体字中国語（`values-zh-rCN`）は翻訳です。
+アラビア語（`values-ar`）、フランス語（`values-fr`）、ポーランド語（`values-pl`）、日本語（`values-ja`）、簡体字中国語（`values-zh-rCN`）は翻訳です。
 
 ### 言語を追加する
 
 ```
-python3 scripts/add_language.py de        # fr、es、pt-BR、zh-TW なども可
+python3 scripts/add_language.py de        # es、pt-BR、zh-TW なども可
 ```
 
 このコマンドは `values-de/strings.xml` を作成し、英語の文字列をすべてコピーして
