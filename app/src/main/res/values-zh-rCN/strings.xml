@@ -36,6 +36,7 @@
     <string name="clear_module_data">清除此模块的 WebUI 存储</string>
     <string name="clear_module_data_message">要删除此模块的 WebUI 存储（本地存储、Cookie、数据库）吗？下次打开时将从全新状态开始。</string>
     <string name="module_data_cleared">已清除模块的 WebUI 存储</string>
+    <string name="webview_crashed">模块已崩溃，请重新打开。</string>
     <string name="set_background">设置背景</string>
     <string name="set_icon">设置图标</string>
     <string name="add_to_home">添加到主屏幕</string>

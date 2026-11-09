@@ -36,6 +36,7 @@
     <string name="clear_module_data">Clear this module\'s WebUI storage</string>
     <string name="clear_module_data_message">Delete the WebUI storage of this module (local storage, cookies, databases)? It will start fresh the next time you open it.</string>
     <string name="module_data_cleared">Module WebUI storage cleared</string>
+    <string name="webview_crashed">The module crashed. Please open it again.</string>
     <string name="set_background">Set background</string>
     <string name="set_icon">Set icon</string>
     <string name="add_to_home">Add to home screen</string>

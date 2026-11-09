@@ -15,6 +15,7 @@ import android.view.ViewGroup
 import android.webkit.ConsoleMessage
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
+import android.webkit.RenderProcessGoneDetail
 import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceRequest
@@ -226,6 +227,12 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
     """
 
     val webViewClient = object : WebViewClient() {
+        override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
+            Toast.makeText(this@initWebView, R.string.webview_crashed, Toast.LENGTH_LONG).show()
+            this@initWebView.finish()
+            return true
+        }
+
         override fun shouldInterceptRequest(
             view: WebView,
             request: WebResourceRequest
