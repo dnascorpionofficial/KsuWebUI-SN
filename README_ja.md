@@ -11,7 +11,7 @@
 
 # KsuWebUI-SN
 
-[English](README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | 日本語
+[English](README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | 日本語 | [العربية](README_ar.md)
 
 [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html) アプリのスタンドアロン実装
 
@@ -20,7 +20,7 @@ Magisk、KernelSU、APatch に対応しています
 ## 翻訳
 
 UI のテキストはすべて `app/src/main/res/values*/strings.xml` にあります。英語（`values/`）が基準言語で、
-ポーランド語（`values-pl`）、日本語（`values-ja`）、簡体字中国語（`values-zh-rCN`）は翻訳です。
+アラビア語（`values-ar`）、ポーランド語（`values-pl`）、日本語（`values-ja`）、簡体字中国語（`values-zh-rCN`）は翻訳です。
 
 ### 言語を追加する
 

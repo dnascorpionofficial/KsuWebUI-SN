@@ -11,7 +11,7 @@ Special thanks to both contributors for their work, which served as the foundati
 
 # KsuWebUI-SN
 
-English | [简体中文](README_cn.md) | [Français](README_fr.md) | [日本語](README_ja.md)
+English | [简体中文](README_cn.md) | [Français](README_fr.md) | [日本語](README_ja.md) | [العربية](README_ar.md)
 
 Standalone implementation of the [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html) application
 
@@ -20,7 +20,7 @@ Suitable for Magisk, KernelSU, and APatch
 ## Translating
 
 All UI text lives in `app/src/main/res/values*/strings.xml`. English (`values/`) is the source;
-Polish (`values-pl`), Japanese (`values-ja`) and Simplified Chinese (`values-zh-rCN`) are translations.
+Arabic (`values-ar`), Polish (`values-pl`), Japanese (`values-ja`) and Simplified Chinese (`values-zh-rCN`) are translations.
 
 ### Add a language
 
