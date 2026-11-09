@@ -73,10 +73,10 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-private const val KEY_SHOW_BANNERS = "show_banners"
-private const val KEY_SHOW_ICONS = "show_icons"
-private const val KEY_SHOW_DISABLED = "show_disabled"
-private const val KEY_SHOW_HIDDEN = "show_hidden"
+private const val KEY_OPT_BANNERS = "opt_banners"
+private const val KEY_OPT_ICONS = "opt_icons"
+private const val KEY_OPT_DISABLED = "opt_disabled"
+private const val KEY_OPT_HIDDEN = "opt_hidden"
 private const val KEY_PINNED = "pinned_modules"
 private const val KEY_HIDDEN = "hidden_modules"
 private const val DISABLED_RED = 0xFFE53935.toInt()
@@ -393,10 +393,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             prefs.edit { putInt("theme_mode", mode) }
             AppCompatDelegate.setDefaultNightMode(nightMode(mode))
         }
-        binding.swShowBanners.bindPref(KEY_SHOW_BANNERS, true) { refresh() }
-        binding.swShowIcons.bindPref(KEY_SHOW_ICONS, true) { refresh() }
-        binding.swShowDisabled.bindPref(KEY_SHOW_DISABLED, true) { refresh() }
-        binding.swShowHidden.bindPref(KEY_SHOW_HIDDEN, false) { applyFilter() }
+        binding.swBanners.bindPref(KEY_OPT_BANNERS, true) { refresh() }
+        binding.swIcons.bindPref(KEY_OPT_ICONS, true) { refresh() }
+        binding.swDisabled.bindPref(KEY_OPT_DISABLED, true) { refresh() }
+        binding.swHidden.bindPref(KEY_OPT_HIDDEN, false) { applyFilter() }
     }
 
     private fun CompoundButton.bindPref(key: String, default: Boolean, onChange: (Boolean) -> Unit = {}) {
@@ -434,9 +434,9 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     override fun onServiceAvailable(fs: FileSystemManager) {
         App.executor.submit {
             val mods = mutableListOf<Module>()
-            val showDisabled = prefs.getBoolean(KEY_SHOW_DISABLED, true)
-            val showBanners = prefs.getBoolean(KEY_SHOW_BANNERS, true)
-            val showIcons = prefs.getBoolean(KEY_SHOW_ICONS, true)
+            val showDisabled = prefs.getBoolean(KEY_OPT_DISABLED, true)
+            val showBanners = prefs.getBoolean(KEY_OPT_BANNERS, true)
+            val showIcons = prefs.getBoolean(KEY_OPT_ICONS, true)
             val sizes = HashMap<String, Long>()
             try {
                 Shell.cmd("du -sk /data/adb/modules/*").exec().out.forEach { l ->
@@ -609,7 +609,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
     private fun applyFilter() {
         val q = normalize(searchQuery)
-        val showHidden = prefs.getBoolean(KEY_SHOW_HIDDEN, false)
+        val showHidden = prefs.getBoolean(KEY_OPT_HIDDEN, false)
         val visible = if (showHidden) allModules else allModules.filter { !it.hidden }
         moduleList = (if (q.isEmpty()) visible else visible.filter {
             normalize(it.name).contains(q)
@@ -656,8 +656,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
 
         action(R.drawable.ic_push_pin, if (item.pinned) R.string.unpin else R.string.pin) { togglePin(item) }
-        val showBanners = prefs.getBoolean(KEY_SHOW_BANNERS, true)
-        val showIcons = prefs.getBoolean(KEY_SHOW_ICONS, true)
+        val showBanners = prefs.getBoolean(KEY_OPT_BANNERS, true)
+        val showIcons = prefs.getBoolean(KEY_OPT_ICONS, true)
         val bannerFile = customFile("banner_${item.id}.png")
         val iconFile = customFile("icon_${item.id}.png")
         if (showBanners) {
@@ -781,7 +781,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.desc.text = item.desc
             holder.binding.banner.setImageBitmap(item.banner)
             holder.binding.banner.isVisible = item.banner != null
-            val iconsOn = prefs.getBoolean(KEY_SHOW_ICONS, true)
+            val iconsOn = prefs.getBoolean(KEY_OPT_ICONS, true)
             holder.binding.icon.isVisible = iconsOn
             if (item.icon != null) holder.binding.icon.setImageBitmap(item.icon)
             else holder.binding.icon.setImageResource(R.drawable.ic_module_default)

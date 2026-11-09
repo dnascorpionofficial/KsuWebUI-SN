@@ -14,10 +14,10 @@
   <string name="loading">Ładowanie&#x2026;</string>
   <string name="author">Autor: %s</string>
   <string name="version">Wersja: %s</string>
-  <string name="show_banners">Pokaż banery</string>
-  <string name="show_icons">Pokaż ikony</string>
-  <string name="show_disabled">Pokaż wyłączone</string>
-  <string name="show_hidden">Pokaż ukryte</string>
+  <string name="opt_banners">Banery modułów</string>
+  <string name="opt_icons">Ikony modułów</string>
+  <string name="opt_disabled">Wyłączone moduły</string>
+  <string name="opt_hidden">Ukryte moduły</string>
   <string name="search">Szukaj</string>
   <string name="search_modules">Szukaj modułów</string>
   <string name="no_results">Brak wyników</string>
