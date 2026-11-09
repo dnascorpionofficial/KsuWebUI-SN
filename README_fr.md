@@ -11,7 +11,7 @@ Un grand merci aux deux contributeurs pour leur travail, qui a servi de fondatio
 
 # KsuWebUI-SN
 
-[English](README.md) | [简体中文](README_cn.md) | Français | [日本語](README_ja.md)
+[English](README.md) | [简体中文](README_cn.md) | Français | [日本語](README_ja.md) | [العربية](README_ar.md)
 
 Implémentation autonome de l'application [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html)
 

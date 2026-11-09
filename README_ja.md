@@ -11,7 +11,7 @@
 
 # KsuWebUI-SN
 
-[English](README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | 日本語
+[English](README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | 日本語 | [العربية](README_ar.md)
 
 [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html) アプリのスタンドアロン実装
 
