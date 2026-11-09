@@ -44,6 +44,10 @@ private const val WEB_DOMAIN = "mui.kernelsu.org"
 private const val KSU_SCHEME = "ksu"
 private const val ICON_HOST = "icon"
 private const val KEY_ERUDA_CENTERED = "eruda_centered"
+private const val PROMPT_CONFIRM = "__ksu_confirm__"
+private const val PROMPT_COPY = "__ksu_copy__"
+private const val PROMPT_RELOAD = "__ksu_reload__"
+private const val PROMPT_PICK = "__ksu_pick__:"
 private fun Context.isAppDark(): Boolean =
     when (themeMode(getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE))) {
         THEME_DARK -> true
@@ -70,56 +74,6 @@ private fun Context.erudaTextJs(): String {
     )
     return "window.ksuText = " + JSONObject(entries).toString() + ";"
 }
-
-private fun downloadJs(domain: String) = """
-    (function() {
-        if (window.ksu_download_enabled) return;
-        window.ksu_download_enabled = true;
-        const blobMap = new Map();
-        const orgCreate = URL.createObjectURL;
-        URL.createObjectURL = (obj) => {
-            const url = orgCreate(obj);
-            if (obj instanceof Blob) blobMap.set(url, obj);
-            return url;
-        };
-        const orgRevoke = URL.revokeObjectURL;
-        URL.revokeObjectURL = (url) => {
-            setTimeout(() => blobMap.delete(url), 10000);
-            orgRevoke(url);
-        };
-        const handleDownload = async (a) => {
-            const urlParsed = new URL(a.href, location.href);
-            const url = urlParsed.href;
-            const fileName = a.download || url.split("/").pop().split("?")[0] || "download.bin";
-            const isInternal = urlParsed.hostname === '$domain' || urlParsed.hostname === '$WEB_DOMAIN';
-            if (url.startsWith('blob:') || url.startsWith('data:') || isInternal) {
-                const blob = (url.startsWith('blob:') && blobMap.has(url)) ? blobMap.get(url) : await (await fetch(url)).blob();
-                if (blob.size > 16 * 1024 * 1024) {
-                    console.error("File too large, please use FileOutputStreamInterface instead.");
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = () => {
-                    ksu_download.save(reader.result.split(',')[1], fileName, blob.type);
-                };
-                reader.readAsDataURL(blob);
-            } else {
-                ksu_download.download(url, null, null);
-            }
-        };
-        document.addEventListener("click", (e) => {
-            const a = e.target.closest("a[download]");
-            if (a) {
-                e.preventDefault();
-                handleDownload(a);
-            }
-        }, true);
-        const orgClick = HTMLAnchorElement.prototype.click;
-        HTMLAnchorElement.prototype.click = function () {
-            this.hasAttribute("download") ? handleDownload(this) : orgClick.apply(this, arguments);
-        };
-    })();
-"""
 
 private fun moduleDomain(moduleId: String): String {
     val slug = moduleId.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').take(40).trim('-')
@@ -255,6 +209,11 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         ${erudaJs("scroll")}
         ${erudaJs("theme")}
     """
+    val downloadSource by lazy {
+        assets.open("download.js").bufferedReader().use { it.readText() }
+            .replace("__WEB_DOMAIN__", WEB_DOMAIN)
+            .replace("__DOMAIN__", domain)
+    }
     val erudaSource by lazy { assets.open("eruda.min.js").bufferedReader().use { it.readText() } }
     fun erudaBootJs(center: Boolean, dark: Boolean) = """
         if (!window.__erudaInit) {
@@ -299,7 +258,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 view?.evaluateJavascript(erudaBootJs(center, isAppDark()), null)
                 if (center) prefs.edit { putStringSet(KEY_ERUDA_CENTERED, centered + moduleId) }
             }
-            view?.evaluateJavascript(downloadJs(domain), null)
+            view?.evaluateJavascript(downloadSource, null)
             view?.evaluateJavascript(SYSTEM_BARS_JS, null)
         }
     }
@@ -359,73 +318,74 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
 
             override fun onJsPrompt(view: WebView?, url: String?, message: String?, defaultValue: String?, result: JsPromptResult?): Boolean {
                 val msg = message.orEmpty()
-                if (msg == "__ksu_confirm__") {
-                    val confirm = DialogConfirmBinding.inflate(layoutInflater)
-                    confirm.title.text = defaultValue.orEmpty()
-                    confirm.message.visibility = View.GONE
-                    val dialog = buttonDialog(confirm.root, result)
-                    confirm.no.setOnClickListener {
-                        result?.cancel()
-                        dialog.dismiss()
+                when {
+                    msg == PROMPT_CONFIRM -> {
+                        val confirm = DialogConfirmBinding.inflate(layoutInflater)
+                        confirm.title.text = defaultValue.orEmpty()
+                        confirm.message.visibility = View.GONE
+                        val dialog = buttonDialog(confirm.root, result)
+                        confirm.no.setOnClickListener {
+                            result?.cancel()
+                            dialog.dismiss()
+                        }
+                        confirm.yes.setOnClickListener {
+                            result?.confirm("yes")
+                            dialog.dismiss()
+                        }
+                        dialog.show()
                     }
-                    confirm.yes.setOnClickListener {
-                        result?.confirm("yes")
-                        dialog.dismiss()
+                    msg == PROMPT_COPY -> {
+                        val clipboard = this@initWebView.getSystemService(ClipboardManager::class.java)
+                        clipboard?.setPrimaryClip(ClipData.newPlainText("text", defaultValue.orEmpty()))
+                        Toast.makeText(this@initWebView, R.string.copied, Toast.LENGTH_SHORT).show()
+                        result?.confirm("")
                     }
-                    dialog.show()
-                    return true
-                }
-                if (msg == "__ksu_copy__") {
-                    val clipboard = this@initWebView.getSystemService(ClipboardManager::class.java)
-                    clipboard?.setPrimaryClip(ClipData.newPlainText("text", defaultValue.orEmpty()))
-                    Toast.makeText(this@initWebView, R.string.copied, Toast.LENGTH_SHORT).show()
-                    result?.confirm("")
-                    return true
-                }
-                if (msg == "__ksu_reload__" || msg.startsWith("__ksu_pick__:")) {
-                    val reload = msg == "__ksu_reload__"
-                    val choice = DialogReloadBinding.inflate(layoutInflater)
-                    if (!reload) {
-                        choice.title.setText(
-                            when (msg.removePrefix("__ksu_pick__:")) {
-                                "copy" -> R.string.copy_title
-                                "view" -> R.string.view_title
-                                else -> R.string.edit_title
-                            }
-                        )
-                        choice.first.setText(R.string.choose_key)
-                        choice.second.setText(R.string.choose_value)
+                    msg == PROMPT_RELOAD || msg.startsWith(PROMPT_PICK) -> {
+                        val reload = msg == PROMPT_RELOAD
+                        val choice = DialogReloadBinding.inflate(layoutInflater)
+                        if (!reload) {
+                            choice.title.setText(
+                                when (msg.removePrefix(PROMPT_PICK)) {
+                                    "copy" -> R.string.copy_title
+                                    "view" -> R.string.view_title
+                                    else -> R.string.edit_title
+                                }
+                            )
+                            choice.first.setText(R.string.choose_key)
+                            choice.second.setText(R.string.choose_value)
+                        }
+                        val dialog = buttonDialog(choice.root, result)
+                        choice.first.setOnClickListener {
+                            result?.confirm(if (reload) "table" else "key")
+                            dialog.dismiss()
+                        }
+                        choice.second.setOnClickListener {
+                            result?.confirm(if (reload) "webui" else "value")
+                            dialog.dismiss()
+                        }
+                        dialog.show()
                     }
-                    val dialog = buttonDialog(choice.root, result)
-                    choice.first.setOnClickListener {
-                        result?.confirm(if (reload) "table" else "key")
-                        dialog.dismiss()
-                    }
-                    choice.second.setOnClickListener {
-                        result?.confirm(if (reload) "webui" else "value")
-                        dialog.dismiss()
-                    }
-                    dialog.show()
-                    return true
-                }
-                val input = EditText(this@initWebView).apply {
-                    if (defaultValue != null) setText(defaultValue)
-                }
-                val container = FrameLayout(this@initWebView)
-                val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-                params.leftMargin = resources.getDimensionPixelSize(androidx.appcompat.R.dimen.abc_dialog_padding_material)
-                params.rightMargin = resources.getDimensionPixelSize(androidx.appcompat.R.dimen.abc_dialog_padding_material)
-                input.layoutParams = params
-                container.addView(input)
+                    else -> {
+                        val input = EditText(this@initWebView).apply {
+                            if (defaultValue != null) setText(defaultValue)
+                        }
+                        val container = FrameLayout(this@initWebView)
+                        val params = FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        params.leftMargin = resources.getDimensionPixelSize(androidx.appcompat.R.dimen.abc_dialog_padding_material)
+                        params.rightMargin = resources.getDimensionPixelSize(androidx.appcompat.R.dimen.abc_dialog_padding_material)
+                        input.layoutParams = params
+                        container.addView(input)
 
-                MaterialAlertDialogBuilder(this@initWebView)
-                    .setTitle(R.string.dialog_prompt)
-                    .setMessage(message)
-                    .setView(container)
-                    .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm(input.text.toString()) }
-                    .setNegativeButton(android.R.string.cancel) { _, _ -> result?.cancel() }
-                    .setOnCancelListener { result?.cancel() }
-                    .show()
+                        MaterialAlertDialogBuilder(this@initWebView)
+                            .setTitle(R.string.dialog_prompt)
+                            .setMessage(message)
+                            .setView(container)
+                            .setPositiveButton(android.R.string.ok) { _, _ -> result?.confirm(input.text.toString()) }
+                            .setNegativeButton(android.R.string.cancel) { _, _ -> result?.cancel() }
+                            .setOnCancelListener { result?.cancel() }
+                            .show()
+                    }
+                }
                 return true
             }
         }
