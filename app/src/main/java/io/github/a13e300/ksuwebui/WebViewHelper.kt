@@ -1,5 +1,6 @@
 package io.github.a13e300.ksuwebui
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -11,6 +12,7 @@ import android.net.Uri
 import android.os.Build
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.ConsoleMessage
 import android.webkit.JsPromptResult
 import android.webkit.JsResult
 import android.webkit.ValueCallback
@@ -129,15 +131,60 @@ private fun moduleDomain(moduleId: String): String {
     return "$label.$WEB_DOMAIN"
 }
 
-fun clearModuleData(moduleId: String) {
+private const val CLEARED_MARK = "__ksu_cleared__"
+
+private const val CLEAR_STORAGE_HTML = """
+<script>
+(async function () {
+  try { localStorage.clear(); } catch (e) {}
+  try {
+    var dbs = await indexedDB.databases();
+    await Promise.all(dbs.map(function (d) {
+      return new Promise(function (done) {
+        var q = indexedDB.deleteDatabase(d.name);
+        q.onsuccess = q.onerror = q.onblocked = done;
+      });
+    }));
+  } catch (e) {}
+  try {
+    var keys = await caches.keys();
+    await Promise.all(keys.map(function (k) { return caches.delete(k); }));
+  } catch (e) {}
+  console.log('$CLEARED_MARK');
+})();
+</script>
+"""
+
+@SuppressLint("SetJavaScriptEnabled")
+fun Context.clearModuleData(moduleId: String, onDone: () -> Unit) {
+    val prefs = getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+    prefs.edit { putStringSet(KEY_ERUDA_CENTERED, prefs.getStringSet(KEY_ERUDA_CENTERED, emptySet()).orEmpty() - moduleId) }
     val origin = "https://${moduleDomain(moduleId)}"
-    WebStorage.getInstance().deleteOrigin(origin)
-    val cookies = CookieManager.getInstance()
-    cookies.getCookie(origin)?.split(';')?.forEach {
-        val name = it.substringBefore('=').trim()
-        if (name.isNotEmpty()) cookies.setCookie(origin, "$name=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+    val web = WebView(this)
+    var finished = false
+    fun finish() {
+        if (finished) return
+        finished = true
+        App.handler.post { web.destroy() }
+        WebStorage.getInstance().deleteOrigin(origin)
+        val cookies = CookieManager.getInstance()
+        cookies.getCookie(origin)?.split(';')?.forEach {
+            val name = it.substringBefore('=').trim()
+            if (name.isNotEmpty()) cookies.setCookie(origin, "$name=; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; Path=/")
+        }
+        cookies.flush()
+        onDone()
     }
-    cookies.flush()
+    web.settings.javaScriptEnabled = true
+    web.settings.domStorageEnabled = true
+    web.webChromeClient = object : WebChromeClient() {
+        override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+            if (message.message() == CLEARED_MARK) finish()
+            return true
+        }
+    }
+    web.loadDataWithBaseURL("$origin/", CLEAR_STORAGE_HTML, "text/html", "utf-8", null)
+    App.handler.postDelayed({ finish() }, 3000)
 }
 
 private fun WebUIActivity.buttonDialog(root: View, result: JsResult?): AlertDialog =

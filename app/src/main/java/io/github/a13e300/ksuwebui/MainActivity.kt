@@ -691,8 +691,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         ) { toggleConsole(item) }
         action(R.drawable.ic_delete, R.string.clear_module_data) {
             showConfirm(R.drawable.ic_delete, R.string.clear_module_data, R.string.clear_module_data_message) {
-                clearModuleData(item.id)
-                showMessage(getString(R.string.module_data_cleared))
+                clearModuleData(item.id) { showMessage(getString(R.string.module_data_cleared)) }
             }
         }
 
