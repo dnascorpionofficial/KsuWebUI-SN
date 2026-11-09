@@ -63,7 +63,8 @@ private fun Context.erudaTextJs(): String {
         "clearSession" to getString(R.string.eruda_clear_session),
         "clearConsole" to getString(R.string.eruda_clear_console),
         "clearNetwork" to getString(R.string.eruda_clear_network),
-        "restoreDefaults" to getString(R.string.eruda_restore_defaults)
+        "restoreDefaults" to getString(R.string.eruda_restore_defaults),
+        "bgScroll" to getString(R.string.eruda_bg_scroll)
     )
     return "window.ksuText = " + JSONObject(entries).toString() + ";"
 }
@@ -204,6 +205,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         ${erudaJs("guard")}
         ${erudaJs("storage")}
         ${erudaJs("ux")}
+        ${erudaJs("scroll")}
         ${erudaJs("theme")}
     """
     val erudaSource by lazy { assets.open("eruda.min.js").bufferedReader().use { it.readText() } }

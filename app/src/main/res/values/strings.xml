@@ -66,6 +66,7 @@
     <string name="eruda_clear_console">Clear all console logs of this module</string>
     <string name="eruda_clear_network">Clear all network requests of this module</string>
     <string name="eruda_restore_defaults">Restore all Eruda settings to defaults and reload this module</string>
+    <string name="eruda_bg_scroll">WebUI Background Scroll</string>
     <string name="update_repo_not_set">Update check: repo not set in this build</string>
     <string name="update_version_invalid">Version info is invalid: %s</string>
     <string name="update_up_to_date">Up to date (latest %1$s, installed %2$s)</string>

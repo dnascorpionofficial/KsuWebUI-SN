@@ -66,6 +66,7 @@
   <string name="eruda_clear_console">Wyczyść wszystkie logi konsoli tego modułu</string>
   <string name="eruda_clear_network">Wyczyść wszystkie żądania sieciowe tego modułu</string>
   <string name="eruda_restore_defaults">Przywróć wszystkie ustawienia Eruda do domyślnych i załaduj ponownie ten moduł</string>
+  <string name="eruda_bg_scroll">Przewijanie tła WebUI</string>
   <string name="update_repo_not_set">Sprawdzanie aktualizacji: repozytorium nie jest ustawione w tej wersji</string>
   <string name="update_version_invalid">Nieprawidłowe informacje o wersji: %s</string>
   <string name="update_up_to_date">Aplikacja jest aktualna (najnowsza %1$s, zainstalowana %2$s)</string>
