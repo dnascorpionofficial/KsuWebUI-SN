@@ -20,7 +20,7 @@
 ## 翻译
 
 所有界面文本都位于 `app/src/main/res/values*/strings.xml`。英语（`values/`）是源语言；
-波兰语（`values-pl`）、日语（`values-ja`）和简体中文（`values-zh-rCN`）为翻译版本。
+阿拉伯语（`values-ar`）、波兰语（`values-pl`）、日语（`values-ja`）和简体中文（`values-zh-rCN`）为翻译版本。
 
 ### 添加语言
 
