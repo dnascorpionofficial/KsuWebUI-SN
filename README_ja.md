@@ -20,7 +20,7 @@ Magisk、KernelSU、APatch に対応しています
 ## 翻訳
 
 UI のテキストはすべて `app/src/main/res/values*/strings.xml` にあります。英語（`values/`）が基準言語で、
-ポーランド語（`values-pl`）、日本語（`values-ja`）、簡体字中国語（`values-zh-rCN`）は翻訳です。
+アラビア語（`values-ar`）、ポーランド語（`values-pl`）、日本語（`values-ja`）、簡体字中国語（`values-zh-rCN`）は翻訳です。
 
 ### 言語を追加する
 
