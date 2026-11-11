@@ -29,8 +29,12 @@ python3 scripts/add_language.py de        # ou es, pt-BR, zh-TW, ...
 ```
 
 Cette commande crée `values-de/strings.xml` avec toutes les chaînes copiées depuis l'anglais et marquées
-`<!-- TODO translate -->`. Traduisez le texte, supprimez le marqueur, et c'est terminé. La compilation prend
-automatiquement en compte la nouvelle langue (elle apparaît aussi dans les paramètres de langue par application d'Android).
+`<!-- TODO translate -->`, puis vous guide chaîne par chaîne : elle affiche le texte anglais, vous saisissez la
+traduction et appuyez sur Entrée (Entrée seul passe la chaîne, `quit_translate` enregistre et quitte). Chaque réponse
+est écrite directement dans le fichier et affichée sous forme de ligne `String name | English name | Translated word`.
+Relancez la même commande plus tard pour continuer avec les chaînes encore marquées. Utilisez `--create-only` pour
+seulement créer le fichier et le modifier à la main. La compilation prend automatiquement en compte la nouvelle langue
+(elle apparaît aussi dans les paramètres de langue par application d'Android).
 
 ### Ajouter ou modifier une chaîne
 

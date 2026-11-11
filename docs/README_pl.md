@@ -29,8 +29,12 @@ python3 scripts/add_language.py de        # lub es, pt-BR, zh-TW, ...
 ```
 
 To polecenie tworzy `values-de/strings.xml` ze wszystkimi tekstami skopiowanymi z angielskiego i oznaczonymi
-`<!-- TODO translate -->`. Przetłumacz tekst, usuń znacznik i gotowe. Kompilacja sama uwzględnia nowy język
-(pojawia się też w ustawieniach języka dla poszczególnych aplikacji w Androidzie).
+`<!-- TODO translate -->`, a następnie prowadzi Cię przez nie po kolei: pokazuje angielski tekst, wpisujesz
+tłumaczenie i naciskasz Enter (sam Enter pomija tekst, `quit_translate` zapisuje i kończy). Każda odpowiedź jest od
+razu zapisywana w pliku i wyświetlana jako wiersz `String name | English name | Translated word`. Uruchom to samo
+polecenie później, aby kontynuować z tekstami, które nadal są oznaczone. Użyj `--create-only`, aby tylko utworzyć plik
+i edytować go ręcznie. Kompilacja sama uwzględnia nowy język (pojawia się też w ustawieniach języka dla poszczególnych
+aplikacji w Androidzie).
 
 ### Dodawanie lub zmiana tekstu
 
