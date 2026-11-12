@@ -84,6 +84,13 @@
                         android:textColor="?attr/colorOnSurfaceVariant"
                         android:textSize="13sp" />
 
+                    <TextView
+                        android:id="@+id/version_code"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        android:textSize="13sp" />
+
                 </LinearLayout>
 
             </LinearLayout>
@@ -108,6 +115,18 @@
                 android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/settings"
+                    android:layout_width="34dp"
+                    android:layout_height="34dp"
+                    android:layout_marginStart="-6dp"
+                    android:layout_marginEnd="4dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/module_settings"
+                    android:padding="6dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_settings" />
 
                 <com.google.android.material.chip.ChipGroup
                     android:layout_width="0dp"
@@ -151,15 +170,112 @@
                     app:chipStrokeColor="@color/card_stroke"
                     app:ensureMinTouchTargetSize="false" />
 
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/module_update"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:maxLines="1"
+                    android:text="@string/module_update_available"
+                    android:textColor="@color/update_chip_text"
+                    android:textSize="12sp"
+                    android:visibility="gone"
+                    app:chipBackgroundColor="@color/update_chip"
+                    app:chipMinHeight="28dp"
+                    app:chipStrokeWidth="0dp"
+                    app:ensureMinTouchTargetSize="false" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/status_disabled"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:contentDescription="@string/module_disabled"
+                    android:focusable="false"
+                    android:minWidth="28dp"
+                    android:visibility="gone"
+                    app:chipBackgroundColor="@android:color/transparent"
+                    app:chipEndPadding="6dp"
+                    app:chipIcon="@drawable/ic_block"
+                    app:chipIconSize="16dp"
+                    app:chipIconTint="@color/status_red"
+                    app:chipIconVisible="true"
+                    app:chipMinHeight="28dp"
+                    app:chipStartPadding="6dp"
+                    app:chipStrokeColor="@color/card_stroke"
+                    app:ensureMinTouchTargetSize="false"
+                    app:iconEndPadding="0dp"
+                    app:iconStartPadding="0dp"
+                    app:textEndPadding="0dp"
+                    app:textStartPadding="0dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/status_hidden"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:contentDescription="@string/module_hidden"
+                    android:focusable="false"
+                    android:minWidth="28dp"
+                    android:visibility="gone"
+                    app:chipBackgroundColor="@android:color/transparent"
+                    app:chipEndPadding="6dp"
+                    app:chipIcon="@drawable/ic_visibility_off"
+                    app:chipIconSize="16dp"
+                    app:chipIconTint="@color/status_red"
+                    app:chipIconVisible="true"
+                    app:chipMinHeight="28dp"
+                    app:chipStartPadding="6dp"
+                    app:chipStrokeColor="@color/card_stroke"
+                    app:ensureMinTouchTargetSize="false"
+                    app:iconEndPadding="0dp"
+                    app:iconStartPadding="0dp"
+                    app:textEndPadding="0dp"
+                    app:textStartPadding="0dp" />
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/status_update"
+                    style="@style/Widget.Material3.Chip.Assist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:contentDescription="@string/module_update_available"
+                    android:focusable="false"
+                    android:minWidth="28dp"
+                    android:visibility="gone"
+                    app:chipBackgroundColor="@color/update_chip"
+                    app:chipEndPadding="6dp"
+                    app:chipIcon="@drawable/ic_update"
+                    app:chipIconSize="16dp"
+                    app:chipIconTint="@color/update_chip_text"
+                    app:chipIconVisible="true"
+                    app:chipMinHeight="28dp"
+                    app:chipStartPadding="6dp"
+                    app:chipStrokeWidth="0dp"
+                    app:ensureMinTouchTargetSize="false"
+                    app:iconEndPadding="0dp"
+                    app:iconStartPadding="0dp"
+                    app:textEndPadding="0dp"
+                    app:textStartPadding="0dp" />
+
                 </com.google.android.material.chip.ChipGroup>
 
-                <ImageButton
-                    android:id="@+id/settings"
-                    android:layout_width="40dp"
-                    android:layout_height="40dp"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="@string/module_settings"
-                    android:src="@drawable/ic_settings" />
+
+
+
+                <com.google.android.material.materialswitch.MaterialSwitch
+                    android:id="@+id/toggle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_marginEnd="-4dp"
+                    android:contentDescription="@string/module_toggle"
+                    android:scaleX="0.85"
+                    android:scaleY="0.85" />
 
             </LinearLayout>
 

@@ -2,6 +2,7 @@ package io.github.a13e300.ksuwebui
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.content.res.ColorStateList
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.BitmapShader
@@ -52,11 +53,17 @@ import androidx.core.view.updatePadding
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import com.topjohnwu.superuser.nio.FileSystemManager
 import io.github.a13e300.ksuwebui.databinding.ActivityMainBinding
 import io.github.a13e300.ksuwebui.databinding.DialogConfirmBinding
+import io.github.a13e300.ksuwebui.databinding.DialogInfoBinding
+import io.github.a13e300.ksuwebui.databinding.ItemInfoHeaderBinding
+import io.github.a13e300.ksuwebui.databinding.ItemInfoRowBinding
 import io.github.a13e300.ksuwebui.databinding.ItemModuleBinding
 import io.github.a13e300.ksuwebui.databinding.ItemPowerRowBinding
 import io.github.a13e300.ksuwebui.databinding.ItemSheetActionBinding
@@ -79,6 +86,8 @@ private const val KEY_OPT_DISABLED = "opt_disabled"
 private const val KEY_OPT_HIDDEN = "opt_hidden"
 private const val KEY_PINNED = "pinned_modules"
 private const val KEY_HIDDEN = "hidden_modules"
+private const val KEY_PENDING_REBOOT = "pending_reboot"
+private const val KEY_PENDING_BOOT = "pending_boot_id"
 private const val DISABLED_RED = 0xFFE53935.toInt()
 private const val REBOOT_CMD = "svc power reboot || reboot"
 private const val SOFT_REBOOT_CMD = "setprop ctl.restart zygote || killall zygote"
@@ -347,14 +356,22 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
     }
 
-    private fun showConfirm(icon: Int?, title: Int, message: Int, onYes: () -> Unit) {
+    private fun showConfirm(icon: Int?, title: Int, message: Int, onYes: () -> Unit): Unit =
+        showConfirm(icon, getString(title), getString(message), onYes = onYes)
+
+    private fun showConfirm(
+        icon: Int?, title: CharSequence, message: CharSequence,
+        yes: Int = R.string.yes, no: Int = R.string.no, onYes: () -> Unit
+    ) {
         val view = DialogConfirmBinding.inflate(layoutInflater)
         if (icon != null) {
             view.icon.setImageResource(icon)
             view.icon.visibility = View.VISIBLE
         }
-        view.title.setText(title)
-        view.message.setText(message)
+        view.title.text = title
+        view.message.text = message
+        view.yes.setText(yes)
+        view.no.setText(no)
         val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
             .setView(view.root)
             .create()
@@ -393,6 +410,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             prefs.edit { putInt("theme_mode", mode) }
             AppCompatDelegate.setDefaultNightMode(nightMode(mode))
         }
+        binding.drawerInfo.setOnClickListener { showInfoDialog() }
         binding.swBanners.bindPref(KEY_OPT_BANNERS, true) { refresh() }
         binding.swIcons.bindPref(KEY_OPT_ICONS, true) { refresh() }
         binding.swDisabled.bindPref(KEY_OPT_DISABLED, true) { refresh() }
@@ -455,6 +473,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 val id = f.name
                 var author = "?"
                 var version = "?"
+                var versionCode = ""
+                var updateJson = ""
                 var desc = ""
                 var bannerRaw: String? = null
                 var coverRaw: String? = null
@@ -467,6 +487,8 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                                 "description" -> desc = ls[1]
                                 "author" -> author = ls[1]
                                 "version" -> version = ls[1]
+                                "versionCode" -> versionCode = ls[1].trim()
+                                "updateJson" -> updateJson = ls[1].trim()
                                 "banner" -> bannerRaw = ls[1]
                                 "cover" -> coverRaw = ls[1]
                             }
@@ -486,7 +508,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 } else {
                     ""
                 }
-                mods.add(Module(name, id, desc, author, version, banner, icon, size, date, disabled))
+                mods.add(Module(name, id, desc, author, version, banner, icon, size, date, disabled, versionCode = versionCode, updateJson = updateJson))
             }
             val pinnedIds = stringSet(KEY_PINNED)
             val hiddenIds = stringSet(KEY_HIDDEN)
@@ -502,6 +524,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     binding.info.setText(R.string.no_modules)
                     binding.info.isVisible = true
                 }
+                checkModuleUpdates(mods)
             }
         }
     }
@@ -739,7 +762,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.swipeRefresh.isRefreshing = false
     }
 
-    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false, var hidden: Boolean = false)
+    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false, var hidden: Boolean = false, val versionCode: String = "", val updateJson: String = "", val updateAvailable: Boolean = false)
 
     class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -762,21 +785,35 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.name.text = name
             holder.binding.author.text = resources.getString(R.string.author, item.author)
             holder.binding.version.text = resources.getString(R.string.version, item.version)
+            holder.binding.versionCode.text = resources.getString(R.string.version_code, item.versionCode)
+            holder.binding.versionCode.isVisible = item.versionCode.isNotEmpty()
             holder.binding.size.text = item.size
             holder.binding.size.isVisible = item.size.isNotEmpty()
-            if (item.disabled || item.hidden) {
-                holder.binding.date.text = listOfNotNull(
-                    if (item.disabled) getString(R.string.module_disabled) else null,
-                    if (item.hidden) getString(R.string.module_hidden) else null
-                ).joinToString(" · ")
-                holder.binding.date.setTextColor(DISABLED_RED)
-                holder.binding.date.isVisible = true
-            } else {
+            holder.binding.toggle.setOnCheckedChangeListener(null)
+            holder.binding.toggle.isEnabled = true
+            holder.binding.toggle.isChecked = !item.disabled
+            holder.binding.toggle.setOnCheckedChangeListener { button, on ->
+                button.isEnabled = false
+                setModuleEnabled(item, on)
+            }
+            val statusCount = listOf(item.disabled, item.hidden, item.updateAvailable).count { it }
+            val multiple = statusCount > 1
+            holder.binding.moduleUpdate.isVisible = item.updateAvailable && !multiple
+            holder.binding.statusDisabled.isVisible = item.disabled && multiple
+            holder.binding.statusHidden.isVisible = item.hidden && multiple
+            holder.binding.statusUpdate.isVisible = item.updateAvailable && multiple
+            if (statusCount == 0) {
                 holder.binding.date.text = item.date
                 holder.binding.date.setTextColor(
                     MaterialColors.getColor(holder.binding.date, com.google.android.material.R.attr.colorOnSurfaceVariant)
                 )
                 holder.binding.date.isVisible = item.date.isNotEmpty()
+            } else if (!multiple && !item.updateAvailable) {
+                holder.binding.date.text = getString(if (item.disabled) R.string.module_disabled else R.string.module_hidden)
+                holder.binding.date.setTextColor(DISABLED_RED)
+                holder.binding.date.isVisible = true
+            } else {
+                holder.binding.date.isVisible = false
             }
             holder.binding.desc.text = item.desc
             holder.binding.banner.setImageBitmap(item.banner)
@@ -798,6 +835,116 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             }
         }
 
+    }
+
+    private fun showInfoDialog() {
+        val dialog = DialogInfoBinding.inflate(layoutInflater)
+        val neutral = MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurfaceVariant)
+        fun header(title: Int) {
+            val h = ItemInfoHeaderBinding.inflate(layoutInflater, dialog.content, false)
+            h.root.setText(title)
+            dialog.content.addView(h.root)
+        }
+        fun row(title: Int, body: Int, icon: Int = 0, tint: Int = neutral) {
+            val r = ItemInfoRowBinding.inflate(layoutInflater, dialog.content, false)
+            if (title != 0) r.title.setText(title) else r.title.isVisible = false
+            r.body.setText(body)
+            if (icon != 0) {
+                r.icon.setImageResource(icon)
+                r.icon.imageTintList = ColorStateList.valueOf(tint)
+            } else {
+                r.icon.isVisible = false
+            }
+            dialog.content.addView(r.root)
+        }
+        header(R.string.settings)
+        row(R.string.info_theme_title, R.string.info_theme_body)
+        row(R.string.opt_banners, R.string.info_banners_body)
+        row(R.string.opt_icons, R.string.info_icons_body)
+        row(R.string.opt_disabled, R.string.info_disabled_body)
+        row(R.string.opt_hidden, R.string.info_hidden_body)
+        header(R.string.info_section_cards)
+        row(0, R.string.info_status_note)
+        row(R.string.module_disabled, R.string.info_status_disabled_body, R.drawable.ic_block, ContextCompat.getColor(this, R.color.status_red))
+        row(R.string.module_hidden, R.string.info_status_hidden_body, R.drawable.ic_visibility_off, ContextCompat.getColor(this, R.color.status_red))
+        row(R.string.module_update_available, R.string.info_status_update_body, R.drawable.ic_update, ContextCompat.getColor(this, R.color.update_chip))
+        row(R.string.info_pinned_title, R.string.info_pinned_body, R.drawable.ic_push_pin)
+        row(R.string.module_settings, R.string.info_gear_body, R.drawable.ic_settings)
+        row(R.string.module_toggle, R.string.info_switch_body, R.drawable.ic_power)
+        MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
+            .setView(dialog.root)
+            .setPositiveButton(R.string.info_close, null)
+            .show()
+    }
+
+    private fun checkModuleUpdates(mods: List<Module>) {
+        val targets = mods.filter { it.versionCode.toLongOrNull() != null && it.updateJson.startsWith("http", ignoreCase = true) }
+        if (targets.isEmpty()) return
+        lifecycleScope.launch(Dispatchers.IO) {
+            val gate = Semaphore(4)
+            targets.map { m ->
+                launch {
+                    gate.withPermit {
+                        val latest = ModuleUpdateChecker.latestVersionCode(m.updateJson) ?: return@withPermit
+                        if (latest > m.versionCode.toLong()) {
+                            withContext(Dispatchers.Main) { setModuleUpdate(m.id) }
+                        }
+                    }
+                }
+            }.joinAll()
+        }
+    }
+
+    private fun setModuleUpdate(id: String) {
+        val i = allModules.indexOfFirst { it.id == id }
+        if (i < 0) return
+        allModules = allModules.toMutableList().also { it[i] = it[i].copy(updateAvailable = true) }
+        applyFilter()
+    }
+
+    private fun setModuleEnabled(item: Module, enable: Boolean) {
+        val marker = "'/data/adb/modules/${item.id.replace("'", "'\\''")}/disable'"
+        App.executor.execute {
+            val ok = Shell.cmd(if (enable) "rm -f $marker" else "touch $marker").exec().isSuccess
+            val needsReboot = ok && markPendingReboot(item.id)
+            runOnUiThread {
+                if (!ok) {
+                    showMessage(getString(R.string.module_toggle_failed))
+                } else {
+                    val i = allModules.indexOfFirst { it.id == item.id }
+                    if (i >= 0) allModules = allModules.toMutableList().also { it[i] = it[i].copy(disabled = !enable) }
+                }
+                applyFilter()
+                if (needsReboot) showRebootPrompt(enable)
+            }
+        }
+    }
+
+    private fun markPendingReboot(id: String): Boolean {
+        val boot = Shell.cmd("cat /proc/sys/kernel/random/boot_id").exec().out.firstOrNull()?.trim().orEmpty()
+        if (boot.isEmpty()) return true
+        if (prefs.getString(KEY_PENDING_BOOT, null) != boot) {
+            prefs.edit {
+                putString(KEY_PENDING_BOOT, boot)
+                remove(KEY_PENDING_REBOOT)
+            }
+        }
+        val pending = stringSet(KEY_PENDING_REBOOT)
+        val needed = pending.add(id)
+        if (!needed) pending.remove(id)
+        prefs.edit { putStringSet(KEY_PENDING_REBOOT, pending) }
+        return needed
+    }
+
+    private fun showRebootPrompt(enabled: Boolean) {
+        showConfirm(
+            R.drawable.ic_reboot,
+            getString(if (enabled) R.string.reboot_to_enable else R.string.reboot_to_disable),
+            getString(R.string.reboot_to_apply_message),
+            R.string.reboot_now, R.string.update_later
+        ) {
+            App.executor.execute { Shell.cmd(REBOOT_CMD).exec() }
+        }
     }
 
     private fun openModule(id: String, name: String) {

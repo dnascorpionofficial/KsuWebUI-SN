@@ -10,4 +10,7 @@
     <color name="text_secondary">#4A4A4A</color>
     <color name="text_hint">#767676</color>
     <color name="divider">#E6E6E6</color>
+    <color name="update_chip">#1E8E3E</color>
+    <color name="update_chip_text">#FFFFFF</color>
+    <color name="status_red">#E53935</color>
 </resources>
