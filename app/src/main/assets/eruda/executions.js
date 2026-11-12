@@ -249,7 +249,7 @@
         return s;
       }).join('\n');
       var d = new Date(), p = function (n) { return String(n).padStart(2, '0'); };
-      var stamp = p(d.getDate()) + '-' + p(d.getMonth() + 1) + '-' + d.getFullYear() + '_' + p(d.getHours()) + '-' + p(d.getMinutes());
+      var stamp = p(d.getDate()) + '-' + p(d.getMonth() + 1) + '-' + d.getFullYear() + '_' + p(d.getHours()) + '-' + p(d.getMinutes()) + '-' + p(d.getSeconds());
       var reader = new FileReader();
       reader.onload = function () {
         var b64 = String(reader.result).split(',')[1] || '';
