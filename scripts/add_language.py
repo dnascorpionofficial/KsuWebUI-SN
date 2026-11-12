@@ -15,7 +15,7 @@ PH = re.compile(r"%(?:\d+\$)?[sdfx]")
 STRING = re.compile(r"<string\s+name=\"([^\"]+)\"([^>]*)>(.*?)</string>", re.S)
 TODO = re.compile(r"[ \t]*<!-- TODO translate -->[ \t]*\n[ \t]*<string name=\"([^\"]+)\"([^>]*)>(.*?)</string>", re.S)
 SKIPPED = "Not Translated"
-HINT = ("Type quit_translate & press Enter to save and quit.\n"
+HINT = ("\nType quit_translate & press Enter to save and quit.\n"
         "Type \\n for a line break. Keep %s / %1$d placeholders texts")
 
 def folder_for(code):
@@ -112,8 +112,8 @@ def translate(out, code, names, base):
         return "\n".join(lines)
     head = row("String name", "English name", "Translated word")
     rule = "-" * (box + 1) + "+" + "-" * (box + 2) + "+" + "-" * (box + 1)
-    print(f"\nTotal strings to translate: {total}")
-    print("Type the translation + Enter. Enter alone = skip (kept as 'TODO translate').")
+    print(f"\nTotal strings to translate: {total}\n")
+    print("Type the translation & Enter. Enter alone = skip (kept as 'TODO translate')\n")
     print(HINT)
     done, skipped, rows = 0, 0, []
     for i, name in enumerate(names, 1):
@@ -131,7 +131,7 @@ def translate(out, code, names, base):
             skipped += 1
         rows.append(row(name, english, ans or SKIPPED))
         print(f"\n{head}\n{rule}\n{rows[-1]}")
-        print(f"Left to translate: {total - i}   (translated {done}, skipped {skipped})")
+        print(f"\nLeft to translate: {total - i}   (translated {done}, skipped {skipped})")
         print(HINT)
     print(f"\n{'=' * 8} Summary {'=' * 8}")
     if rows:
