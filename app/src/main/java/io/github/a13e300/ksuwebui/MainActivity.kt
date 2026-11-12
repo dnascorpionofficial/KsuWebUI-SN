@@ -776,7 +776,15 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
     data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false, var hidden: Boolean = false, val versionCode: String = "", val updateJson: String = "", val updateAvailable: Boolean = false)
 
-    class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root)
+    class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root) {
+        init {
+            val consumeTouch = View.OnTouchListener { _, _ -> true }
+            listOf(
+                binding.size, binding.date, binding.moduleUpdate,
+                binding.statusDisabled, binding.statusHidden, binding.statusUpdate
+            ).forEach { it.setOnTouchListener(consumeTouch) }
+        }
+    }
 
     inner class Adapter : RecyclerView.Adapter<ViewHolder>() {
 
