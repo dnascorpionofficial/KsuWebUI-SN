@@ -76,7 +76,8 @@ private fun Context.erudaTextJs(): String {
         "clearConsole" to getString(R.string.eruda_clear_console),
         "clearNetwork" to getString(R.string.eruda_clear_network),
         "restoreDefaults" to getString(R.string.eruda_restore_defaults),
-        "bgScroll" to getString(R.string.eruda_bg_scroll)
+        "bgScroll" to getString(R.string.eruda_bg_scroll),
+        "liveReload" to getString(R.string.eruda_live_reload)
     )
     return "window.ksuText = " + JSONObject(entries).toString() + ";"
 }

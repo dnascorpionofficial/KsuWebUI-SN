@@ -11,7 +11,7 @@
       if (k === 'liveReload') send();
     });
     var settings = eruda.get('settings');
-    if (settings) settings.switch(cfg, 'liveReload', 'Live reload');
+    if (settings) settings.switch(cfg, 'liveReload', window.ksuText.liveReload);
     if (cfg.get('liveReload')) send();
   } catch (e) {}
 })();
