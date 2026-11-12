@@ -128,10 +128,15 @@
                     android:scaleType="fitCenter"
                     android:src="@drawable/ic_settings" />
 
-                <com.google.android.material.chip.ChipGroup
+                <FrameLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
+                    android:layout_weight="1">
+
+                <com.google.android.material.chip.ChipGroup
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
                     app:chipSpacingHorizontal="6dp"
                     app:chipSpacingVertical="0dp"
                     app:singleLine="true">
@@ -263,6 +268,8 @@
                     app:textStartPadding="0dp" />
 
                 </com.google.android.material.chip.ChipGroup>
+
+                </FrameLayout>
 
 
 
