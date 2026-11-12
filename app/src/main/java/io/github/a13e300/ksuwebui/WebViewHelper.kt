@@ -209,6 +209,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         ${erudaJs("ux")}
         ${erudaJs("scroll")}
         ${erudaJs("theme")}
+        ${erudaJs("executions")}
     """
     val downloadSource by lazy {
         assets.open("download.js").bufferedReader().use { it.readText() }
@@ -271,9 +272,13 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
     }
 
     state.webView?.apply {
-        val webviewInterface = WebViewInterface(state)
+        val consoleOn = moduleId in getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+            .getStringSet(KEY_CONSOLE_MODULES, emptySet()).orEmpty()
+        val execLog = ExecLog(consoleOn)
+        val webviewInterface = WebViewInterface(state, execLog)
         state.webviewInterface = webviewInterface
         addJavascriptInterface(webviewInterface, "ksu")
+        if (consoleOn) addJavascriptInterface(ExecLogInterface(execLog), "ksu_exec_log")
 
         val downloadInterface = DownloadInterface(state)
         addJavascriptInterface(downloadInterface, "ksu_download")

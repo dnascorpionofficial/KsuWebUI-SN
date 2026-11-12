@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 private const val TAG = "WebViewInterface"
 
-class WebViewInterface(private val state: WebUIState) {
+class WebViewInterface(private val state: WebUIState, private val log: ExecLog) {
 
     private val context get() = state.webView!!.context
     private val webView get() = state.webView!!
@@ -40,12 +40,22 @@ class WebViewInterface(private val state: WebUIState) {
 
     @JavascriptInterface
     fun exec(cmd: String): String {
-        return withNewRootShell { ShellUtils.fastCmd(this, cmd) }
+        val id = log.start("exec", cmd, null)
+        val out = withNewRootShell { ShellUtils.fastCmd(this, cmd) }
+        log.out(id, out)
+        log.end(id, null)
+        return out
     }
 
     @JavascriptInterface
     fun exec(cmd: String, callbackFunc: String) {
         exec(cmd, null, callbackFunc)
+    }
+
+    private fun spawnLabel(command: String, args: String): String {
+        if (args.isEmpty()) return command
+        val list = JSONArray(args)
+        return (listOf(command) + List(list.length()) { list.getString(it) }).joinToString(" ")
     }
 
     private fun processOptions(sb: StringBuilder, options: String?) {
@@ -75,11 +85,15 @@ class WebViewInterface(private val state: WebUIState) {
         processOptions(finalCommand, options)
         finalCommand.append(cmd)
 
+        val id = log.start("exec", cmd, options)
         val result = withNewRootShell {
             newJob().add(finalCommand.toString()).to(ArrayList(), ArrayList()).exec()
         }
         val stdout = result.out.joinToString(separator = "\n")
         val stderr = result.err.joinToString(separator = "\n")
+        log.out(id, stdout)
+        log.err(id, stderr)
+        log.end(id, result.code)
 
         val jsCode =
             "(function() { try { ${callbackFunc}(${result.code}, ${
@@ -110,6 +124,7 @@ class WebViewInterface(private val state: WebUIState) {
             finalCommand.append(command)
         }
 
+        val id = log.start("spawn", spawnLabel(command, args), options)
         val shell = createRootShell()
 
         val emitData = fun(name: String, data: String) {
@@ -126,12 +141,14 @@ class WebViewInterface(private val state: WebUIState) {
 
         val stdout = object : CallbackList<String>(UiThreadHandler::runAndWait) {
             override fun onAddElement(s: String) {
+                log.out(id, s + "\n")
                 emitData("stdout", s)
             }
         }
 
         val stderr = object : CallbackList<String>(UiThreadHandler::runAndWait) {
             override fun onAddElement(s: String) {
+                log.err(id, s + "\n")
                 emitData("stderr", s)
             }
         }
@@ -142,6 +159,7 @@ class WebViewInterface(private val state: WebUIState) {
         }
 
         completableFuture.thenAccept { result ->
+            log.end(id, result.code)
             val emitExitCode =
                 "(function() { try { ${callbackFunc}.emit('exit', ${result.code}); } catch(e) { console.error(`emitExit error: \${e}`); } })();"
             webView.post {
