@@ -6,7 +6,9 @@
     var root = host && (host.shadowRoot || host);
     if (!host || !root) return;
     var st = document.createElement('style');
-    st.textContent = '.eruda-container .luna-tab-item:hover:not(.luna-tab-selected) { background: none !important; color: var(--foreground) !important; }';
+    st.textContent = '.eruda-container .luna-tab-item:hover:not(.luna-tab-selected) { background: none !important; color: var(--foreground) !important; } '
+      + '.luna-setting-item { -webkit-tap-highlight-color: transparent; } '
+      + '.luna-setting-item:hover, .luna-setting-item.luna-setting-selected { background: none !important; }';
     root.appendChild(st);
     function info(e) {
       var path = e.composedPath ? e.composedPath() : [];
@@ -58,6 +60,17 @@
       var dy = t.clientY - sy;
       if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && !hScrollable(sInfo.path)) switchTool(dx < 0 ? 1 : -1);
     }, { passive: true });
+    root.addEventListener('click', function(e) {
+      var t = e.target;
+      if (!t || !t.closest || t.closest('input')) return;
+      var row = t.closest('.luna-setting-item-checkbox');
+      if (!row) return;
+      var input = row.querySelector('input[type="checkbox"]');
+      if (!input || input.disabled) return;
+      e.preventDefault();
+      input.checked = !input.checked;
+      input.dispatchEvent(new Event('change', { bubbles: true }));
+    }, true);
     function fixLevels() {
       var ctrl = root.querySelector('.eruda-console .eruda-control');
       if (!ctrl) return false;
