@@ -8,7 +8,8 @@
     var st = document.createElement('style');
     st.textContent = '.eruda-container .luna-tab-item:hover:not(.luna-tab-selected) { background: none !important; color: var(--foreground) !important; } '
       + '.luna-setting-item { -webkit-tap-highlight-color: transparent; } '
-      + '.luna-setting-item:hover, .luna-setting-item.luna-setting-selected { background: none !important; }';
+      + '.luna-setting-item:hover, .luna-setting-item.luna-setting-selected { background: none !important; } '
+      + '#eruda-sources, #eruda-sources .eruda-code-wrapper, #eruda-sources .eruda-raw-wrapper, #eruda-sources .luna-text-viewer { overflow-x: hidden !important; }';
     root.appendChild(st);
     function info(e) {
       var path = e.composedPath ? e.composedPath() : [];
@@ -22,7 +23,7 @@
       }
       return { path: path, inPanel: inPanel, skip: skip };
     }
-    function hScrollable(path) {
+    function swipeBlocked(path) {
       for (var i = 0; i < path.length; i++) {
         var n = path[i];
         if (!n || n.nodeType !== 1) continue;
@@ -30,10 +31,24 @@
         var tag = n.tagName;
         if (tag === 'INPUT' || tag === 'TEXTAREA' || n.isContentEditable) return true;
         if (n.classList && n.classList.contains('luna-tab')) return true;
-        var cs = getComputedStyle(n);
-        if ((cs.overflowX === 'auto' || cs.overflowX === 'scroll') && n.scrollWidth > n.clientWidth + 1) return true;
       }
       return false;
+    }
+    function scrollers(path) {
+      var out = [];
+      for (var k = 0; k < path.length; k++) {
+        if (path[k] && path[k].id === 'eruda-sources') return out;
+      }
+      for (var i = 0; i < path.length; i++) {
+        var n = path[i];
+        if (!n || n.nodeType !== 1) continue;
+        if (n.classList && n.classList.contains('eruda-dev-tools')) break;
+        var cs = getComputedStyle(n);
+        if ((cs.overflowX === 'auto' || cs.overflowX === 'scroll') && n.scrollWidth > n.clientWidth + 40) {
+          out.push({ el: n, left: n.scrollLeft });
+        }
+      }
+      return out;
     }
     function switchTool(step) {
       var sel = root.querySelector('.luna-tab-item.luna-tab-selected');
@@ -49,6 +64,8 @@
     var sInfo = null;
     host.addEventListener('touchstart', function(e) {
       sInfo = info(e);
+      sInfo.blocked = swipeBlocked(sInfo.path);
+      sInfo.scrollers = scrollers(sInfo.path);
       var t = e.touches[0];
       if (t) { sx = t.clientX; sy = t.clientY; }
     }, { passive: true });
@@ -58,7 +75,11 @@
       if (!t) return;
       var dx = t.clientX - sx;
       var dy = t.clientY - sy;
-      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8 && !hScrollable(sInfo.path)) switchTool(dx < 0 ? 1 : -1);
+      if (sInfo.blocked) return;
+      for (var i = 0; i < sInfo.scrollers.length; i++) {
+        if (sInfo.scrollers[i].el.scrollLeft !== sInfo.scrollers[i].left) return;
+      }
+      if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.8) switchTool(dx < 0 ? 1 : -1);
     }, { passive: true });
     root.addEventListener('click', function(e) {
       var t = e.target;
