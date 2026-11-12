@@ -29,11 +29,15 @@ import android.widget.FrameLayout
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.edit
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.a13e300.ksuwebui.databinding.DialogConfirmBinding
 import io.github.a13e300.ksuwebui.databinding.DialogReloadBinding
 import com.topjohnwu.superuser.nio.FileSystemManager
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -49,6 +53,7 @@ private const val PROMPT_CONFIRM = "__ksu_confirm__"
 private const val PROMPT_COPY = "__ksu_copy__"
 private const val PROMPT_RELOAD = "__ksu_reload__"
 private const val PROMPT_PICK = "__ksu_pick__:"
+private const val PROMPT_LIVE_RELOAD = "__ksu_livereload__"
 private fun Context.isAppDark(): Boolean =
     when (themeMode(getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE))) {
         THEME_DARK -> true
@@ -173,6 +178,13 @@ fun WebUIActivity.prepareWebView(state: WebUIState): Boolean {
 
 fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
     val webRoot = File("${state.moduleDir}/webroot")
+    val liveReload = LiveReload(this, webRoot)
+    lifecycleScope.launch { liveReload.watch() }
+    lifecycleScope.launch {
+        repeatOnLifecycle(Lifecycle.State.STARTED) {
+            liveReload.reloadOnChange { state.webView?.reload() }
+        }
+    }
     val moduleId = state.moduleDir.substringAfterLast('/')
     val domain = moduleDomain(moduleId)
     val pathHandler = RemoteFsPathHandler(
@@ -208,6 +220,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         ${erudaJs("storage")}
         ${erudaJs("ux")}
         ${erudaJs("scroll")}
+        ${erudaJs("livereload")}
         ${erudaJs("theme")}
         ${erudaJs("executions")}
     """
@@ -345,6 +358,10 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                             dialog.dismiss()
                         }
                         dialog.show()
+                    }
+                    msg == PROMPT_LIVE_RELOAD -> {
+                        liveReload.enabled.value = defaultValue == "1"
+                        result?.confirm("")
                     }
                     msg == PROMPT_COPY -> {
                         val clipboard = this@initWebView.getSystemService(ClipboardManager::class.java)
