@@ -18,6 +18,7 @@ import android.graphics.Shader
 import android.os.Build
 import android.os.SystemClock
 import android.os.Bundle
+import android.os.Looper
 import android.text.TextUtils
 import android.view.LayoutInflater
 import android.view.Menu
@@ -260,10 +261,21 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.list.setHasFixedSize(true)
         binding.list.setItemViewCacheSize(6)
         binding.list.recycledViewPool.setMaxRecycledViews(0, 10)
+        prewarmCards()
         binding.swipeRefresh.setOnRefreshListener {
             refresh()
         }
         refresh()
+    }
+
+    private fun prewarmCards() {
+        val pool = binding.list.recycledViewPool
+        var left = 6
+        Looper.myQueue().addIdleHandler {
+            if (isDestroyed) return@addIdleHandler false
+            pool.putRecycledView(adapter.createViewHolder(binding.list, 0))
+            --left > 0
+        }
     }
 
     private fun setupMenu(menu: Menu) {
