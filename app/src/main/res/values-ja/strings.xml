@@ -67,7 +67,7 @@
   <string name="eruda_clear_console">このモジュールのコンソールログをすべて消去</string>
   <string name="eruda_clear_network">このモジュールのネットワークリクエストをすべて消去</string>
   <string name="eruda_restore_defaults">Eruda の設定をすべて初期値に戻し、このモジュールを再読み込みします</string>
-  <string name="eruda_bg_scroll">WebUI 背景のスクロール</string>
+  <string name="eruda_bg_scroll">WebUI 背景のスクロール/スワイプ</string>
   <string name="eruda_live_reload">ライブリロード</string>
   <string name="update_repo_not_set">アップデート確認: このビルドではリポジトリが設定されていません</string>
   <string name="update_version_invalid">バージョン情報が無効です: %s</string>

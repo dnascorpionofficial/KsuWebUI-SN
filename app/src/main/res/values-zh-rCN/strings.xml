@@ -67,7 +67,7 @@
     <string name="eruda_clear_console">清除此模块的所有控制台日志</string>
     <string name="eruda_clear_network">清除此模块的所有网络请求</string>
     <string name="eruda_restore_defaults">将所有 Eruda 设置恢复为默认值并重新加载此模块</string>
-    <string name="eruda_bg_scroll">WebUI 背景滚动</string>
+    <string name="eruda_bg_scroll">WebUI 背景滚动/滑动</string>
     <string name="eruda_live_reload">实时重新加载</string>
     <string name="update_repo_not_set">检查更新：此版本未设置仓库</string>
     <string name="update_version_invalid">版本信息无效：%s</string>

@@ -32,6 +32,23 @@
     function sync() {
       lock(!!dt._isShow && !cfg.get('bgScroll'));
     }
+    var host = document.getElementById('eruda');
+    if (host) {
+      ['touchstart', 'touchmove', 'touchend', 'touchcancel', 'pointerdown', 'pointermove', 'pointerup', 'pointercancel'].forEach(function(type) {
+        host.addEventListener(type, function(e) {
+          if (!dt._isShow || cfg.get('bgScroll')) return;
+          var path = e.composedPath ? e.composedPath() : [];
+          var inPanel = false;
+          for (var i = 0; i < path.length; i++) {
+            var n = path[i];
+            if (!n || !n.classList) continue;
+            if (n.classList.contains('eruda-resizer') || n.classList.contains('luna-data-grid-resizer') || n.classList.contains('eruda-entry-btn')) return;
+            if (n.classList.contains('eruda-dev-tools')) inPanel = true;
+          }
+          if (inPanel) e.stopPropagation();
+        }, { passive: true });
+      });
+    }
     dt.on('show', sync);
     dt.on('hide', sync);
     cfg.on('change', function(k) {

@@ -67,7 +67,7 @@
     <string name="eruda_clear_console">Effacer tous les journaux de la console de ce module</string>
     <string name="eruda_clear_network">Effacer toutes les requêtes réseau de ce module</string>
     <string name="eruda_restore_defaults">Rétablir tous les paramètres d\'Eruda par défaut et recharger ce module</string>
-    <string name="eruda_bg_scroll">Défilement de l\'arrière-plan de la WebUI</string>
+    <string name="eruda_bg_scroll">Défilement/balayage de l\'arrière-plan de la WebUI</string>
     <string name="eruda_live_reload">Rechargement en direct</string>
     <string name="update_repo_not_set">Vérification des mises à jour : dépôt non défini dans cette version</string>
     <string name="update_version_invalid">Informations de version invalides : %s</string>
