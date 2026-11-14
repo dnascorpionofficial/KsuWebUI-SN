@@ -12,7 +12,6 @@ import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.WebChromeClient
 import android.widget.FrameLayout
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -143,7 +142,7 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     }
 
     override fun onLaunchFailed() {
-        Toast.makeText(this, R.string.please_grant_root, Toast.LENGTH_SHORT).show()
+        showToast(this, R.string.please_grant_root)
         finish()
     }
 

@@ -10,7 +10,6 @@ import android.util.Base64
 import android.util.Log
 import android.view.Window
 import android.webkit.JavascriptInterface
-import android.widget.Toast
 import android.webkit.URLUtil
 import android.webkit.WebSettings
 import androidx.core.net.toUri
@@ -187,7 +186,7 @@ class WebViewInterface(private val state: WebUIState, private val log: ExecLog) 
     @JavascriptInterface
     fun toast(msg: String) {
         webView.post {
-            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            showToast(context, msg)
         }
     }
 
@@ -318,11 +317,11 @@ class DownloadInterface(private val state: WebUIState) {
 
             dm.enqueue(request)
             webView.post {
-                Toast.makeText(context, R.string.start_downloading, Toast.LENGTH_SHORT).show()
+                showToast(context, R.string.start_downloading)
             }
         } catch (e: Exception) {
             webView.post {
-                Toast.makeText(context, context.getString(R.string.download_failed, e.message), Toast.LENGTH_SHORT).show()
+                showToast(context, context.getString(R.string.download_failed, e.message))
             }
         }
     }

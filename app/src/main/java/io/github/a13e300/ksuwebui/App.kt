@@ -1,9 +1,12 @@
 package io.github.a13e300.ksuwebui
 
 import android.app.Application
+import android.content.Context
 import android.content.SharedPreferences
 import android.os.Handler
 import android.os.Looper
+import android.widget.Toast
+import androidx.annotation.StringRes
 import androidx.appcompat.app.AppCompatDelegate
 import com.topjohnwu.superuser.Shell
 import java.util.concurrent.Executors
@@ -23,6 +26,19 @@ class App : Application() {
         Shell.setDefaultBuilder(Shell.Builder.create().setFlags(Shell.FLAG_MOUNT_MASTER))
     }
 }
+
+private var lastToast: Toast? = null
+
+fun showToast(context: Context, text: CharSequence, duration: Int = Toast.LENGTH_SHORT) {
+    val show = {
+        lastToast?.cancel()
+        lastToast = Toast.makeText(context.applicationContext, text, duration).also { it.show() }
+    }
+    if (Looper.myLooper() == Looper.getMainLooper()) show() else App.handler.post(show)
+}
+
+fun showToast(context: Context, @StringRes res: Int, duration: Int = Toast.LENGTH_SHORT) =
+    showToast(context, context.getString(res), duration)
 
 const val PREFS_SETTINGS = "settings"
 const val KEY_CONSOLE_MODULES = "console_modules"

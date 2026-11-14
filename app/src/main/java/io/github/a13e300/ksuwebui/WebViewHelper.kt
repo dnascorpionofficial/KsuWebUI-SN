@@ -199,12 +199,12 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
             liveReload.reloadOnChange(
                 swapStyles = { paths ->
                     val swapped = state.webView?.swapStyles(paths) ?: false
-                    if (swapped) Toast.makeText(this@initWebView, R.string.live_reload_styles, Toast.LENGTH_SHORT).show()
+                    if (swapped) showToast(this@initWebView, R.string.live_reload_styles)
                     swapped
                 },
                 reload = {
                     state.webView?.reload()
-                    Toast.makeText(this@initWebView, R.string.live_reload_reloaded, Toast.LENGTH_SHORT).show()
+                    showToast(this@initWebView, R.string.live_reload_reloaded)
                 }
             )
         }
@@ -267,7 +267,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
 
     val webViewClient = object : WebViewClient() {
         override fun onRenderProcessGone(view: WebView?, detail: RenderProcessGoneDetail?): Boolean {
-            Toast.makeText(this@initWebView, R.string.webview_crashed, Toast.LENGTH_LONG).show()
+            showToast(this@initWebView, R.string.webview_crashed, Toast.LENGTH_LONG)
             this@initWebView.finish()
             return true
         }
@@ -393,11 +393,11 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                             val clipboard = this@initWebView.getSystemService(ClipboardManager::class.java)
                             clipboard?.setPrimaryClip(ClipData.newPlainText("text", defaultValue.orEmpty()))
                         }
-                        Toast.makeText(this@initWebView, R.string.copied, Toast.LENGTH_SHORT).show()
+                        showToast(this@initWebView, R.string.copied)
                         result?.confirm("")
                     }
                     msg == PROMPT_REFRESHED -> {
-                        Toast.makeText(this@initWebView, R.string.refreshed, Toast.LENGTH_SHORT).show()
+                        showToast(this@initWebView, R.string.refreshed)
                         result?.confirm("")
                     }
                     msg == PROMPT_RELOAD || msg.startsWith(PROMPT_PICK) -> {
