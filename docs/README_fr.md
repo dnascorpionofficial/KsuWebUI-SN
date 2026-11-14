@@ -32,14 +32,14 @@ Cette commande crée `values-de/strings.xml` avec toutes les chaînes copiées d
 `<!-- TODO translate -->`, puis vous guide chaîne par chaîne : elle affiche le texte anglais, vous saisissez la
 traduction et appuyez sur Entrée (Entrée seul passe la chaîne, `quit_translate` enregistre et quitte). Chaque réponse
 est écrite directement dans le fichier et affichée sous forme de ligne `String name | English name | Translated word`.
-Relancez la même commande plus tard pour continuer avec les chaînes encore marquées. Utilisez `--create-only` pour
+Relancez la même commande plus tard pour continuer avec les chaînes encore marquées ; elle ajoute aussi les chaînes ajoutées à l'anglais depuis. Utilisez `--create-only` pour
 seulement créer le fichier et le modifier à la main. La compilation prend automatiquement en compte la nouvelle langue
 (elle apparaît aussi dans les paramètres de langue par application d'Android).
 
 ### Ajouter ou modifier une chaîne
 
 1. Ajoutez-la à `values/strings.xml` et utilisez `R.string.name` (code) ou `@string/name` (layouts).
-2. Ajoutez la même clé à chaque fichier `values-*/strings.xml`. Gardez les variables (`%s`, `%1$d`) identiques.
+2. Ajoutez la même clé à chaque fichier `values-*/strings.xml` (ou lancez `python3 scripts/add_language.py <code>` pour chaque langue, ce qui la copie marquée `TODO translate`). Gardez les variables (`%s`, `%1$d`) identiques.
 
 ### Vérifier
 

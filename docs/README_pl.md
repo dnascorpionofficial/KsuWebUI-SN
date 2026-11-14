@@ -32,14 +32,14 @@ To polecenie tworzy `values-de/strings.xml` ze wszystkimi tekstami skopiowanymi 
 `<!-- TODO translate -->`, a następnie prowadzi Cię przez nie po kolei: pokazuje angielski tekst, wpisujesz
 tłumaczenie i naciskasz Enter (sam Enter pomija tekst, `quit_translate` zapisuje i kończy). Każda odpowiedź jest od
 razu zapisywana w pliku i wyświetlana jako wiersz `String name | English name | Translated word`. Uruchom to samo
-polecenie później, aby kontynuować z tekstami, które nadal są oznaczone. Użyj `--create-only`, aby tylko utworzyć plik
+polecenie później, aby kontynuować z tekstami, które nadal są oznaczone; dodaje ono też teksty dodane od tego czasu do angielskiego. Użyj `--create-only`, aby tylko utworzyć plik
 i edytować go ręcznie. Kompilacja sama uwzględnia nowy język (pojawia się też w ustawieniach języka dla poszczególnych
 aplikacji w Androidzie).
 
 ### Dodawanie lub zmiana tekstu
 
 1. Dodaj go do `values/strings.xml` i użyj `R.string.name` (kod) lub `@string/name` (layouty).
-2. Dodaj ten sam klucz do każdego pliku `values-*/strings.xml`. Zachowaj identyczne symbole zastępcze (`%s`, `%1$d`).
+2. Dodaj ten sam klucz do każdego pliku `values-*/strings.xml` (lub uruchom `python3 scripts/add_language.py <code>` dla każdego języka, co skopiuje go z oznaczeniem `TODO translate`). Zachowaj identyczne symbole zastępcze (`%s`, `%1$d`).
 
 ### Sprawdzanie
 

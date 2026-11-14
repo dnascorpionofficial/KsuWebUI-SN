@@ -32,14 +32,16 @@ This creates `values-de/strings.xml` with every string copied from English and m
 `<!-- TODO translate -->`, then walks you through them one by one: it shows the English text,
 you type the translation and press Enter (Enter alone skips it, `quit_translate` saves and quits). Each
 answer is written straight to the file and shown as a `String name | English name | Translated word`
-row. Run the same command again later to continue with the strings still marked. Use
+row. Run the same command again later to continue with the strings still marked; it also adds any
+strings that were added to English since. Use
 `--create-only` to just create the file and edit it by hand. The build picks the new
 language up by itself (it also appears in Android's per-app language settings).
 
 ### Add or change a string
 
 1. Add it to `values/strings.xml` and use `R.string.name` (code) or `@string/name` (layouts).
-2. Add the same key to every `values-*/strings.xml`. Keep placeholders (`%s`, `%1$d`) identical.
+2. Add the same key to every `values-*/strings.xml` (or run `python3 scripts/add_language.py <code>` for each
+   language, which copies it in marked `TODO translate`). Keep placeholders (`%s`, `%1$d`) identical.
 
 ### Check
 

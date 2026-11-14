@@ -32,13 +32,13 @@ python3 scripts/add_language.py de        # es、pt-BR、zh-TW なども可
 `<!-- TODO translate -->` を付けたあと、1 つずつ対話形式で翻訳を進めます。英語のテキストが表示されるので、
 翻訳を入力して Enter を押してください（Enter だけでスキップ、`quit_translate` で保存して終了）。入力した内容は
 すぐにファイルへ書き込まれ、`String name | English name | Translated word` の行として表示されます。後で同じ
-コマンドをもう一度実行すると、マーカーが残っている文字列から続けられます。`--create-only` を付けるとファイルの
+コマンドをもう一度実行すると、マーカーが残っている文字列から続けられます。その後に英語へ追加された文字列も自動で追加されます。`--create-only` を付けるとファイルの
 作成だけを行い、手作業で編集できます。ビルド時に新しい言語が自動的に認識されます（Android のアプリ別言語設定にも表示されます）。
 
 ### 文字列を追加・変更する
 
 1. `values/strings.xml` に追加し、コードでは `R.string.name`、レイアウトでは `@string/name` を使います。
-2. すべての `values-*/strings.xml` に同じキーを追加します。プレースホルダー（`%s`、`%1$d`）は同一に保ってください。
+2. すべての `values-*/strings.xml` に同じキーを追加します（または各言語に対して `python3 scripts/add_language.py <code>` を実行すると、`TODO translate` マーカー付きでコピーされます）。プレースホルダー（`%s`、`%1$d`）は同一に保ってください。
 
 ### チェックする
 

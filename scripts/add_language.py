@@ -3,7 +3,8 @@
 
   python3 scripts/add_language.py de >> create values-de/strings.xml, then translate
   
-  python3 scripts/add_language.py de >> (again) resume: only strings still marked TODO
+  python3 scripts/add_language.py de >> (again) resume: only strings still marked TODO,
+                                         new English strings are added to the file first
   
   python3 scripts/add_language.py de --create-only >> just create the file, no prompts
 """
@@ -71,8 +72,22 @@ def read_base():
     src = open(os.path.join(RES, "values", "strings.xml"), encoding="utf-8").read()
     return {m.group(1): m.group(3) for m in STRING.finditer(src) if 'translatable="false"' not in m.group(2)}
 
+def entry(name, value):
+    return f'    <!-- TODO translate -->\n    <string name="{name}">{value}</string>'
+
+def sync(out, base):
+    text = open(out, encoding="utf-8").read()
+    have = {m.group(1) for m in STRING.finditer(text)}
+    new = [k for k in base if k not in have]
+    if not new:
+        return
+    text = text.replace("</resources>", "\n".join(entry(k, base[k]) for k in new) + "\n</resources>", 1)
+    with open(out, "w", encoding="utf-8") as f:
+        f.write(text)
+    print(f"Added {len(new)} new string(s) from English: {', '.join(new)}")
+
 def create(out, base):
-    lines = [f'    <!-- TODO translate -->\n    <string name="{k}">{v}</string>' for k, v in base.items()]
+    lines = [entry(k, v) for k, v in base.items()]
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
         f.write('<?xml version="1.0" encoding="utf-8"?>\n<resources>\n' + "\n".join(lines) + "\n</resources>\n")
@@ -159,6 +174,7 @@ def main():
         sys.exit(f"{folder}/strings.xml already exists - edit it instead.")
     else:
         print(f"{folder}/strings.xml already exists - continuing with the strings still marked 'TODO translate'.")
+        sync(out, base)
     if create_only:
         return
     names = [m.group(1) for m in TODO.finditer(open(out, encoding="utf-8").read()) if m.group(1) in base]

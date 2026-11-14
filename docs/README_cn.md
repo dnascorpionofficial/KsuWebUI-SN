@@ -31,13 +31,13 @@ python3 scripts/add_language.py de        # 也可以是 es、pt-BR、zh-TW 等
 该命令会创建 `values-de/strings.xml`，其中包含从英语复制的所有字符串，并标有
 `<!-- TODO translate -->`，然后逐条引导你翻译：显示英文原文，输入译文后按回车（直接按回车跳过，
 输入 `quit_translate` 保存并退出）。每个答案会立即写入文件，并以 `String name | English name | Translated word`
-的行显示。之后再次运行同一命令，即可继续翻译仍带标记的字符串。使用 `--create-only` 则只创建文件，手动编辑。
+的行显示。之后再次运行同一命令，即可继续翻译仍带标记的字符串；它还会补上此后新增到英语中的字符串。使用 `--create-only` 则只创建文件，手动编辑。
 构建时会自动识别新语言（它也会出现在 Android 的应用语言设置中）。
 
 ### 添加或修改字符串
 
 1. 将其添加到 `values/strings.xml`，并在代码中使用 `R.string.name`，在布局中使用 `@string/name`。
-2. 在每个 `values-*/strings.xml` 中添加相同的键。请保持占位符（`%s`、`%1$d`）完全一致。
+2. 在每个 `values-*/strings.xml` 中添加相同的键（或对每种语言运行 `python3 scripts/add_language.py <code>`，它会将该字符串连同 `TODO translate` 标记一起复制进去）。请保持占位符（`%s`、`%1$d`）完全一致。
 
 ### 检查
 
