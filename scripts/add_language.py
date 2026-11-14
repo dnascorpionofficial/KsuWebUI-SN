@@ -6,12 +6,14 @@
   python3 scripts/add_language.py de >> (again) resume: only strings still marked TODO,
                                          new English strings are added to the file first
   
-  python3 scripts/add_language.py de --create-only >> just create the file, no prompts
+  python3 scripts/add_language.py de --edit reboot_now >> change that one translation (several names allowed)
+  python3 scripts/add_language.py de --edit >> go through every string (Enter keeps it)
 """
 import os, re, shutil, sys, unicodedata
 
 RES = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "app", "src", "main", "res")
-USAGE = "Usage: python3 scripts/add_language.py <code> [--create-only]   (e.g. de, fr, pt-BR, zh-TW)"
+USAGE = ("Usage: python3 scripts/add_language.py <code>   (e.g. de, fr, pt-BR, zh-TW)\n"
+         "       python3 scripts/add_language.py <code> --edit [name ...]")
 PH = re.compile(r"%(?:\d+\$)?[sdfx]")
 STRING = re.compile(r"<string\s+name=\"([^\"]+)\"([^>]*)>(.*?)</string>", re.S)
 TODO = re.compile(r"[ \t]*<!-- TODO translate -->[ \t]*\n[ \t]*<string name=\"([^\"]+)\"([^>]*)>(.*?)</string>", re.S)
@@ -94,8 +96,12 @@ def create(out, base):
     print(f"Created {os.path.relpath(out)} with {len(lines)} strings to translate.")
 
 def apply(text, name, xml):
-    pattern = re.compile(r"[ \t]*<!-- TODO translate -->[ \t]*\n([ \t]*)<string name=\"" + re.escape(name) + r"\"([^>]*)>.*?</string>", re.S)
-    return pattern.sub(lambda m: f'{m.group(1)}<string name="{name}"{m.group(2)}>{xml}</string>', text, count=1)
+    marked = re.compile(r"[ \t]*<!-- TODO translate -->[ \t]*\n([ \t]*)<string name=\"" + re.escape(name) + r"\"([^>]*)>.*?</string>", re.S)
+    new, n = marked.subn(lambda m: f'{m.group(1)}<string name="{name}"{m.group(2)}>{xml}</string>', text, count=1)
+    if n:
+        return new
+    plain = re.compile(r"(<string name=\"" + re.escape(name) + r"\"[^>]*>).*?</string>", re.S)
+    return plain.sub(lambda m: f"{m.group(1)}{xml}</string>", text, count=1)
 
 def ask(code, base_raw):
     while True:
@@ -113,7 +119,8 @@ def ask(code, base_raw):
             continue
         return ans
 
-def translate(out, code, names, base):
+def translate(out, code, names, base, current=None):
+    edit = current is not None
     text = open(out, encoding="utf-8").read()
     total = len(names)
     cols = shutil.get_terminal_size((100, 20)).columns
@@ -127,13 +134,16 @@ def translate(out, code, names, base):
         return "\n".join(lines)
     head = row("String name", "English name", "Translated word")
     rule = "-" * (box + 1) + "+" + "-" * (box + 2) + "+" + "-" * (box + 1)
-    print(f"\nTotal strings to translate: {total}\n")
-    print("Type the translation & Enter. Enter alone = skip (kept as 'TODO translate')\n")
+    print(f"\nTotal strings to {'edit' if edit else 'translate'}: {total}\n")
+    print("Type the new translation & Enter. Enter alone = keep the current one\n" if edit else
+          "Type the translation & Enter. Enter alone = skip (kept as 'TODO translate')\n")
     print(HINT)
     done, skipped, rows = 0, 0, []
     for i, name in enumerate(names, 1):
         english = readable(base[name])
         print(f"\n[{i}/{total}] {name}\n  English: {english}")
+        if edit:
+            print(f"  Current: {readable(current[name])}")
         ans = ask(code, base[name])
         if ans is None:
             break
@@ -144,15 +154,18 @@ def translate(out, code, names, base):
             done += 1
         else:
             skipped += 1
-        rows.append(row(name, english, ans or SKIPPED))
+        rows.append(row(name, english, ans or ("(unchanged)" if edit else SKIPPED)))
         print(f"\n{head}\n{rule}\n{rows[-1]}")
-        print(f"\nLeft to translate: {total - i}   (translated {done}, skipped {skipped})")
+        print(f"\nLeft to {'edit' if edit else 'translate'}: {total - i}   ({'changed' if edit else 'translated'} {done}, {'kept' if edit else 'skipped'} {skipped})")
         print(HINT)
     print(f"\n{'=' * 8} Summary {'=' * 8}")
     if rows:
         print(f"{head}\n{rule}")
         print(("\n" + rule + "\n" if any("\n" in r for r in rows) else "\n").join(rows))
     left = total - done
+    if edit:
+        print(f"\nChanged: {done}   Unchanged: {left}   File: {os.path.relpath(out)}")
+        return
     print(f"\nTranslated: {done}   Not translated: {left}   File: {os.path.relpath(out)}")
     if left:
         print(f"Run `python3 scripts/add_language.py {code}` again to continue with the remaining {left}.")
@@ -162,21 +175,28 @@ def translate(out, code, names, base):
 def main():
     flags = [a for a in sys.argv[1:] if a.startswith("--")]
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
-    if len(args) != 1 or set(flags) - {"--create-only"}:
+    edit = "--edit" in flags
+    if not args or set(flags) - {"--edit"} or (not edit and len(args) != 1):
         sys.exit(USAGE)
-    code, create_only = args[0], "--create-only" in flags
+    code, keys = args[0], args[1:]
     folder = folder_for(code)
     out = os.path.join(RES, folder, "strings.xml")
     base = read_base()
+    if edit:
+        if not os.path.exists(out):
+            sys.exit(f"{folder}/strings.xml does not exist - create it first: python3 scripts/add_language.py {code}")
+        current = {m.group(1): m.group(3) for m in STRING.finditer(open(out, encoding="utf-8").read())}
+        names = keys or [k for k in base if k in current]
+        unknown = [k for k in names if k not in base or k not in current]
+        if unknown:
+            sys.exit(f"Unknown string name(s) in {folder}: {', '.join(unknown)}")
+        translate(out, code, names, base, current)
+        return
     if not os.path.exists(out):
         create(out, base)
-    elif create_only:
-        sys.exit(f"{folder}/strings.xml already exists - edit it instead.")
     else:
         print(f"{folder}/strings.xml already exists - continuing with the strings still marked 'TODO translate'.")
         sync(out, base)
-    if create_only:
-        return
     names = [m.group(1) for m in TODO.finditer(open(out, encoding="utf-8").read()) if m.group(1) in base]
     if not names:
         sys.exit(f"Nothing left to translate in {folder}/strings.xml.")

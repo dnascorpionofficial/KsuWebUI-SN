@@ -25,20 +25,26 @@ UI のテキストはすべて `app/src/main/res/values*/strings.xml` にあり�
 ### 言語を追加する
 
 ```
-python3 scripts/add_language.py de        # es、pt-BR、zh-TW なども可
+python3 scripts/add_language.py de        # ドイツ語
+python3 scripts/add_language.py pt-BR     # ポルトガル語（ブラジル）
+python3 scripts/add_language.py zh-TW     # 繁体字中国語
 ```
 
-このコマンドは `values-de/strings.xml` を作成し、英語の文字列をすべてコピーして
-`<!-- TODO translate -->` を付けたあと、1 つずつ対話形式で翻訳を進めます。英語のテキストが表示されるので、
-翻訳を入力して Enter を押してください（Enter だけでスキップ、`quit_translate` で保存して終了）。入力した内容は
-すぐにファイルへ書き込まれ、`String name | English name | Translated word` の行として表示されます。後で同じ
-コマンドをもう一度実行すると、マーカーが残っている文字列から続けられます。その後に英語へ追加された文字列も自動で追加されます。`--create-only` を付けるとファイルの
-作成だけを行い、手作業で編集できます。ビルド時に新しい言語が自動的に認識されます（Android のアプリ別言語設定にも表示されます）。
+`values-de/strings.xml` を作成し、英語の文字列をすべて `<!-- TODO translate -->` 付きでコピーしてから、1 つずつ翻訳を尋ねます。
+**Enter** でスキップ（マーカーは残ります）、**`quit_translate`** で保存して終了、**`\n`** は改行です。プレースホルダー（`%s`、`%1$d`）は同一に保ってください。
+異なる入力は拒否されます。入力はすぐに保存されます。同じコマンドをもう一度実行すると、マーカーが残っている文字列から続けられます
+（その後に英語へ追加された文字列は先に追加されます）。ビルド時に新しい言語が自動的に認識されます。
 
-### 文字列を追加・変更する
+### 言語を編集する
 
-1. `values/strings.xml` に追加し、コードでは `R.string.name`、レイアウトでは `@string/name` を使います。
-2. すべての `values-*/strings.xml` に同じキーを追加します（または各言語に対して `python3 scripts/add_language.py <code>` を実行すると、`TODO translate` マーカー付きでコピーされます）。プレースホルダー（`%s`、`%1$d`）は同一に保ってください。
+```
+python3 scripts/add_language.py de --edit                     # 各文字列を順に表示して編集
+python3 scripts/add_language.py de --edit reboot_now          # reboot_now の文字列のみ
+python3 scripts/add_language.py de --edit update reboot_now   # update と reboot_now の文字列（さらに追加可能）
+```
+
+各文字列の英語のテキストと現在の訳を表示し、新しい訳の入力を求めます。**Enter** だけで現在の訳を保持します。
+名前は 1 つでも複数でも指定でき、省略するとすべての文字列を順に確認します。
 
 ### チェックする
 

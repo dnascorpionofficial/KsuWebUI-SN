@@ -25,21 +25,26 @@ arabski (`values-ar`), francuski (`values-fr`), polski (`values-pl`), japoński 
 ### Dodawanie języka
 
 ```
-python3 scripts/add_language.py de        # lub es, pt-BR, zh-TW, ...
+python3 scripts/add_language.py de        # niemiecki
+python3 scripts/add_language.py pt-BR     # portugalski (Brazylia)
+python3 scripts/add_language.py zh-TW     # chiński tradycyjny
 ```
 
-To polecenie tworzy `values-de/strings.xml` ze wszystkimi tekstami skopiowanymi z angielskiego i oznaczonymi
-`<!-- TODO translate -->`, a następnie prowadzi Cię przez nie po kolei: pokazuje angielski tekst, wpisujesz
-tłumaczenie i naciskasz Enter (sam Enter pomija tekst, `quit_translate` zapisuje i kończy). Każda odpowiedź jest od
-razu zapisywana w pliku i wyświetlana jako wiersz `String name | English name | Translated word`. Uruchom to samo
-polecenie później, aby kontynuować z tekstami, które nadal są oznaczone; dodaje ono też teksty dodane od tego czasu do angielskiego. Użyj `--create-only`, aby tylko utworzyć plik
-i edytować go ręcznie. Kompilacja sama uwzględnia nowy język (pojawia się też w ustawieniach języka dla poszczególnych
-aplikacji w Androidzie).
+Tworzy `values-de/strings.xml` ze wszystkimi tekstami skopiowanymi z angielskiego i oznaczonymi `<!-- TODO translate -->`, a następnie pyta o tłumaczenie każdego z nich po kolei.
+**Enter** pomija tekst (pozostaje oznaczony), **`quit_translate`** zapisuje i kończy, **`\n`** wstawia podział wiersza. Zachowaj identyczne symbole zastępcze (`%s`, `%1$d`);
+odpowiedź z innymi symbolami jest odrzucana. Każda odpowiedź jest od razu zapisywana. Uruchom to samo polecenie ponownie, aby kontynuować z tekstami, które nadal są oznaczone
+(teksty dodane od tego czasu do angielskiego są najpierw dopisywane). Kompilacja sama uwzględnia nowy język.
 
-### Dodawanie lub zmiana tekstu
+### Edycja języka
 
-1. Dodaj go do `values/strings.xml` i użyj `R.string.name` (kod) lub `@string/name` (layouty).
-2. Dodaj ten sam klucz do każdego pliku `values-*/strings.xml` (lub uruchom `python3 scripts/add_language.py <code>` dla każdego języka, co skopiuje go z oznaczeniem `TODO translate`). Zachowaj identyczne symbole zastępcze (`%s`, `%1$d`).
+```
+python3 scripts/add_language.py de --edit                     # pokazuje każdy tekst do edycji
+python3 scripts/add_language.py de --edit reboot_now          # tylko tekst reboot_now
+python3 scripts/add_language.py de --edit update reboot_now   # teksty update i reboot_now - można dodać kolejne
+```
+
+Pokazuje angielski i aktualny tekst każdej pozycji, a następnie prosi o nowy; **Enter** zachowuje aktualny tekst.
+Podaj jedną lub kilka nazw albo żadnej, aby przejść przez wszystkie teksty.
 
 ### Sprawdzanie
 

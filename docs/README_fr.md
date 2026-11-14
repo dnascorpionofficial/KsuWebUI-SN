@@ -25,21 +25,26 @@ l'arabe (`values-ar`), le français (`values-fr`), le polonais (`values-pl`), le
 ### Ajouter une langue
 
 ```
-python3 scripts/add_language.py de        # ou es, pt-BR, zh-TW, ...
+python3 scripts/add_language.py de        # allemand
+python3 scripts/add_language.py pt-BR     # portugais (Brésil)
+python3 scripts/add_language.py zh-TW     # chinois traditionnel
 ```
 
-Cette commande crée `values-de/strings.xml` avec toutes les chaînes copiées depuis l'anglais et marquées
-`<!-- TODO translate -->`, puis vous guide chaîne par chaîne : elle affiche le texte anglais, vous saisissez la
-traduction et appuyez sur Entrée (Entrée seul passe la chaîne, `quit_translate` enregistre et quitte). Chaque réponse
-est écrite directement dans le fichier et affichée sous forme de ligne `String name | English name | Translated word`.
-Relancez la même commande plus tard pour continuer avec les chaînes encore marquées ; elle ajoute aussi les chaînes ajoutées à l'anglais depuis. Utilisez `--create-only` pour
-seulement créer le fichier et le modifier à la main. La compilation prend automatiquement en compte la nouvelle langue
-(elle apparaît aussi dans les paramètres de langue par application d'Android).
+Crée `values-de/strings.xml` avec toutes les chaînes copiées depuis l'anglais et marquées `<!-- TODO translate -->`, puis demande la traduction de chacune.
+**Entrée** passe la chaîne (elle reste marquée), **`quit_translate`** enregistre et quitte, **`\n`** insère un retour à la ligne. Gardez les variables (`%s`, `%1$d`)
+identiques ; une réponse avec des variables différentes est refusée. Chaque réponse est enregistrée aussitôt. Relancez la même commande pour continuer avec les chaînes
+encore marquées (les chaînes ajoutées à l'anglais depuis sont ajoutées d'abord). La compilation prend la nouvelle langue en compte automatiquement.
 
-### Ajouter ou modifier une chaîne
+### Modifier une langue
 
-1. Ajoutez-la à `values/strings.xml` et utilisez `R.string.name` (code) ou `@string/name` (layouts).
-2. Ajoutez la même clé à chaque fichier `values-*/strings.xml` (ou lancez `python3 scripts/add_language.py <code>` pour chaque langue, ce qui la copie marquée `TODO translate`). Gardez les variables (`%s`, `%1$d`) identiques.
+```
+python3 scripts/add_language.py de --edit                     # affiche chaque chaîne à modifier
+python3 scripts/add_language.py de --edit reboot_now          # chaîne reboot_now uniquement
+python3 scripts/add_language.py de --edit update reboot_now   # chaînes update et reboot_now - d'autres peuvent être ajoutées
+```
+
+Affiche le texte anglais et le texte actuel de chaque chaîne, puis demande le nouveau ; **Entrée** conserve le texte actuel.
+Indiquez un ou plusieurs noms, ou aucun pour parcourir toutes les chaînes.
 
 ### Vérifier
 

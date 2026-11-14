@@ -25,19 +25,25 @@
 ### 添加语言
 
 ```
-python3 scripts/add_language.py de        # 也可以是 es、pt-BR、zh-TW 等
+python3 scripts/add_language.py de        # 德语
+python3 scripts/add_language.py pt-BR     # 葡萄牙语（巴西）
+python3 scripts/add_language.py zh-TW     # 繁体中文
 ```
 
-该命令会创建 `values-de/strings.xml`，其中包含从英语复制的所有字符串，并标有
-`<!-- TODO translate -->`，然后逐条引导你翻译：显示英文原文，输入译文后按回车（直接按回车跳过，
-输入 `quit_translate` 保存并退出）。每个答案会立即写入文件，并以 `String name | English name | Translated word`
-的行显示。之后再次运行同一命令，即可继续翻译仍带标记的字符串；它还会补上此后新增到英语中的字符串。使用 `--create-only` 则只创建文件，手动编辑。
-构建时会自动识别新语言（它也会出现在 Android 的应用语言设置中）。
+创建 `values-de/strings.xml`，其中包含从英语复制的所有字符串，并标有 `<!-- TODO translate -->`，然后逐条询问译文。
+**回车**跳过（仍保留标记），**`quit_translate`** 保存并退出，**`\n`** 表示换行。请保持占位符（`%s`、`%1$d`）一致，不一致的输入会被拒绝。
+每个答案会立即保存。再次运行同一命令即可继续翻译仍带标记的字符串（此后新增到英语中的字符串会先被补上）。构建时会自动识别新语言。
 
-### 添加或修改字符串
+### 编辑语言
 
-1. 将其添加到 `values/strings.xml`，并在代码中使用 `R.string.name`，在布局中使用 `@string/name`。
-2. 在每个 `values-*/strings.xml` 中添加相同的键（或对每种语言运行 `python3 scripts/add_language.py <code>`，它会将该字符串连同 `TODO translate` 标记一起复制进去）。请保持占位符（`%s`、`%1$d`）完全一致。
+```
+python3 scripts/add_language.py de --edit                     # 逐条显示每个字符串以供编辑
+python3 scripts/add_language.py de --edit reboot_now          # 仅 reboot_now 字符串
+python3 scripts/add_language.py de --edit update reboot_now   # update 和 reboot_now 字符串，可继续添加更多
+```
+
+显示每条字符串的英文原文和当前译文，并请你输入新译文；直接按**回车**则保留当前译文。
+可以指定一个或多个名称，不带名称则遍历所有字符串。
 
 ### 检查
 
