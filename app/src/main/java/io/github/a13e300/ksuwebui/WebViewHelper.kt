@@ -59,6 +59,7 @@ private const val PROMPT_REFRESHED = "__ksu_refreshed__"
 private const val PROMPT_RELOAD = "__ksu_reload__"
 private const val PROMPT_PICK = "__ksu_pick__:"
 private const val PROMPT_LIVE_RELOAD = "__ksu_livereload__"
+private const val PROMPT_EDITOR = "__ksu_editor__"
 private fun Context.isAppDark(): Boolean =
     when (themeMode(getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE))) {
         THEME_DARK -> true
@@ -83,7 +84,9 @@ private fun Context.erudaTextJs(): String {
         "restoreDefaults" to getString(R.string.eruda_restore_defaults),
         "bgScroll" to getString(R.string.eruda_bg_scroll),
         "liveReload" to getString(R.string.eruda_live_reload),
-        "copyBody" to getString(R.string.eruda_copy_body)
+        "copyBody" to getString(R.string.eruda_copy_body),
+        "openEditor" to getString(R.string.eruda_open_editor),
+        "editorHint" to getString(R.string.eruda_editor_hint)
     )
     return "window.ksuText = " + JSONObject(entries).toString() + ";"
 }
@@ -248,6 +251,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         ${erudaJs("network")}
         ${erudaJs("theme")}
         ${erudaJs("executions")}
+        ${erudaJs("editor")}
     """
     val downloadSource by lazy {
         assets.open("download.js").bufferedReader().use { it.readText() }
@@ -383,6 +387,14 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                             dialog.dismiss()
                         }
                         dialog.show()
+                    }
+                    msg == PROMPT_EDITOR -> {
+                        startActivity(
+                            Intent(this@initWebView, FileBrowserActivity::class.java)
+                                .putExtra(FileBrowserActivity.EXTRA_ID, moduleId)
+                                .putExtra(FileBrowserActivity.EXTRA_NAME, state.moduleName.ifEmpty { moduleId })
+                        )
+                        result?.confirm("")
                     }
                     msg == PROMPT_LIVE_RELOAD -> {
                         liveReload.enabled.value = defaultValue == "1"

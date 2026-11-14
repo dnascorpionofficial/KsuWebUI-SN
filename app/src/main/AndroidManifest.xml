@@ -27,6 +27,17 @@
         </activity>
 
         <activity
+            android:name=".FileBrowserActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+            android:exported="false" />
+
+        <activity
+            android:name=".EditorActivity"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
+
+        <activity
             android:name=".WebUIActivity"
             android:theme="@style/Theme.KsuWebUI.WebUI"
             android:autoRemoveFromRecents="true"

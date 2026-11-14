@@ -51,6 +51,11 @@ val versionInfo = run {
         "${match.groupValues[1]}.$minor" to "%02d".format(gitCommitCount - cycle * commitsPerVersion)
     }
 }
+val appLocales = file("src/main/res").listFiles().orEmpty()
+    .map { it.name }
+    .filter { Regex("values-[a-z]{2,3}(-r([A-Z]{2}|[0-9]{3}))?").matches(it) }
+    .map { it.removePrefix("values-") }
+
 val appVersionName = versionInfo.first
 val buildSuffix = versionInfo.second
 
@@ -104,6 +109,7 @@ android {
     }
     androidResources {
         generateLocaleConfig = true
+        localeFilters += listOf("en") + appLocales
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21

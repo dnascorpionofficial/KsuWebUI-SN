@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
+    android:paddingTop="28dp"
+    android:paddingBottom="20dp">
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:gravity="center"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="15sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cancel"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginEnd="6dp"
+            android:layout_weight="1"
+            android:letterSpacing="0"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:text="@string/action_cancel"
+            android:textSize="13sp"
+            app:cornerRadius="26dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/discard"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginHorizontal="6dp"
+            android:layout_weight="1"
+            android:letterSpacing="0"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:text="@string/action_discard"
+            android:textSize="13sp"
+            app:cornerRadius="26dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/save"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:letterSpacing="0"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:text="@string/action_save"
+            android:textSize="13sp"
+            app:cornerRadius="26dp" />
+
+    </LinearLayout>
+
+</LinearLayout>
