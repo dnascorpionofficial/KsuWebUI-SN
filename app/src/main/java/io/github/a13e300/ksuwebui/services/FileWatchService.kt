@@ -26,12 +26,14 @@ class FileWatchService : RootService() {
             stop(listener)
             val dirs = File(root).walkTopDown().maxDepth(MAX_DEPTH)
                 .filter { it.isDirectory }.take(MAX_DIRS).toList()
+            val rootDir = File(root)
             val observers = dirs.map { dir ->
+                val prefix = dir.relativeTo(rootDir).path
                 object : FileObserver(dir.path, MASK) {
                     override fun onEvent(event: Int, path: String?) {
                         if (path == null || path.substringAfterLast('.', "").lowercase() !in WATCHED) return
                         try {
-                            listener.onChanged()
+                            listener.onChanged(if (prefix.isEmpty()) path else "$prefix/$path")
                         } catch (_: RemoteException) {
                             stop(listener)
                         }

@@ -24,17 +24,18 @@ private const val DEBOUNCE_MS = 300L
 class LiveReload(private val context: Context, private val webRoot: File) {
 
     val enabled = MutableStateFlow(false)
-    private val changes = Channel<Unit>(Channel.CONFLATED)
+    private val changes = Channel<String>(Channel.UNLIMITED)
     private val listener = object : IFileChangeListener.Stub() {
-        override fun onChanged() {
-            changes.trySend(Unit)
+        override fun onChanged(path: String) {
+            changes.trySend(path)
         }
     }
 
     suspend fun watch() {
         enabled.collectLatest { on ->
             if (!on) return@collectLatest
-            changes.tryReceive()
+            while (changes.tryReceive().isSuccess) {
+            }
             var connection: ServiceConnection? = null
             var watcher: IFileWatcher? = null
             try {
@@ -64,11 +65,15 @@ class LiveReload(private val context: Context, private val webRoot: File) {
         }
     }
 
-    suspend fun reloadOnChange(reload: () -> Unit) {
+    suspend fun reloadOnChange(swapStyles: suspend (List<String>) -> Boolean, reload: () -> Unit) {
         while (true) {
-            changes.receive()
+            val paths = linkedSetOf(changes.receive())
             delay(DEBOUNCE_MS)
-            changes.tryReceive()
+            while (true) {
+                paths.add(changes.tryReceive().getOrNull() ?: break)
+            }
+            val onlyStyles = paths.all { it.endsWith(".css", ignoreCase = true) }
+            if (onlyStyles && swapStyles(paths.toList())) continue
             reload()
         }
     }

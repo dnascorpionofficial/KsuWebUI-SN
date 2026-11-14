@@ -38,7 +38,10 @@ import io.github.a13e300.ksuwebui.databinding.DialogConfirmBinding
 import io.github.a13e300.ksuwebui.databinding.DialogReloadBinding
 import com.topjohnwu.superuser.nio.FileSystemManager
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.suspendCancellableCoroutine
+import org.json.JSONArray
 import org.json.JSONObject
+import kotlin.coroutines.resume
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -177,13 +180,23 @@ fun WebUIActivity.prepareWebView(state: WebUIState): Boolean {
     return true
 }
 
+private suspend fun WebView.swapStyles(paths: List<String>): Boolean =
+    suspendCancellableCoroutine { cont ->
+        val script = context.assets.open("livereload_css.js").bufferedReader().use { it.readText() }
+            .replace("PATHS_JSON", JSONArray(paths).toString())
+        evaluateJavascript(script) { result -> if (cont.isActive) cont.resume(result == "true") }
+    }
+
 fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
     val webRoot = File("${state.moduleDir}/webroot")
     val liveReload = LiveReload(this, webRoot)
     lifecycleScope.launch { liveReload.watch() }
     lifecycleScope.launch {
         repeatOnLifecycle(Lifecycle.State.STARTED) {
-            liveReload.reloadOnChange { state.webView?.reload() }
+            liveReload.reloadOnChange(
+                swapStyles = { paths -> state.webView?.swapStyles(paths) ?: false },
+                reload = { state.webView?.reload() }
+            )
         }
     }
     val moduleId = state.moduleDir.substringAfterLast('/')

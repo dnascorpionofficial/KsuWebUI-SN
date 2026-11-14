@@ -1,5 +1,5 @@
 package io.github.a13e300.ksuwebui;
 
 oneway interface IFileChangeListener {
-    void onChanged();
+    void onChanged(String path);
 }
