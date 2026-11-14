@@ -57,6 +57,7 @@
     <string name="choose_key">键</string>
     <string name="choose_value">值</string>
     <string name="copied">已复制</string>
+    <string name="refreshed">已刷新</string>
     <string name="eruda_add">添加</string>
     <string name="eruda_value_for">\"%s\" 的值</string>
     <string name="eruda_exists">\"%s\" 已存在。</string>

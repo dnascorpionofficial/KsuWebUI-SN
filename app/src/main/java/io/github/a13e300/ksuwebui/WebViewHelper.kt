@@ -54,6 +54,8 @@ private const val ICON_HOST = "icon"
 private const val KEY_ERUDA_CENTERED = "eruda_centered"
 private const val PROMPT_CONFIRM = "__ksu_confirm__"
 private const val PROMPT_COPY = "__ksu_copy__"
+private const val PROMPT_COPIED = "__ksu_copied__"
+private const val PROMPT_REFRESHED = "__ksu_refreshed__"
 private const val PROMPT_RELOAD = "__ksu_reload__"
 private const val PROMPT_PICK = "__ksu_pick__:"
 private const val PROMPT_LIVE_RELOAD = "__ksu_livereload__"
@@ -386,10 +388,16 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                         liveReload.enabled.value = defaultValue == "1"
                         result?.confirm("")
                     }
-                    msg == PROMPT_COPY -> {
-                        val clipboard = this@initWebView.getSystemService(ClipboardManager::class.java)
-                        clipboard?.setPrimaryClip(ClipData.newPlainText("text", defaultValue.orEmpty()))
+                    msg == PROMPT_COPY || msg == PROMPT_COPIED -> {
+                        if (msg == PROMPT_COPY) {
+                            val clipboard = this@initWebView.getSystemService(ClipboardManager::class.java)
+                            clipboard?.setPrimaryClip(ClipData.newPlainText("text", defaultValue.orEmpty()))
+                        }
                         Toast.makeText(this@initWebView, R.string.copied, Toast.LENGTH_SHORT).show()
+                        result?.confirm("")
+                    }
+                    msg == PROMPT_REFRESHED -> {
+                        Toast.makeText(this@initWebView, R.string.refreshed, Toast.LENGTH_SHORT).show()
                         result?.confirm("")
                     }
                     msg == PROMPT_RELOAD || msg.startsWith(PROMPT_PICK) -> {

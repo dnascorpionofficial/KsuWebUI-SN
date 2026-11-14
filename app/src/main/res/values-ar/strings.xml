@@ -57,6 +57,7 @@
     <string name="choose_key">المفتاح</string>
     <string name="choose_value">القيمة</string>
     <string name="copied">تم النسخ</string>
+    <string name="refreshed">تم التحديث</string>
     <string name="eruda_add">إضافة</string>
     <string name="eruda_value_for">قيمة \"%s\"</string>
     <string name="eruda_exists">\"%s\" موجود بالفعل.</string>

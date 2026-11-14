@@ -57,6 +57,7 @@
     <string name="choose_key">Clé</string>
     <string name="choose_value">Valeur</string>
     <string name="copied">Copié</string>
+    <string name="refreshed">Actualisé</string>
     <string name="eruda_add">Ajouter</string>
     <string name="eruda_value_for">Valeur de « %s »</string>
     <string name="eruda_exists">« %s » existe déjà.</string>

@@ -57,6 +57,7 @@
   <string name="choose_key">キー</string>
   <string name="choose_value">値</string>
   <string name="copied">コピーしました</string>
+  <string name="refreshed">更新しました</string>
   <string name="eruda_add">追加</string>
   <string name="eruda_value_for">\"%s\" の値</string>
   <string name="eruda_exists">\"%s\" は既に存在します。</string>

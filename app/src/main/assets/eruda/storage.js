@@ -32,6 +32,7 @@
         } else if (choice === 'table') {
           store.refresh();
           sync();
+          window.prompt('__ksu_refreshed__', '');
         }
       }, true);
       function sync() {
