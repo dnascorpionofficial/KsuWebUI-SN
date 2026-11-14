@@ -69,6 +69,9 @@
     <string name="eruda_restore_defaults">Restore all Eruda settings to defaults and reload this module</string>
     <string name="eruda_bg_scroll">WebUI Background Scroll/Swipe</string>
     <string name="eruda_live_reload">Live reload</string>
+    <string name="eruda_copy_body">Copy response body</string>
+    <string name="live_reload_styles">Styles updated</string>
+    <string name="live_reload_reloaded">Page reloaded</string>
     <string name="update_repo_not_set">Update check: repo not set in this build</string>
     <string name="update_version_invalid">Version info is invalid: %s</string>
     <string name="update_up_to_date">Up to date (latest %1$s, installed %2$s)</string>

@@ -69,6 +69,9 @@
     <string name="eruda_restore_defaults">استعادة كافة إعدادات Eruda الافتراضية وإعادة تحميل هذه الإضافة</string>
     <string name="eruda_bg_scroll">تمرير/سحب خلفية WebUI</string>
     <string name="eruda_live_reload">إعادة التحميل المباشر</string>
+    <string name="eruda_copy_body">نسخ نص الاستجابة</string>
+    <string name="live_reload_styles">تم تحديث الأنماط</string>
+    <string name="live_reload_reloaded">تمت إعادة تحميل الصفحة</string>
     <string name="update_repo_not_set">لا يمكن التحقق من التحديثات لأن المستودع غير محدّد في هذا الإصدار.</string>
     <string name="update_version_invalid">معلومات الإصدار غير صالحة: %s</string>
     <string name="update_up_to_date">التطبيق محدّث بالفعل (الأحدث: %1$s، المثبّت: %2$s)</string>

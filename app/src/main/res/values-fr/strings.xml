@@ -69,6 +69,9 @@
     <string name="eruda_restore_defaults">Rétablir tous les paramètres d\'Eruda par défaut et recharger ce module</string>
     <string name="eruda_bg_scroll">Défilement/balayage de l\'arrière-plan de la WebUI</string>
     <string name="eruda_live_reload">Rechargement en direct</string>
+    <string name="eruda_copy_body">Copier le corps de la réponse</string>
+    <string name="live_reload_styles">Styles mis à jour</string>
+    <string name="live_reload_reloaded">Page rechargée</string>
     <string name="update_repo_not_set">Vérification des mises à jour : dépôt non défini dans cette version</string>
     <string name="update_version_invalid">Informations de version invalides : %s</string>
     <string name="update_up_to_date">À jour (dernière version %1$s, installée %2$s)</string>

@@ -80,7 +80,8 @@ private fun Context.erudaTextJs(): String {
         "clearNetwork" to getString(R.string.eruda_clear_network),
         "restoreDefaults" to getString(R.string.eruda_restore_defaults),
         "bgScroll" to getString(R.string.eruda_bg_scroll),
-        "liveReload" to getString(R.string.eruda_live_reload)
+        "liveReload" to getString(R.string.eruda_live_reload),
+        "copyBody" to getString(R.string.eruda_copy_body)
     )
     return "window.ksuText = " + JSONObject(entries).toString() + ";"
 }
@@ -194,8 +195,15 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
     lifecycleScope.launch {
         repeatOnLifecycle(Lifecycle.State.STARTED) {
             liveReload.reloadOnChange(
-                swapStyles = { paths -> state.webView?.swapStyles(paths) ?: false },
-                reload = { state.webView?.reload() }
+                swapStyles = { paths ->
+                    val swapped = state.webView?.swapStyles(paths) ?: false
+                    if (swapped) Toast.makeText(this@initWebView, R.string.live_reload_styles, Toast.LENGTH_SHORT).show()
+                    swapped
+                },
+                reload = {
+                    state.webView?.reload()
+                    Toast.makeText(this@initWebView, R.string.live_reload_reloaded, Toast.LENGTH_SHORT).show()
+                }
             )
         }
     }
@@ -235,6 +243,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         ${erudaJs("ux")}
         ${erudaJs("scroll")}
         ${erudaJs("livereload")}
+        ${erudaJs("network")}
         ${erudaJs("theme")}
         ${erudaJs("executions")}
     """

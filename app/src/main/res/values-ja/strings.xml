@@ -69,6 +69,9 @@
   <string name="eruda_restore_defaults">Eruda の設定をすべて初期値に戻し、このモジュールを再読み込みします</string>
   <string name="eruda_bg_scroll">WebUI 背景のスクロール/スワイプ</string>
   <string name="eruda_live_reload">ライブリロード</string>
+  <string name="eruda_copy_body">レスポンス本文をコピー</string>
+  <string name="live_reload_styles">スタイルを更新しました</string>
+  <string name="live_reload_reloaded">ページを再読み込みしました</string>
   <string name="update_repo_not_set">アップデート確認: このビルドではリポジトリが設定されていません</string>
   <string name="update_version_invalid">バージョン情報が無効です: %s</string>
   <string name="update_up_to_date">最新です (最新 %1$s、インストール済み %2$s)</string>
