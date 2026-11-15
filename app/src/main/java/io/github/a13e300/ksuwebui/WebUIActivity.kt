@@ -8,6 +8,7 @@ import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.Gravity
+import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.webkit.WebChromeClient
@@ -17,12 +18,15 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.core.content.edit
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.CircularProgressIndicator
+import io.github.a13e300.ksuwebui.databinding.DialogConfirmBinding
 import com.topjohnwu.superuser.nio.FileSystemManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -31,6 +35,17 @@ import kotlinx.coroutines.withContext
 class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     
     private val webUIState = WebUIState()
+    private var exitDialog: AlertDialog? = null
+    private val backCallback = object : OnBackPressedCallback(true) {
+        override fun handleOnBackPressed() {
+            val web = webUIState.webView
+            if (web != null && web.canGoBack()) {
+                web.goBack()
+            } else {
+                confirmExit()
+            }
+        }
+    }
     internal lateinit var fileChooserLauncher: ActivityResultLauncher<Intent>
     private lateinit var saveFileLauncher: ActivityResultLauncher<Intent>
     private var pendingSaveData: ByteArray? = null
@@ -41,17 +56,7 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
-            override fun handleOnBackPressed() {
-                val web = webUIState.webView
-                if (web != null && web.canGoBack()) {
-                    web.goBack()
-                } else {
-                    isEnabled = false
-                    onBackPressedDispatcher.onBackPressed()
-                }
-            }
-        })
+        onBackPressedDispatcher.addCallback(this, backCallback)
 
         if (bgPrefs.contains(bgKey)) applyPageColor(bgPrefs.getInt(bgKey, 0))
 
@@ -196,8 +201,27 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
         MonetColorsProvider.updateCss(this)
     }
 
+    private fun confirmExit() {
+        if (exitDialog?.isShowing == true) return
+        val view = DialogConfirmBinding.inflate(layoutInflater)
+        view.title.setText(R.string.confirm_exit_webui)
+        view.message.visibility = View.GONE
+        val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUI_ButtonDialog)
+            .setView(view.root)
+            .create()
+        view.no.setOnClickListener { dialog.dismiss() }
+        view.yes.setOnClickListener {
+            dialog.dismiss()
+            backCallback.isEnabled = false
+            onBackPressedDispatcher.onBackPressed()
+        }
+        exitDialog = dialog
+        dialog.show()
+    }
+
     override fun onDestroy() {
         super.onDestroy()
+        exitDialog?.dismiss()
         FileSystemService.removeListener(this)
         webUIState.webviewInterface?.destroy()
         webUIState.webView?.destroy()

@@ -116,6 +116,7 @@
     <string name="module_disabled">Module désactivé</string>
     <string name="module_hidden">Module masqué</string>
     <string name="confirm_open_disabled">Ce module est désactivé. Ouvrir tout de même sa WebUI ?</string>
+    <string name="confirm_exit_webui">Quitter la WebUI de ce module ?</string>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
     <string name="soft_reboot_desc">Redémarre uniquement le système, plus rapide</string>

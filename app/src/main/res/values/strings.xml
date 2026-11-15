@@ -116,6 +116,7 @@
     <string name="module_disabled">Disabled Module</string>
     <string name="module_hidden">Hidden Module</string>
     <string name="confirm_open_disabled">This module is disabled. Continue to open its WebUI?</string>
+    <string name="confirm_exit_webui">Exit this module WebUI?</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="soft_reboot_desc">Restart the system only, faster</string>

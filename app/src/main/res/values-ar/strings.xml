@@ -116,6 +116,7 @@
     <string name="module_disabled">إضافة معطّلة</string>
     <string name="module_hidden">إضافة مخفية</string>
     <string name="confirm_open_disabled">هذه الإضافة معطّلة. هل تريد فتح واجهة WebUI الخاصة بها على أي حال؟</string>
+    <string name="confirm_exit_webui">الخروج من واجهة WebUI لهذه الإضافة؟</string>
     <string name="yes">نعم</string>
     <string name="no">لا</string>
     <string name="soft_reboot_desc">إعادة تشغيل النظام فقط، وهي أسرع من إعادة تشغيل الجهاز بالكامل.</string>
