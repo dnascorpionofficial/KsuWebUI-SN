@@ -783,6 +783,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 binding.size, binding.date, binding.moduleUpdate,
                 binding.statusDisabled, binding.statusHidden, binding.statusUpdate
             ).forEach { it.setOnTouchListener(consumeTouch) }
+            binding.actionsRow.setOnTouchListener(consumeTouch)
         }
     }
 
