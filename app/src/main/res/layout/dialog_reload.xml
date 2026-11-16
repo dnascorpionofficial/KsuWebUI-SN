@@ -14,7 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="@string/reload_title"
+        android:text="Reload"
         android:textColor="?attr/colorOnSurface"
         android:textSize="22sp"
         android:textStyle="bold" />
@@ -35,7 +35,7 @@
             android:maxLines="2"
             android:minHeight="52dp"
             android:paddingHorizontal="8dp"
-            android:text="@string/reload_table"
+            android:text="Reload table"
             android:textSize="15sp"
             app:cornerRadius="26dp" />
 
@@ -48,7 +48,7 @@
             android:maxLines="2"
             android:minHeight="52dp"
             android:paddingHorizontal="8dp"
-            android:text="@string/reload_webui"
+            android:text="Reload WebUI"
             android:textSize="15sp"
             app:cornerRadius="26dp" />
 

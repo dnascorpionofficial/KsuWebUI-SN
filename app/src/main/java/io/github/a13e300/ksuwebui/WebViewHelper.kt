@@ -40,7 +40,6 @@ import com.topjohnwu.superuser.nio.FileSystemManager
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import org.json.JSONArray
-import org.json.JSONObject
 import kotlin.coroutines.resume
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -60,36 +59,54 @@ private const val PROMPT_RELOAD = "__ksu_reload__"
 private const val PROMPT_PICK = "__ksu_pick__:"
 private const val PROMPT_LIVE_RELOAD = "__ksu_livereload__"
 private const val PROMPT_EDITOR = "__ksu_editor__"
+private const val ERUDA_TEXT_JS = """
+window.ksuText = {
+  add: 'Add',
+  edit: 'Edit',
+  key: 'Key',
+  value: 'Value',
+  valueFor: 'Value for "%s"',
+  exists: '"%s" already exists.',
+  existsHint: '"%s" already exists. Select it and use the edit button.',
+  deleteItem: 'Delete "%s"',
+  clearLocal: 'Clear all local storage of this module',
+  clearSession: 'Clear all session storage of this module',
+  clearConsole: 'Clear all console logs of this module',
+  clearNetwork: 'Clear all network requests of this module',
+  restoreDefaults: 'Restore all Eruda settings to defaults and reload this module',
+  bgScroll: 'WebUI Background Scroll/Swipe',
+  liveReload: 'Live reload',
+  copyBody: 'Copy response body',
+  openEditor: 'Open Editor',
+  editorHint: "Browse and edit this module's WebUI files and save them as root.",
+  exportTitle: 'Export',
+  exportDesc: "Export this module's WebUI data as a single ZIP file. Every item you choose is saved as its own file inside the ZIP.",
+  exportButton: 'Export',
+  exportChoose: 'Choose what to export',
+  exportSelectAll: 'Select all',
+  exportConfirm: 'Export selected',
+  exportCancel: 'Cancel',
+  exportWorking: 'Exporting …',
+  exportNone: 'Select at least one item',
+  exportNotFound: 'Not found',
+  exportFailed: 'Export failed: %s',
+  exportItemLocal: 'Local storage',
+  exportItemSession: 'Session storage',
+  exportItemCookies: 'Cookies',
+  exportItemIndexeddb: 'IndexedDB',
+  exportItemCache: 'Cache storage',
+  exportItemExecutions: 'Executions',
+  exportItemNetwork: 'Network requests',
+  exportItemConsole: 'Console logs'
+};
+"""
+
 private fun Context.isAppDark(): Boolean =
     when (themeMode(getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE))) {
         THEME_DARK -> true
         THEME_LIGHT -> false
         else -> (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
     }
-
-private fun Context.erudaTextJs(): String {
-    val entries = mapOf(
-        "add" to getString(R.string.eruda_add),
-        "edit" to getString(R.string.edit_title),
-        "key" to getString(R.string.choose_key),
-        "value" to getString(R.string.choose_value),
-        "valueFor" to getString(R.string.eruda_value_for, "%s"),
-        "exists" to getString(R.string.eruda_exists, "%s"),
-        "existsHint" to getString(R.string.eruda_exists_hint, "%s"),
-        "deleteItem" to getString(R.string.eruda_delete_item, "%s"),
-        "clearLocal" to getString(R.string.eruda_clear_local),
-        "clearSession" to getString(R.string.eruda_clear_session),
-        "clearConsole" to getString(R.string.eruda_clear_console),
-        "clearNetwork" to getString(R.string.eruda_clear_network),
-        "restoreDefaults" to getString(R.string.eruda_restore_defaults),
-        "bgScroll" to getString(R.string.eruda_bg_scroll),
-        "liveReload" to getString(R.string.eruda_live_reload),
-        "copyBody" to getString(R.string.eruda_copy_body),
-        "openEditor" to getString(R.string.eruda_open_editor),
-        "editorHint" to getString(R.string.eruda_editor_hint)
-    )
-    return "window.ksuText = " + JSONObject(entries).toString() + ";"
-}
 
 private fun moduleDomain(moduleId: String): String {
     val slug = moduleId.lowercase().replace(Regex("[^a-z0-9]+"), "-").trim('-').take(40).trim('-')
@@ -202,12 +219,12 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
             liveReload.reloadOnChange(
                 swapStyles = { paths ->
                     val swapped = state.webView?.swapStyles(paths) ?: false
-                    if (swapped) showToast(this@initWebView, R.string.live_reload_styles)
+                    if (swapped) showToast(this@initWebView, "Styles updated")
                     swapped
                 },
                 reload = {
                     state.webView?.reload()
-                    showToast(this@initWebView, R.string.live_reload_reloaded)
+                    showToast(this@initWebView, "Page reloaded")
                 }
             )
         }
@@ -242,7 +259,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         var __ksuDark = $dark;
         ${erudaJs("pos_fix")}
         ${erudaJs("inset")}
-        ${erudaTextJs()}
+        ${ERUDA_TEXT_JS}
         ${erudaJs("guard")}
         ${erudaJs("storage")}
         ${erudaJs("ux")}
@@ -251,6 +268,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         ${erudaJs("network")}
         ${erudaJs("theme")}
         ${erudaJs("executions")}
+        ${erudaJs("export")}
         ${erudaJs("editor")}
     """
     val downloadSource by lazy {
@@ -405,11 +423,11 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                             val clipboard = this@initWebView.getSystemService(ClipboardManager::class.java)
                             clipboard?.setPrimaryClip(ClipData.newPlainText("text", defaultValue.orEmpty()))
                         }
-                        showToast(this@initWebView, R.string.copied)
+                        showToast(this@initWebView, "Copied")
                         result?.confirm("")
                     }
                     msg == PROMPT_REFRESHED -> {
-                        showToast(this@initWebView, R.string.refreshed)
+                        showToast(this@initWebView, "Refreshed")
                         result?.confirm("")
                     }
                     msg == PROMPT_RELOAD || msg.startsWith(PROMPT_PICK) -> {
@@ -418,13 +436,13 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                         if (!reload) {
                             choice.title.setText(
                                 when (msg.removePrefix(PROMPT_PICK)) {
-                                    "copy" -> R.string.copy_title
-                                    "view" -> R.string.view_title
-                                    else -> R.string.edit_title
+                                    "copy" -> "Copy"
+                                    "view" -> "View"
+                                    else -> "Edit"
                                 }
                             )
-                            choice.first.setText(R.string.choose_key)
-                            choice.second.setText(R.string.choose_value)
+                            choice.first.setText("Key")
+                            choice.second.setText("Value")
                         }
                         val dialog = buttonDialog(choice.root, result)
                         choice.first.setOnClickListener {
