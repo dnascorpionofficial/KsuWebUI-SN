@@ -139,6 +139,16 @@
             android:textSize="16sp" />
 
         <com.google.android.material.materialswitch.MaterialSwitch
+            android:id="@+id/sw_blend_banners"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:paddingHorizontal="24dp"
+            android:text="@string/opt_blend_banners"
+            android:textColor="?attr/colorOnSurface"
+            android:textSize="16sp" />
+
+        <com.google.android.material.materialswitch.MaterialSwitch
             android:id="@+id/sw_icons"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

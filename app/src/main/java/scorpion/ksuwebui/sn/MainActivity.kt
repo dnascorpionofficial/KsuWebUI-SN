@@ -42,6 +42,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.IconCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.GravityCompat
@@ -82,6 +83,7 @@ import java.util.Date
 import java.util.Locale
 
 private const val KEY_OPT_BANNERS = "opt_banners"
+private const val KEY_OPT_BLEND = "opt_blend_banners"
 private const val KEY_OPT_ICONS = "opt_icons"
 private const val KEY_OPT_DISABLED = "opt_disabled"
 private const val KEY_OPT_HIDDEN = "opt_hidden"
@@ -136,13 +138,13 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             if (bytes == null || bytes.size > 16 * 1024 * 1024) return@execute
             val src = decodeSampled(bytes, if (isBanner) 1080 else 192) ?: return@execute
             saveCustom(if (isBanner) "banner_$id.png" else "icon_$id.png", src)
-            val shown = if (isBanner) blendBanner(src) else circleIcon(src)
+            val (shown, luma) = if (isBanner) prepBanner(src) else circleIcon(src) to 0.5f
             runOnUiThread {
                 val i = allModules.indexOfFirst { it.id == id }
                 if (i >= 0) {
                     val m = allModules[i]
                     allModules = allModules.toMutableList().also {
-                        it[i] = if (isBanner) m.copy(banner = shown) else m.copy(icon = shown)
+                        it[i] = if (isBanner) m.copy(banner = shown, luma = luma) else m.copy(icon = shown)
                     }
                     applyFilter()
                 }
@@ -423,7 +425,12 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             AppCompatDelegate.setDefaultNightMode(nightMode(mode))
         }
         binding.drawerInfo.setOnClickListener { showInfoDialog() }
-        binding.swBanners.bindPref(KEY_OPT_BANNERS, true) { refresh() }
+        binding.swBanners.bindPref(KEY_OPT_BANNERS, true) {
+            binding.swBlendBanners.isVisible = it
+            refresh()
+        }
+        binding.swBlendBanners.bindPref(KEY_OPT_BLEND, false) { refresh() }
+        binding.swBlendBanners.isVisible = binding.swBanners.isChecked
         binding.swIcons.bindPref(KEY_OPT_ICONS, true) { refresh() }
         binding.swDisabled.bindPref(KEY_OPT_DISABLED, true) { refresh() }
         binding.swHidden.bindPref(KEY_OPT_HIDDEN, false) { applyFilter() }
@@ -520,7 +527,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 } else {
                     ""
                 }
-                mods.add(Module(name, id, desc, author, version, banner, icon, size, date, disabled, versionCode = versionCode, updateJson = updateJson))
+                mods.add(Module(name, id, desc, author, version, banner?.first, icon, size, date, disabled, versionCode = versionCode, updateJson = updateJson, luma = banner?.second ?: 0.5f))
             }
             val pinnedIds = stringSet(KEY_PINNED)
             val hiddenIds = stringSet(KEY_HIDDEN)
@@ -575,7 +582,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         f.outputStream().use { bmp.compress(Bitmap.CompressFormat.PNG, 100, it) }
     }
 
-    private fun loadBanner(fs: FileSystemManager, moduleDir: String, raw: String?, id: String): Bitmap? {
+    private fun loadBanner(fs: FileSystemManager, moduleDir: String, raw: String?, id: String): Pair<Bitmap, Float>? {
         val custom = customFile("banner_$id.png")
         val bytes: ByteArray? = if (custom.isFile) {
             custom.readBytes()
@@ -584,7 +591,17 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             if (v.isNullOrEmpty() || v.startsWith("http", ignoreCase = true)) null
             else readRemote(fs, if (v.startsWith("/")) v else "$moduleDir/$v", 8L * 1024 * 1024)
         }
-        return bytes?.let { decodeSampled(it, 1080) }?.let { blendBanner(it) }
+        return bytes?.let { decodeSampled(it, 1080) }?.let { prepBanner(it) }
+    }
+
+    private fun prepBanner(src: Bitmap): Pair<Bitmap, Float> {
+        var sum = 0f
+        for (y in 0 until 8) for (x in 0 until 8) {
+            val c = src.getPixel((x * 2 + 1) * src.width / 16, (y * 2 + 1) * src.height / 16)
+            sum += 0.299f * Color.red(c) + 0.587f * Color.green(c) + 0.114f * Color.blue(c)
+        }
+        val shown = if (prefs.getBoolean(KEY_OPT_BLEND, false)) toGpu(src) else blendBanner(src)
+        return shown to sum / 64f / 255f
     }
 
     private fun loadIcon(fs: FileSystemManager, moduleDir: String, id: String): Bitmap? {
@@ -774,7 +791,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.swipeRefresh.isRefreshing = false
     }
 
-    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false, var hidden: Boolean = false, val versionCode: String = "", val updateJson: String = "", val updateAvailable: Boolean = false)
+    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false, var hidden: Boolean = false, val versionCode: String = "", val updateJson: String = "", val updateAvailable: Boolean = false, val luma: Float = 0.5f)
 
     class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
@@ -837,8 +854,20 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 holder.binding.date.isVisible = false
             }
             holder.binding.desc.text = item.desc
-            holder.binding.banner.setImageBitmap(item.banner)
-            holder.binding.banner.isVisible = item.banner != null
+            val blend = item.banner != null && prefs.getBoolean(KEY_OPT_BLEND, false)
+            holder.binding.banner.setImageBitmap(if (blend) null else item.banner)
+            holder.binding.banner.isVisible = item.banner != null && !blend
+            holder.binding.content.background = if (blend) {
+                val card = ContextCompat.getColor(this@MainActivity, R.color.card)
+                val badness = if (ColorUtils.calculateLuminance(card) < 0.5) item.luma else 1f - item.luma
+                BannerBackdrop(item.banner, ColorUtils.setAlphaComponent(card, ((0.6f + 0.3f * badness) * 255).toInt()))
+            } else null
+            holder.binding.desc.setTextColor(
+                MaterialColors.getColor(
+                    holder.binding.desc,
+                    if (blend) com.google.android.material.R.attr.colorOnSurfaceVariant else com.google.android.material.R.attr.colorOutline
+                )
+            )
             val iconsOn = prefs.getBoolean(KEY_OPT_ICONS, true)
             holder.binding.icon.isVisible = iconsOn
             if (item.icon != null) holder.binding.icon.setImageBitmap(item.icon)
@@ -881,6 +910,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         header(R.string.settings)
         row(R.string.info_theme_title, R.string.info_theme_body)
         row(R.string.opt_banners, R.string.info_banners_body)
+        row(R.string.opt_blend_banners, R.string.info_blend_banners_body)
         row(R.string.opt_icons, R.string.info_icons_body)
         row(R.string.opt_disabled, R.string.info_disabled_body)
         row(R.string.opt_hidden, R.string.info_hidden_body)

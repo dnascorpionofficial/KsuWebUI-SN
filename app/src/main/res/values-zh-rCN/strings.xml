@@ -122,4 +122,6 @@
     <string name="reboot_to_disable">重启以禁用</string>
     <string name="reboot_to_apply_message">更改将在重启后生效。现在重启还是稍后？</string>
     <string name="reboot_now">立即重启</string>
+    <string name="opt_blend_banners">横幅融入背景</string>
+    <string name="info_blend_banners_body">将每个模块的横幅作为卡片背景，而不是显示在卡片顶部。图片会自动调暗，以保证文字清晰可读。仅在开启“模块横幅”时可用。</string>
 </resources>

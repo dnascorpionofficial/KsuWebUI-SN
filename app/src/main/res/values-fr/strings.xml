@@ -122,4 +122,6 @@
     <string name="reboot_to_disable">Redémarrer pour désactiver</string>
     <string name="reboot_to_apply_message">Le changement prend effet après un redémarrage. Redémarrer maintenant ou plus tard ?</string>
     <string name="reboot_now">Redémarrer maintenant</string>
+    <string name="opt_blend_banners">Fondre les bannières</string>
+    <string name="info_blend_banners_body">Utilise la bannière de chaque module comme arrière-plan de sa carte au lieu de l’afficher en haut. L’image est assombrie automatiquement pour que le texte reste lisible. Disponible uniquement si les bannières des modules sont activées.</string>
 </resources>

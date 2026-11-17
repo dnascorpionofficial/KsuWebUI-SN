@@ -122,4 +122,6 @@
   <string name="reboot_to_disable">無効にするには再起動</string>
   <string name="reboot_to_apply_message">変更は再起動後に反映されます。今すぐ再起動しますか？それとも後にしますか？</string>
   <string name="reboot_now">今すぐ再起動</string>
+    <string name="opt_blend_banners">バナーを背景に溶け込ませる</string>
+    <string name="info_blend_banners_body">各モジュールのバナーをカード上部に表示する代わりに、カードの背景として使用します。文字が読みやすいように画像は自動的に暗く調整されます。モジュールのバナーがオンのときのみ利用できます。</string>
 </resources>

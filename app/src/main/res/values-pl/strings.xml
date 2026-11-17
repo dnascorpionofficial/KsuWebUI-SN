@@ -122,4 +122,6 @@
   <string name="reboot_to_disable">Uruchom ponownie, aby wyłączyć</string>
   <string name="reboot_to_apply_message">Zmiana zadziała po ponownym uruchomieniu. Uruchomić ponownie teraz czy później?</string>
   <string name="reboot_now">Uruchom ponownie teraz</string>
+    <string name="opt_blend_banners">Baner jako tło karty</string>
+    <string name="info_blend_banners_body">Używa baneru każdego modułu jako tła jego karty zamiast wyświetlać go u góry. Obraz jest automatycznie przyciemniany, aby tekst pozostał czytelny. Dostępne tylko, gdy banery modułów są włączone.</string>
 </resources>

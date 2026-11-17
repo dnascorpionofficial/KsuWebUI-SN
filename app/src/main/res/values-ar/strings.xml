@@ -122,4 +122,6 @@
     <string name="reboot_to_disable">أعد التشغيل للتعطيل</string>
     <string name="reboot_to_apply_message">يسري التغيير بعد إعادة التشغيل. هل تريد إعادة التشغيل الآن أم لاحقًا؟</string>
     <string name="reboot_now">إعادة التشغيل الآن</string>
+    <string name="opt_blend_banners">دمج الغلاف بالخلفية</string>
+    <string name="info_blend_banners_body">استخدام صورة غلاف كل إضافة كخلفية لبطاقتها بدلًا من عرضها في الأعلى. يتم تعتيم الصورة تلقائيًا ليبقى النص مقروءًا. متاح فقط عند تفعيل إظهار صور أغلفة الإضافات.</string>
 </resources>

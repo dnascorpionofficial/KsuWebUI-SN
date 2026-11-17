@@ -122,4 +122,6 @@
     <string name="reboot_to_disable">Reboot to disable</string>
     <string name="reboot_to_apply_message">The change takes effect after a reboot. Reboot now or do it later?</string>
     <string name="reboot_now">Reboot now</string>
+    <string name="opt_blend_banners">Blend Banners</string>
+    <string name="info_blend_banners_body">Use each module banner as its card background instead of showing it at the top. The image is dimmed automatically so the text stays readable. Available only when Module Banners is on.</string>
 </resources>
