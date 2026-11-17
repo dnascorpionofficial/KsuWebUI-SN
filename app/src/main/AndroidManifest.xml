@@ -13,7 +13,7 @@
         android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
-        android:theme="@style/Theme.KsuWebUI"
+        android:theme="@style/Theme.KsuWebUISN"
         tools:targetApi="33">
 
         <activity
@@ -39,7 +39,7 @@
 
         <activity
             android:name=".WebUIActivity"
-            android:theme="@style/Theme.KsuWebUI.WebUI"
+            android:theme="@style/Theme.KsuWebUISN.WebUI"
             android:autoRemoveFromRecents="true"
             android:documentLaunchMode="intoExisting"
             android:configChanges="density|orientation|screenSize|screenLayout|smallestScreenSize|uiMode|locale|layoutDirection|fontScale|keyboard|keyboardHidden"

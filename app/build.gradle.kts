@@ -60,7 +60,7 @@ val appVersionName = versionInfo.first
 val buildSuffix = versionInfo.second
 
 android {
-    namespace = "io.github.a13e300.ksuwebui"
+    namespace = "scorpion.ksuwebui.sn"
     compileSdk = 36
 
     signingConfigs {
@@ -75,7 +75,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "io.github.a13e300.ksuwebui"
+        applicationId = "scorpion.ksuwebui.sn"
         minSdk = 26
         targetSdk = 36
         versionCode = gitCommitCount
