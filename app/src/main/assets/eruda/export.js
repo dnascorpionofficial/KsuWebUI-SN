@@ -6,9 +6,11 @@
     var T = window.ksuText || {};
     var CSS = [
       '.kex-wrap{height:100%;overflow-y:auto;box-sizing:border-box;padding:12px;color:var(--foreground,inherit);font-size:13px}',
-      '.kex-main{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:100%}',
+      '.kex-main{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;box-sizing:border-box;padding:12px;text-align:center;min-height:100%}',
       '.kex-title{font-size:15px;font-weight:bold;margin:0 0 8px}',
-      '.kex-desc{max-width:320px;line-height:1.5;opacity:.75;margin:0 0 16px}',
+      '.kex-desc{max-width:320px;font-size:13px;line-height:1.5;opacity:.7;margin:0}',
+      '.kex-open{padding:10px 22px;border:0;border-radius:22px;background:var(--accent,#4a8cff);color:#fff;font-size:14px;font-weight:bold}',
+      '.kex-open[disabled]{opacity:.5}',
       '.kex-btn{padding:10px 20px;border:1px solid rgba(128,128,128,.55);border-radius:6px;background:rgba(128,128,128,.22);color:var(--foreground,inherit);font-size:13px}',
       '.kex-btn:active{background:rgba(128,128,128,.4)}',
       '.kex-btn.main{border-color:transparent;background:var(--accent,#4a8cff);color:#fff;font-weight:bold}',
@@ -582,9 +584,8 @@
       wrap.appendChild(el('style', null, CSS));
 
       ui.main = el('div', 'kex-main');
-      ui.main.appendChild(el('h3', 'kex-title', T.exportTitle));
       ui.main.appendChild(el('p', 'kex-desc', T.exportDesc));
-      var open = el('button', 'kex-btn main', T.exportButton);
+      var open = el('button', 'kex-open', T.exportButton);
       open.addEventListener('click', showPick);
       ui.open = open;
       ui.main.appendChild(open);

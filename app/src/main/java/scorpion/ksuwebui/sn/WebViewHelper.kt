@@ -79,7 +79,6 @@ window.ksuText = {
   copyBody: 'Copy response body',
   openEditor: 'Open Editor',
   editorHint: "Browse and edit this module's WebUI files and save them as root.",
-  exportTitle: 'Export',
   exportDesc: "Export this module's WebUI data as a single ZIP file. Every item you choose is saved as its own file inside the ZIP.",
   exportButton: 'Export',
   exportChoose: 'Choose what to export',
