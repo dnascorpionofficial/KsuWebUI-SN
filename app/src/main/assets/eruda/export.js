@@ -122,7 +122,7 @@
     }
 
     function isErudaKey(k) {
-      return /^(eruda[-_]|ksu[-_])/.test(k);
+      return /^eruda/.test(k) || k === 'active-eruda';
     }
 
     function unquote(v) {

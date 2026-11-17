@@ -4,7 +4,7 @@
     if (!api || !window.eruda || !eruda.Tool || window.__erudaExec) return;
     window.__erudaExec = true;
 
-    var ORDER_KEY = 'ksu-exec-order';
+    var ORDER_KEY = 'eruda-ksu-exec-order';
     var MAX_ENTRIES = 200;
     var CSS = [
       '.kx-wrap{display:flex;flex-direction:column;height:100%;color:var(--foreground,inherit);font-size:12px}',
