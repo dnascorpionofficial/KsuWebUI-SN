@@ -805,7 +805,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         val bannerFile = customFile("banner_${item.id}.png")
         val iconFile = customFile("icon_${item.id}.png")
         if (showBanners) {
-            action(R.drawable.ic_image, R.string.set_background) {
+            action(R.drawable.ic_image, R.string.set_banner) {
                 pickTarget = item.id to true
                 pickImage.launch("image/*")
             }

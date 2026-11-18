@@ -37,7 +37,7 @@
     <string name="clear_module_data_message">هل تريد حذف بيانات WebUI الخاصة بهذه الإضافة، بما في ذلك التخزين المحلي وملفات تعريف الارتباط وقواعد البيانات؟ ستبدأ الإضافة من جديد عند فتحها في المرة القادمة.</string>
     <string name="module_data_cleared">تم مسح بيانات WebUI الخاصة بالإضافة.</string>
     <string name="webview_crashed">تعطّلت الإضافة. افتحها مرة أخرى.</string>
-    <string name="set_background">تغيير الخلفية</string>
+    <string name="set_banner">تغيير البانر</string>
     <string name="set_icon">تغيير الأيقونة</string>
     <string name="add_to_home">إضافة إلى الشاشة الرئيسية</string>
     <string name="shortcut_unsupported">مشغّل الشاشة الرئيسية لا يدعم تثبيت الاختصارات.</string>

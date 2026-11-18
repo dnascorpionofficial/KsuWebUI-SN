@@ -37,7 +37,7 @@
     <string name="clear_module_data_message">Supprimer le stockage WebUI de ce module (stockage local, cookies, bases de données) ? Il repartira de zéro à sa prochaine ouverture.</string>
     <string name="module_data_cleared">Stockage WebUI du module effacé</string>
     <string name="webview_crashed">Le module a planté. Veuillez le rouvrir.</string>
-    <string name="set_background">Définir l\'arrière-plan</string>
+    <string name="set_banner">Définir la bannière</string>
     <string name="set_icon">Définir l\'icône</string>
     <string name="add_to_home">Ajouter à l\'écran d\'accueil</string>
     <string name="shortcut_unsupported">Votre lanceur ne prend pas en charge les raccourcis épinglés</string>
