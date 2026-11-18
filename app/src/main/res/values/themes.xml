@@ -30,4 +30,8 @@
         <item name="buttonBarNegativeButtonStyle">@style/Widget.Material3.Button.OutlinedButton</item>
         <item name="buttonBarNeutralButtonStyle">@style/Widget.Material3.Button.OutlinedButton</item>
     </style>
+
+    <style name="TextAppearance.KsuWebUISN.ChipBold" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:textStyle">bold</item>
+    </style>
 </resources>

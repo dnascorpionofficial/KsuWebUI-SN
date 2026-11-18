@@ -76,21 +76,24 @@
                         android:ellipsize="end"
                         android:maxLines="2"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/version"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/version_code"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="?attr/colorOnSurfaceVariant"
-                        android:textSize="13sp" />
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
 
                 </LinearLayout>
 
@@ -107,8 +110,9 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="4"
-                android:textColor="?attr/colorOutline"
-                android:textSize="13sp" />
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="13sp"
+                android:textStyle="bold" />
 
             <LinearLayout
                 android:id="@+id/actions_row"
@@ -158,6 +162,7 @@
                     android:focusable="false"
                     android:maxLines="1"
                     android:maxWidth="240dp"
+                    android:textAppearance="@style/TextAppearance.KsuWebUISN.ChipBold"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="12sp"
                     app:chipBackgroundColor="@android:color/transparent"
@@ -175,6 +180,7 @@
                     android:focusable="false"
                     android:maxLines="1"
                     android:maxWidth="240dp"
+                    android:textAppearance="@style/TextAppearance.KsuWebUISN.ChipBold"
                     android:textColor="?attr/colorOnSurfaceVariant"
                     android:textSize="12sp"
                     app:chipBackgroundColor="@android:color/transparent"
@@ -191,6 +197,7 @@
                     android:focusable="false"
                     android:maxLines="1"
                     android:text="@string/module_update_available"
+                    android:textAppearance="@style/TextAppearance.KsuWebUISN.ChipBold"
                     android:textColor="@color/update_chip_text"
                     android:textSize="12sp"
                     android:visibility="gone"

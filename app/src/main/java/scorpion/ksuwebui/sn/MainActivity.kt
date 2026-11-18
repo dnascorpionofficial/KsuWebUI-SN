@@ -84,6 +84,7 @@ import java.util.Locale
 
 private const val KEY_OPT_BANNERS = "opt_banners"
 private const val KEY_OPT_BLEND = "opt_blend_banners"
+private const val NEUTRAL_LUMA = 0.5f
 private const val KEY_OPT_ICONS = "opt_icons"
 private const val KEY_OPT_DISABLED = "opt_disabled"
 private const val KEY_OPT_HIDDEN = "opt_hidden"
@@ -123,6 +124,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     }
     private lateinit var adapter: Adapter
     private val prefs by lazy { getSharedPreferences(PREFS_SETTINGS, MODE_PRIVATE) }
+    private val cardColor by lazy { ContextCompat.getColor(this, R.color.card) }
+    private val darkCard by lazy { ColorUtils.calculateLuminance(cardColor) < 0.5 }
+    private val normalText by lazy { MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurfaceVariant) }
+    private val strongText by lazy { MaterialColors.getColor(binding.root, com.google.android.material.R.attr.colorOnSurface) }
     private var shouldRefresh = false
     private var pickTarget: Pair<String, Boolean>? = null
     private val pickImage = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
@@ -138,7 +143,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             if (bytes == null || bytes.size > 16 * 1024 * 1024) return@execute
             val src = decodeSampled(bytes, if (isBanner) 1080 else 192) ?: return@execute
             saveCustom(if (isBanner) "banner_$id.png" else "icon_$id.png", src)
-            val (shown, luma) = if (isBanner) prepBanner(src) else circleIcon(src) to 0.5f
+            val (shown, luma) = if (isBanner) prepBanner(src) else circleIcon(src) to NEUTRAL_LUMA
             runOnUiThread {
                 val i = allModules.indexOfFirst { it.id == id }
                 if (i >= 0) {
@@ -527,7 +532,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 } else {
                     ""
                 }
-                mods.add(Module(name, id, desc, author, version, banner?.first, icon, size, date, disabled, versionCode = versionCode, updateJson = updateJson, luma = banner?.second ?: 0.5f))
+                mods.add(Module(name, id, desc, author, version, banner?.first, icon, size, date, disabled, versionCode = versionCode, updateJson = updateJson, luma = banner?.second ?: NEUTRAL_LUMA))
             }
             val pinnedIds = stringSet(KEY_PINNED)
             val hiddenIds = stringSet(KEY_HIDDEN)
@@ -595,13 +600,13 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     }
 
     private fun prepBanner(src: Bitmap): Pair<Bitmap, Float> {
+        if (!prefs.getBoolean(KEY_OPT_BLEND, false)) return blendBanner(src) to NEUTRAL_LUMA
         var sum = 0f
         for (y in 0 until 8) for (x in 0 until 8) {
             val c = src.getPixel((x * 2 + 1) * src.width / 16, (y * 2 + 1) * src.height / 16)
             sum += 0.299f * Color.red(c) + 0.587f * Color.green(c) + 0.114f * Color.blue(c)
         }
-        val shown = if (prefs.getBoolean(KEY_OPT_BLEND, false)) toGpu(src) else blendBanner(src)
-        return shown to sum / 64f / 255f
+        return toGpu(src) to sum / 64f / 255f
     }
 
     private fun loadIcon(fs: FileSystemManager, moduleDir: String, id: String): Bitmap? {
@@ -791,7 +796,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.swipeRefresh.isRefreshing = false
     }
 
-    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false, var hidden: Boolean = false, val versionCode: String = "", val updateJson: String = "", val updateAvailable: Boolean = false, val luma: Float = 0.5f)
+    data class Module(val name: String, val id: String, val desc: String, val author: String, val version: String, val banner: Bitmap? = null, val icon: Bitmap? = null, val size: String = "", val date: String = "", val disabled: Boolean = false, var pinned: Boolean = false, var hidden: Boolean = false, val versionCode: String = "", val updateJson: String = "", val updateAvailable: Boolean = false, val luma: Float = NEUTRAL_LUMA)
 
     class ViewHolder(val binding: ItemModuleBinding) : RecyclerView.ViewHolder(binding.root) {
         init {
@@ -858,16 +863,15 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.banner.setImageBitmap(if (blend) null else item.banner)
             holder.binding.banner.isVisible = item.banner != null && !blend
             holder.binding.content.background = if (blend) {
-                val card = ContextCompat.getColor(this@MainActivity, R.color.card)
-                val badness = if (ColorUtils.calculateLuminance(card) < 0.5) item.luma else 1f - item.luma
-                BannerBackdrop(item.banner, ColorUtils.setAlphaComponent(card, ((0.6f + 0.3f * badness) * 255).toInt()))
+                val badness = if (darkCard) item.luma else 1f - item.luma
+                val alpha = if (darkCard) 0.6f + 0.3f * badness else 0.4f + 0.3f * badness
+                BannerBackdrop(item.banner, ColorUtils.setAlphaComponent(cardColor, (alpha * 255).toInt()))
             } else null
-            holder.binding.desc.setTextColor(
-                MaterialColors.getColor(
-                    holder.binding.desc,
-                    if (blend) com.google.android.material.R.attr.colorOnSurfaceVariant else com.google.android.material.R.attr.colorOutline
-                )
-            )
+            val text = if (blend && !darkCard) strongText else normalText
+            holder.binding.author.setTextColor(text)
+            holder.binding.version.setTextColor(text)
+            holder.binding.versionCode.setTextColor(text)
+            holder.binding.desc.setTextColor(text)
             val iconsOn = prefs.getBoolean(KEY_OPT_ICONS, true)
             holder.binding.icon.isVisible = iconsOn
             if (item.icon != null) holder.binding.icon.setImageBitmap(item.icon)
