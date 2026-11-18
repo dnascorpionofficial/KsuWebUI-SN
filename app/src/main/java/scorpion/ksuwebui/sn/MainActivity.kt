@@ -788,10 +788,14 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         val sheet = SheetModuleSettingsBinding.inflate(layoutInflater)
         sheet.title.text = item.name
 
-        fun action(icon: Int, label: Int, run: () -> Unit) {
+        fun action(icon: Int, label: Int, danger: Boolean = false, run: () -> Unit) {
             val row = ItemSheetActionBinding.inflate(layoutInflater, sheet.actions, false)
             row.icon.setImageResource(icon)
             row.label.setText(label)
+            if (danger) {
+                row.icon.imageTintList = ColorStateList.valueOf(DISABLED_RED)
+                row.label.setTextColor(DISABLED_RED)
+            }
             row.root.setOnClickListener {
                 dialog.dismiss()
                 run()
@@ -816,7 +820,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 pickImage.launch("image/*")
             }
         }
-        if (showBanners && bannerFile.exists()) action(R.drawable.ic_delete, R.string.remove_background) {
+        if (showBanners && bannerFile.exists()) action(R.drawable.ic_delete, R.string.remove_background, danger = true) {
             bannerFile.delete()
             prefs.edit { remove(KEY_BANNER_ALPHA + item.id) }
             refresh()
@@ -824,7 +828,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         if (showBanners && item.banner != null) action(R.drawable.ic_opacity, R.string.banner_transparency) {
             showBannerTransparency(item)
         }
-        if (showIcons && iconFile.exists()) action(R.drawable.ic_delete, R.string.remove_icon) {
+        if (showIcons && iconFile.exists()) action(R.drawable.ic_delete, R.string.remove_icon, danger = true) {
             iconFile.delete()
             refresh()
         }
@@ -837,7 +841,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             R.drawable.ic_terminal,
             if (item.id in stringSet(KEY_CONSOLE_MODULES)) R.string.console_disable else R.string.console_enable
         ) { toggleConsole(item) }
-        action(R.drawable.ic_delete, R.string.clear_module_data) {
+        action(R.drawable.ic_delete, R.string.clear_module_data, danger = true) {
             showConfirm(R.drawable.ic_delete, R.string.clear_module_data, R.string.clear_module_data_message) {
                 clearModuleData(item.id) { showMessage(getString(R.string.module_data_cleared)) }
             }
