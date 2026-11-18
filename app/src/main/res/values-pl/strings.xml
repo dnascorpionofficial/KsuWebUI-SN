@@ -41,7 +41,7 @@
   <string name="set_icon">Ustaw ikonę</string>
   <string name="add_to_home">Dodaj do ekranu głównego</string>
   <string name="shortcut_unsupported">Twój launcher nie obsługuje przypiętych skrótów</string>
-  <string name="remove_background">Usuń tło</string>
+  <string name="remove_banner">Usuń baner</string>
   <string name="banner_transparency">Przezroczystość banera</string>
   <string name="reset">Resetuj</string>
   <string name="done">Gotowe</string>

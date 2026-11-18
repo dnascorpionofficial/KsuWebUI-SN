@@ -820,7 +820,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 pickImage.launch("image/*")
             }
         }
-        if (showBanners && bannerFile.exists()) action(R.drawable.ic_delete, R.string.remove_background, danger = true) {
+        if (showBanners && bannerFile.exists()) action(R.drawable.ic_delete, R.string.remove_banner, danger = true) {
             bannerFile.delete()
             prefs.edit { remove(KEY_BANNER_ALPHA + item.id) }
             refresh()

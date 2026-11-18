@@ -41,7 +41,7 @@
   <string name="set_icon">アイコンを設定</string>
   <string name="add_to_home">ホーム画面に追加</string>
   <string name="shortcut_unsupported">お使いのランチャーはピン留めショートカットに対応していません</string>
-  <string name="remove_background">背景を削除</string>
+  <string name="remove_banner">バナーを削除</string>
   <string name="banner_transparency">バナーの透明度</string>
   <string name="reset">リセット</string>
   <string name="done">完了</string>
