@@ -34,4 +34,9 @@
     <style name="TextAppearance.KsuWebUISN.ChipBold" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:textStyle">bold</item>
     </style>
+
+    <style name="TextAppearance.KsuWebUISN.ChipStatus" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textStyle">normal</item>
+    </style>
 </resources>

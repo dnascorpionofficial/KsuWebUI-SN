@@ -167,7 +167,8 @@
                     android:textSize="12sp"
                     app:chipBackgroundColor="@android:color/transparent"
                     app:chipMinHeight="28dp"
-                    app:chipStrokeColor="@color/card_stroke"
+                    app:chipStrokeColor="?attr/colorOutline"
+                    app:chipSurfaceColor="@android:color/transparent"
                     app:ensureMinTouchTargetSize="false" />
 
                 <com.google.android.material.chip.Chip
@@ -185,7 +186,8 @@
                     android:textSize="12sp"
                     app:chipBackgroundColor="@android:color/transparent"
                     app:chipMinHeight="28dp"
-                    app:chipStrokeColor="@color/card_stroke"
+                    app:chipStrokeColor="?attr/colorOutline"
+                    app:chipSurfaceColor="@android:color/transparent"
                     app:ensureMinTouchTargetSize="false" />
 
                 <com.google.android.material.chip.Chip
@@ -197,13 +199,14 @@
                     android:focusable="false"
                     android:maxLines="1"
                     android:text="@string/module_update_available"
-                    android:textAppearance="@style/TextAppearance.KsuWebUISN.ChipBold"
-                    android:textColor="@color/update_chip_text"
+                    android:textAppearance="@style/TextAppearance.KsuWebUISN.ChipStatus"
+                    android:textColor="@color/update_chip_on"
                     android:textSize="12sp"
                     android:visibility="gone"
-                    app:chipBackgroundColor="@color/update_chip"
+                    app:chipBackgroundColor="@color/update_chip_solid"
                     app:chipMinHeight="28dp"
-                    app:chipStrokeWidth="0dp"
+                    app:chipStrokeColor="@color/update_chip_solid"
+                    app:chipSurfaceColor="@android:color/transparent"
                     app:ensureMinTouchTargetSize="false" />
 
                 <com.google.android.material.chip.Chip
@@ -224,7 +227,8 @@
                     app:chipIconVisible="true"
                     app:chipMinHeight="28dp"
                     app:chipStartPadding="6dp"
-                    app:chipStrokeColor="@color/card_stroke"
+                    app:chipStrokeColor="?attr/colorOutline"
+                    app:chipSurfaceColor="@android:color/transparent"
                     app:ensureMinTouchTargetSize="false"
                     app:iconEndPadding="0dp"
                     app:iconStartPadding="0dp"
@@ -249,7 +253,8 @@
                     app:chipIconVisible="true"
                     app:chipMinHeight="28dp"
                     app:chipStartPadding="6dp"
-                    app:chipStrokeColor="@color/card_stroke"
+                    app:chipStrokeColor="?attr/colorOutline"
+                    app:chipSurfaceColor="@android:color/transparent"
                     app:ensureMinTouchTargetSize="false"
                     app:iconEndPadding="0dp"
                     app:iconStartPadding="0dp"
@@ -266,15 +271,16 @@
                     android:focusable="false"
                     android:minWidth="28dp"
                     android:visibility="gone"
-                    app:chipBackgroundColor="@color/update_chip"
+                    app:chipBackgroundColor="@color/update_chip_solid"
                     app:chipEndPadding="6dp"
                     app:chipIcon="@drawable/ic_update"
                     app:chipIconSize="16dp"
-                    app:chipIconTint="@color/update_chip_text"
+                    app:chipIconTint="@color/update_chip_on"
                     app:chipIconVisible="true"
                     app:chipMinHeight="28dp"
                     app:chipStartPadding="6dp"
-                    app:chipStrokeWidth="0dp"
+                    app:chipStrokeColor="@color/update_chip_solid"
+                    app:chipSurfaceColor="@android:color/transparent"
                     app:ensureMinTouchTargetSize="false"
                     app:iconEndPadding="0dp"
                     app:iconStartPadding="0dp"

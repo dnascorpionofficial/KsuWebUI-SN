@@ -846,12 +846,14 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.statusHidden.isVisible = item.hidden && multiple
             holder.binding.statusUpdate.isVisible = item.updateAvailable && multiple
             if (statusCount == 0) {
+                holder.binding.date.setTextAppearanceResource(R.style.TextAppearance_KsuWebUISN_ChipBold)
                 holder.binding.date.text = item.date
                 holder.binding.date.setTextColor(
                     MaterialColors.getColor(holder.binding.date, com.google.android.material.R.attr.colorOnSurfaceVariant)
                 )
                 holder.binding.date.isVisible = item.date.isNotEmpty()
             } else if (!multiple && !item.updateAvailable) {
+                holder.binding.date.setTextAppearanceResource(R.style.TextAppearance_KsuWebUISN_ChipStatus)
                 holder.binding.date.text = getString(if (item.disabled) R.string.module_disabled else R.string.module_hidden)
                 holder.binding.date.setTextColor(DISABLED_RED)
                 holder.binding.date.isVisible = true
