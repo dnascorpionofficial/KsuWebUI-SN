@@ -30,7 +30,6 @@ import scorpion.ksuwebui.sn.databinding.DialogConfirmBinding
 import com.topjohnwu.superuser.nio.FileSystemManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     
@@ -57,6 +56,7 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
         super.onCreate(savedInstanceState)
 
         onBackPressedDispatcher.addCallback(this, backCallback)
+        AppList.invalidate()
 
         if (bgPrefs.contains(bgKey)) applyPageColor(bgPrefs.getInt(bgKey, 0))
 
@@ -116,16 +116,10 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
             }
         }
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            AppList.getApps(this@WebUIActivity)
-            withContext(Dispatchers.Main) {
-                if (prepareWebView(webUIState)) {
-                    val container = FrameLayout(this@WebUIActivity)
-                    setupWebUIScreen(webUIState, container)
-                    updateTaskDescription()
-                    FileSystemService.start(this@WebUIActivity)
-                }
-            }
+        if (prepareWebView(webUIState)) {
+            setupWebUIScreen(webUIState, FrameLayout(this))
+            updateTaskDescription()
+            FileSystemService.start(this)
         }
     }
 

@@ -8,6 +8,9 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.IBinder
 import com.topjohnwu.superuser.ipc.RootService
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import scorpion.ksuwebui.sn.services.RootServices
 import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
@@ -17,14 +20,19 @@ data class AppInfo(val packageInfo: PackageInfo, val label: String) {
 }
 
 object AppList {
+    @Volatile
     private var cachedApps: List<AppInfo>? = null
+    private val mutex = Mutex()
 
-    fun getApplist(): List<AppInfo> {
-        return cachedApps ?: emptyList()
+    fun invalidate() {
+        cachedApps = null
     }
 
-    suspend fun getApps(context: Context): List<AppInfo> {
-        cachedApps?.let { return it }
+    fun getApplist(): List<AppInfo> = runBlocking { getApps(App.instance) }
+
+    private suspend fun getApps(context: Context): List<AppInfo> = mutex.withLock { cachedApps ?: load(context) }
+
+    private suspend fun load(context: Context): List<AppInfo> {
         val binder = bindRootService(context) ?: return emptyList()
         try {
             val rootService = IKsuWebuiSnInterface.Stub.asInterface(binder)

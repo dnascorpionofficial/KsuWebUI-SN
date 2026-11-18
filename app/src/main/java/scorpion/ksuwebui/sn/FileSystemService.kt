@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import androidx.annotation.MainThread
+import com.topjohnwu.superuser.Shell
 import com.topjohnwu.superuser.ipc.RootService
 import com.topjohnwu.superuser.nio.FileSystemManager
 import java.util.concurrent.CopyOnWriteArraySet
@@ -59,7 +60,7 @@ class FileSystemService : RootService() {
         private fun checkRoot() {
             status = Status.CheckRoot
             App.executor.submit {
-                val isRoot = createRootShell().use { it.isRoot }
+                val isRoot = Shell.getShell().isRoot
                 App.handler.post {
                     if (isRoot) {
                         launchService()

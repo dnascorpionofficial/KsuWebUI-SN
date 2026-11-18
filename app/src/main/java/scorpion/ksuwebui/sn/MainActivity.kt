@@ -219,10 +219,6 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         onBackPressedDispatcher.addCallback(this, searchBack)
         onBackPressedDispatcher.addCallback(this, drawerBack)
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            AppList.getApps(this@MainActivity)
-        }
-
         ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v, insets ->
             val visible = insets.isVisible(WindowInsetsCompat.Type.ime())
             if (imeWasVisible && !visible) imeHiddenAt = SystemClock.uptimeMillis()
