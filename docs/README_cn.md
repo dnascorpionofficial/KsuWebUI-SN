@@ -11,7 +11,7 @@
 
 # KsuWebUI-SN
 
-[English](../README.md) | 简体中文 | [Français](README_fr.md) | [日本語](README_ja.md) | [العربية](README_ar.md) | [Polski](README_pl.md)
+[English](../README.md) | 简体中文 | [Français](README_fr.md) | [日本語](README_ja.md) | [العربية](README_ar.md) | [Polski](README_pl.md) | [Português (Brasil)](README_pt-BR.md)
 
 [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html) 应用的独立实现版本
 
@@ -20,13 +20,12 @@
 ## 翻译
 
 所有界面文本都位于 `app/src/main/res/values*/strings.xml`。英语（`values/`）是源语言；
-阿拉伯语（`values-ar`）、法语（`values-fr`）、波兰语（`values-pl`）、日语（`values-ja`）和简体中文（`values-zh-rCN`）为翻译版本。
+阿拉伯语（`values-ar`）、法语（`values-fr`）、波兰语（`values-pl`）、日语（`values-ja`）、巴西葡萄牙语（`values-pt-rBR`）和简体中文（`values-zh-rCN`）为翻译版本。
 
 ### 添加语言
 
 ```
 python3 scripts/add_language.py de        # 德语
-python3 scripts/add_language.py pt-BR     # 葡萄牙语（巴西）
 python3 scripts/add_language.py zh-TW     # 繁体中文
 ```
 

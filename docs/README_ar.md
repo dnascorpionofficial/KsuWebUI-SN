@@ -11,7 +11,7 @@
 
 # KsuWebUI-SN
 
-[English](../README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | [日本語](README_ja.md) | العربية | [Polski](README_pl.md)
+[English](../README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | [日本語](README_ja.md) | العربية | [Polski](README_pl.md) | [Português (Brasil)](README_pt-BR.md)
 
 تطبيق مستقل لتشغيل واجهة [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html)
 
@@ -20,13 +20,12 @@
 ## الترجمة
 
 توجد كافة نصوص واجهة المستخدم في `app/src/main/res/values*/strings.xml`. الإنجليزية (`values/`) هي لغة المصدر؛
-بينما تمثل العربية (`values-ar`) والفرنسية (`values-fr`) والبولندية (`values-pl`) واليابانية (`values-ja`) والصينية المبسطة (`values-zh-rCN`) ترجمات للتطبيق.
+بينما تمثل العربية (`values-ar`) والفرنسية (`values-fr`) والبولندية (`values-pl`) واليابانية (`values-ja`) والبرتغالية البرازيلية (`values-pt-rBR`) والصينية المبسطة (`values-zh-rCN`) ترجمات للتطبيق.
 
 ### إضافة لغة جديدة
 
 ```
 python3 scripts/add_language.py de        # الألمانية
-python3 scripts/add_language.py pt-BR     # البرتغالية (البرازيل)
 python3 scripts/add_language.py zh-TW     # الصينية التقليدية
 ```
 

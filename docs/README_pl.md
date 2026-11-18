@@ -11,7 +11,7 @@ Szczególne podziękowania dla obu autorów za ich pracę, która stała się fu
 
 # KsuWebUI-SN
 
-[English](../README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | [日本語](README_ja.md) | [العربية](README_ar.md) | Polski
+[English](../README.md) | [简体中文](README_cn.md) | [Français](README_fr.md) | [日本語](README_ja.md) | [العربية](README_ar.md) | Polski | [Português (Brasil)](README_pt-BR.md)
 
 Samodzielna implementacja aplikacji [KernelSU WebUI](https://kernelsu.org/guide/module-webui.html)
 
@@ -20,13 +20,12 @@ Działa z Magisk, KernelSU i APatch
 ## Tłumaczenie
 
 Cały tekst interfejsu znajduje się w `app/src/main/res/values*/strings.xml`. Angielski (`values/`) jest językiem źródłowym;
-arabski (`values-ar`), francuski (`values-fr`), polski (`values-pl`), japoński (`values-ja`) i chiński uproszczony (`values-zh-rCN`) są tłumaczeniami.
+arabski (`values-ar`), francuski (`values-fr`), polski (`values-pl`), japoński (`values-ja`), portugalski brazylijski (`values-pt-rBR`) i chiński uproszczony (`values-zh-rCN`) są tłumaczeniami.
 
 ### Dodawanie języka
 
 ```
 python3 scripts/add_language.py de        # niemiecki
-python3 scripts/add_language.py pt-BR     # portugalski (Brazylia)
 python3 scripts/add_language.py zh-TW     # chiński tradycyjny
 ```
 
