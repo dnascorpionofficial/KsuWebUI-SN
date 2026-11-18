@@ -42,6 +42,9 @@
     <string name="add_to_home">Ajouter à l\'écran d\'accueil</string>
     <string name="shortcut_unsupported">Votre lanceur ne prend pas en charge les raccourcis épinglés</string>
     <string name="remove_background">Supprimer l\'arrière-plan</string>
+    <string name="banner_transparency">Transparence de la bannière</string>
+    <string name="reset">Réinitialiser</string>
+    <string name="done">Terminé</string>
     <string name="remove_icon">Supprimer l\'icône</string>
     <string name="start_downloading">Démarrage du téléchargement</string>
     <string name="download_failed">Échec du téléchargement : %s</string>

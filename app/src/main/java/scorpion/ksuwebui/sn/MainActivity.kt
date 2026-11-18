@@ -10,6 +10,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Matrix
+import android.graphics.Outline
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
@@ -24,10 +25,13 @@ import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewOutlineProvider
 import android.widget.CompoundButton
 import android.widget.ImageButton
 import android.widget.LinearLayout
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.LayerDrawable
 import android.widget.TextView
 import com.google.android.material.color.MaterialColors
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -69,6 +73,7 @@ import scorpion.ksuwebui.sn.databinding.ItemInfoRowBinding
 import scorpion.ksuwebui.sn.databinding.ItemModuleBinding
 import scorpion.ksuwebui.sn.databinding.ItemPowerRowBinding
 import scorpion.ksuwebui.sn.databinding.ItemSheetActionBinding
+import scorpion.ksuwebui.sn.databinding.SheetBannerTransparencyBinding
 import scorpion.ksuwebui.sn.databinding.SheetPowerBinding
 import scorpion.ksuwebui.sn.databinding.SheetModuleSettingsBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -85,6 +90,9 @@ import java.util.Locale
 private const val KEY_OPT_BANNERS = "opt_banners"
 private const val KEY_OPT_BLEND = "opt_blend_banners"
 private const val NEUTRAL_LUMA = 0.5f
+private const val KEY_BANNER_ALPHA = "banner_alpha_"
+private const val BANNER_PCT_MIN_BLEND = 5
+private const val BANNER_PCT_MAX = 80
 private const val KEY_OPT_ICONS = "opt_icons"
 private const val KEY_OPT_DISABLED = "opt_disabled"
 private const val KEY_OPT_HIDDEN = "opt_hidden"
@@ -143,6 +151,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             if (bytes == null || bytes.size > 16 * 1024 * 1024) return@execute
             val src = decodeSampled(bytes, if (isBanner) 1080 else 192) ?: return@execute
             saveCustom(if (isBanner) "banner_$id.png" else "icon_$id.png", src)
+            if (isBanner) prefs.edit { remove(KEY_BANNER_ALPHA + id) }
             val (shown, luma) = if (isBanner) prepBanner(src) else circleIcon(src) to NEUTRAL_LUMA
             runOnUiThread {
                 val i = allModules.indexOfFirst { it.id == id }
@@ -696,6 +705,84 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         bar.show()
     }
 
+    private fun autoBlendAlpha(luma: Float): Float {
+        val badness = if (darkCard) luma else 1f - luma
+        return if (darkCard) 0.6f + 0.3f * badness else 0.4f + 0.3f * badness
+    }
+
+    private fun bannerTransparency(id: String): Float? {
+        val key = KEY_BANNER_ALPHA + id
+        return if (prefs.contains(key)) prefs.getFloat(key, 0f).coerceIn(0f, BANNER_PCT_MAX / 100f) else null
+    }
+
+    private fun blendScrim(item: Module): Float =
+        bannerTransparency(item.id)?.coerceAtLeast(BANNER_PCT_MIN_BLEND / 100f) ?: autoBlendAlpha(item.luma)
+
+    private fun showBannerTransparency(item: Module) {
+        val bmp = item.banner ?: return
+        val blend = prefs.getBoolean(KEY_OPT_BLEND, false)
+        val key = KEY_BANNER_ALPHA + item.id
+        val minPct = if (blend) BANNER_PCT_MIN_BLEND else 0
+        val default = if (blend) autoBlendAlpha(item.luma) else 0f
+        val sheet = SheetBannerTransparencyBinding.inflate(layoutInflater)
+        val dialog = BottomSheetDialog(this)
+
+        fun toPct(t: Float) = Math.round(t * 100f).coerceIn(minPct, BANNER_PCT_MAX).toFloat()
+
+        sheet.slider.valueFrom = minPct.toFloat()
+        sheet.slider.valueTo = BANNER_PCT_MAX.toFloat()
+        sheet.slider.stepSize = 1f
+        sheet.slider.value = toPct(bannerTransparency(item.id) ?: default)
+
+        sheet.preview.clipToOutline = true
+        sheet.preview.outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(view: View, outline: Outline) {
+                outline.setRoundRect(0, 0, view.width, view.height, 16 * resources.displayMetrics.density)
+            }
+        }
+        sheet.previewName.text = item.name
+        sheet.previewName.setTextColor(if (blend && !darkCard) strongText else normalText)
+
+        fun render(pct: Float) {
+            sheet.value.text = "${pct.toInt()}%"
+            sheet.preview.background = LayerDrawable(
+                arrayOf(
+                    ColorDrawable(cardColor),
+                    BannerBackdrop(bmp, ColorUtils.setAlphaComponent(cardColor, (pct / 100f * 255).toInt()))
+                )
+            )
+        }
+
+        fun updateCard() {
+            val i = moduleList.indexOfFirst { it.id == item.id }
+            if (i >= 0) adapter.notifyItemChanged(i, true)
+        }
+
+        render(sheet.slider.value)
+        sheet.reset.isEnabled = bannerTransparency(item.id) != null
+        sheet.slider.addOnChangeListener { _, v, fromUser ->
+            render(v)
+            if (fromUser) {
+                prefs.edit { putFloat(key, v / 100f) }
+                sheet.reset.isEnabled = true
+                updateCard()
+            }
+        }
+        sheet.reset.setOnClickListener {
+            prefs.edit { remove(key) }
+            sheet.slider.value = toPct(default)
+            sheet.reset.isEnabled = false
+            updateCard()
+        }
+        sheet.done.setOnClickListener { dialog.dismiss() }
+
+        dialog.setContentView(sheet.root)
+        dialog.window?.setDimAmount(0f)
+        dialog.behavior.skipCollapsed = true
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        dialog.show()
+    }
+
     private fun showModuleSettings(item: Module) {
         val dialog = BottomSheetDialog(this)
         val sheet = SheetModuleSettingsBinding.inflate(layoutInflater)
@@ -731,7 +818,11 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
         if (showBanners && bannerFile.exists()) action(R.drawable.ic_delete, R.string.remove_background) {
             bannerFile.delete()
+            prefs.edit { remove(KEY_BANNER_ALPHA + item.id) }
             refresh()
+        }
+        if (showBanners && item.banner != null) action(R.drawable.ic_opacity, R.string.banner_transparency) {
+            showBannerTransparency(item)
         }
         if (showIcons && iconFile.exists()) action(R.drawable.ic_delete, R.string.remove_icon) {
             iconFile.delete()
@@ -863,11 +954,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             holder.binding.desc.text = item.desc
             val blend = item.banner != null && prefs.getBoolean(KEY_OPT_BLEND, false)
             holder.binding.banner.setImageBitmap(if (blend) null else item.banner)
+            holder.binding.banner.alpha = 1f - (bannerTransparency(id) ?: 0f)
             holder.binding.banner.isVisible = item.banner != null && !blend
             holder.binding.content.background = if (blend) {
-                val badness = if (darkCard) item.luma else 1f - item.luma
-                val alpha = if (darkCard) 0.6f + 0.3f * badness else 0.4f + 0.3f * badness
-                BannerBackdrop(item.banner, ColorUtils.setAlphaComponent(cardColor, (alpha * 255).toInt()))
+                BannerBackdrop(item.banner, ColorUtils.setAlphaComponent(cardColor, (blendScrim(item) * 255).toInt()))
             } else null
             val text = if (blend && !darkCard) strongText else normalText
             holder.binding.author.setTextColor(text)

@@ -42,6 +42,9 @@
   <string name="add_to_home">Dodaj do ekranu głównego</string>
   <string name="shortcut_unsupported">Twój launcher nie obsługuje przypiętych skrótów</string>
   <string name="remove_background">Usuń tło</string>
+  <string name="banner_transparency">Przezroczystość banera</string>
+  <string name="reset">Resetuj</string>
+  <string name="done">Gotowe</string>
   <string name="remove_icon">Usuń ikonę</string>
   <string name="start_downloading">Rozpoczynanie pobierania</string>
   <string name="download_failed">Pobieranie nieudane: %s</string>

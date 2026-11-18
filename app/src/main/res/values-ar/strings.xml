@@ -42,6 +42,9 @@
     <string name="add_to_home">إضافة إلى الشاشة الرئيسية</string>
     <string name="shortcut_unsupported">مشغّل الشاشة الرئيسية لا يدعم تثبيت الاختصارات.</string>
     <string name="remove_background">إزالة الخلفية</string>
+    <string name="banner_transparency">شفافية البانر</string>
+    <string name="reset">إعادة تعيين</string>
+    <string name="done">تم</string>
     <string name="remove_icon">إزالة الأيقونة</string>
     <string name="start_downloading">بدء التنزيل</string>
     <string name="download_failed">تعذّر التنزيل: %s</string>
