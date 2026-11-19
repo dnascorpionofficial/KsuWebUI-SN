@@ -127,4 +127,7 @@
     <string name="reboot_now">Reboot now</string>
     <string name="opt_blend_banners">Blend Banners</string>
     <string name="info_blend_banners_body">Use each module banner as its card background instead of showing it at the top. The image is dimmed automatically so the text stays readable. Available only when Module Banners is on.</string>
+    <string name="group_appearance">Appearance</string>
+    <string name="group_actions">Actions</string>
+    <string name="group_developer">Developer</string>
 </resources>

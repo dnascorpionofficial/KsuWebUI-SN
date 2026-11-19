@@ -127,4 +127,7 @@
     <string name="reboot_now">Reiniciar agora</string>
     <string name="opt_blend_banners">Mesclar banners</string>
     <string name="info_blend_banners_body">Usa o banner de cada módulo como plano de fundo do seu cartão em vez de mostrá-lo no topo. A imagem é escurecida automaticamente para que o texto permaneça legível. Disponível apenas quando os Banners dos módulos estão ativados.</string>
+    <string name="group_appearance">Aparência</string>
+    <string name="group_actions">Ações</string>
+    <string name="group_developer">Desenvolvedor</string>
 </resources>

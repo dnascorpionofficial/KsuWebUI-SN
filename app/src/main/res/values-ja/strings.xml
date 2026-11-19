@@ -127,4 +127,7 @@
   <string name="reboot_now">今すぐ再起動</string>
     <string name="opt_blend_banners">バナーを背景に溶け込ませる</string>
     <string name="info_blend_banners_body">各モジュールのバナーをカード上部に表示する代わりに、カードの背景として使用します。文字が読みやすいように画像は自動的に暗く調整されます。モジュールのバナーがオンのときのみ利用できます。</string>
+    <string name="group_appearance">外観</string>
+    <string name="group_actions">アクション</string>
+    <string name="group_developer">開発者</string>
 </resources>

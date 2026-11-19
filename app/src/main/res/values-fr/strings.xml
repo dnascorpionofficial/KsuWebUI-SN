@@ -127,4 +127,7 @@
     <string name="reboot_now">Redémarrer maintenant</string>
     <string name="opt_blend_banners">Fondre les bannières</string>
     <string name="info_blend_banners_body">Utilise la bannière de chaque module comme arrière-plan de sa carte au lieu de l’afficher en haut. L’image est assombrie automatiquement pour que le texte reste lisible. Disponible uniquement si les bannières des modules sont activées.</string>
+    <string name="group_appearance">Apparence</string>
+    <string name="group_actions">Actions</string>
+    <string name="group_developer">Développeur</string>
 </resources>

@@ -127,4 +127,7 @@
   <string name="reboot_now">Uruchom ponownie teraz</string>
     <string name="opt_blend_banners">Baner jako tło karty</string>
     <string name="info_blend_banners_body">Używa baneru każdego modułu jako tła jego karty zamiast wyświetlać go u góry. Obraz jest automatycznie przyciemniany, aby tekst pozostał czytelny. Dostępne tylko, gdy banery modułów są włączone.</string>
+    <string name="group_appearance">Wygląd</string>
+    <string name="group_actions">Akcje</string>
+    <string name="group_developer">Dla programistów</string>
 </resources>

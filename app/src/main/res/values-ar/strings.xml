@@ -127,4 +127,7 @@
     <string name="reboot_now">إعادة التشغيل الآن</string>
     <string name="opt_blend_banners">دمج الغلاف بالخلفية</string>
     <string name="info_blend_banners_body">استخدام صورة غلاف كل إضافة كخلفية لبطاقتها بدلًا من عرضها في الأعلى. يتم تعتيم الصورة تلقائيًا ليبقى النص مقروءًا. متاح فقط عند تفعيل إظهار صور أغلفة الإضافات.</string>
+    <string name="group_appearance">المظهر</string>
+    <string name="group_actions">الإجراءات</string>
+    <string name="group_developer">المطور</string>
 </resources>

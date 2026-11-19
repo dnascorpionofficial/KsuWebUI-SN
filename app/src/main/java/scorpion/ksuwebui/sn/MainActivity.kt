@@ -783,9 +783,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         val dialog = BottomSheetDialog(this)
         val sheet = SheetModuleSettingsBinding.inflate(layoutInflater)
         sheet.title.text = item.name
+        val groups = SheetGroups(sheet.actions)
 
-        fun action(icon: Int, label: Int, danger: Boolean = false, run: () -> Unit) {
-            val row = ItemSheetActionBinding.inflate(layoutInflater, sheet.actions, false)
+        fun action(body: LinearLayout, icon: Int, label: Int, danger: Boolean = false, run: () -> Unit) {
+            val row = ItemSheetActionBinding.inflate(layoutInflater, body, false)
             row.icon.setImageResource(icon)
             row.label.setText(label)
             if (danger) {
@@ -796,48 +797,57 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                 dialog.dismiss()
                 run()
             }
-            sheet.actions.addView(row.root)
+            body.addView(row.root)
         }
 
-        action(R.drawable.ic_push_pin, if (item.pinned) R.string.unpin else R.string.pin) { togglePin(item) }
         val showBanners = prefs.getBoolean(KEY_OPT_BANNERS, true)
         val showIcons = prefs.getBoolean(KEY_OPT_ICONS, true)
         val bannerFile = customFile("banner_${item.id}.png")
         val iconFile = customFile("icon_${item.id}.png")
-        if (showBanners) {
-            action(R.drawable.ic_image, R.string.set_banner) {
-                pickTarget = item.id to true
-                pickImage.launch("image/*")
+        if (showBanners || showIcons) {
+            val appearance = groups.add(R.drawable.ic_palette, R.string.group_appearance, open = false)
+            if (showBanners) {
+                action(appearance, R.drawable.ic_image, R.string.set_banner) {
+                    pickTarget = item.id to true
+                    pickImage.launch("image/*")
+                }
+            }
+            if (showIcons) {
+                action(appearance, R.drawable.ic_account_circle, R.string.set_icon) {
+                    pickTarget = item.id to false
+                    pickImage.launch("image/*")
+                }
+            }
+            if (showBanners && bannerFile.exists()) action(appearance, R.drawable.ic_delete, R.string.remove_banner, danger = true) {
+                bannerFile.delete()
+                prefs.edit { remove(KEY_BANNER_ALPHA + item.id) }
+                refresh()
+            }
+            if (showBanners && item.banner != null) action(appearance, R.drawable.ic_opacity, R.string.banner_transparency) {
+                showBannerTransparency(item)
+            }
+            if (showIcons && iconFile.exists()) action(appearance, R.drawable.ic_delete, R.string.remove_icon, danger = true) {
+                iconFile.delete()
+                refresh()
             }
         }
-        if (showIcons) {
-            action(R.drawable.ic_account_circle, R.string.set_icon) {
-                pickTarget = item.id to false
-                pickImage.launch("image/*")
-            }
-        }
-        if (showBanners && bannerFile.exists()) action(R.drawable.ic_delete, R.string.remove_banner, danger = true) {
-            bannerFile.delete()
-            prefs.edit { remove(KEY_BANNER_ALPHA + item.id) }
-            refresh()
-        }
-        if (showBanners && item.banner != null) action(R.drawable.ic_opacity, R.string.banner_transparency) {
-            showBannerTransparency(item)
-        }
-        if (showIcons && iconFile.exists()) action(R.drawable.ic_delete, R.string.remove_icon, danger = true) {
-            iconFile.delete()
-            refresh()
-        }
-        action(R.drawable.ic_add, R.string.add_to_home) { addToHomeScreen(item) }
+
+        val actions = groups.add(R.drawable.ic_bolt, R.string.group_actions, open = true)
+        action(actions, R.drawable.ic_push_pin, if (item.pinned) R.string.unpin else R.string.pin) { togglePin(item) }
+        action(actions, R.drawable.ic_add, R.string.add_to_home) { addToHomeScreen(item) }
         action(
+            actions,
             if (item.hidden) R.drawable.ic_visibility else R.drawable.ic_visibility_off,
             if (item.hidden) R.string.unhide else R.string.hide
         ) { toggleHidden(item) }
+
+        val developer = groups.add(R.drawable.ic_code, R.string.group_developer, open = false)
         action(
+            developer,
             R.drawable.ic_terminal,
             if (item.id in stringSet(KEY_CONSOLE_MODULES)) R.string.console_disable else R.string.console_enable
         ) { toggleConsole(item) }
-        action(R.drawable.ic_delete, R.string.clear_module_data, danger = true) {
+        action(developer, R.drawable.ic_delete, R.string.clear_module_data, danger = true) {
             showConfirm(R.drawable.ic_delete, R.string.clear_module_data, R.string.clear_module_data_message) {
                 clearModuleData(item.id) { showMessage(getString(R.string.module_data_cleared)) }
             }
