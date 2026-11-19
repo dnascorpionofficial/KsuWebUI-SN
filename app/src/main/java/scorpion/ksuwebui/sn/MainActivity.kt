@@ -73,6 +73,7 @@ import scorpion.ksuwebui.sn.databinding.ItemInfoRowBinding
 import scorpion.ksuwebui.sn.databinding.ItemModuleBinding
 import scorpion.ksuwebui.sn.databinding.ItemPowerRowBinding
 import scorpion.ksuwebui.sn.databinding.ItemSheetActionBinding
+import scorpion.ksuwebui.sn.databinding.ItemSheetGroupBinding
 import scorpion.ksuwebui.sn.databinding.SheetBannerTransparencyBinding
 import scorpion.ksuwebui.sn.databinding.SheetPowerBinding
 import scorpion.ksuwebui.sn.databinding.SheetModuleSettingsBinding
@@ -783,7 +784,13 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         val dialog = BottomSheetDialog(this)
         val sheet = SheetModuleSettingsBinding.inflate(layoutInflater)
         sheet.title.text = item.name
-        val groups = SheetGroups(sheet.actions)
+
+        fun group(title: Int): LinearLayout {
+            val g = ItemSheetGroupBinding.inflate(layoutInflater, sheet.actions, false)
+            g.title.setText(title)
+            sheet.actions.addView(g.root)
+            return g.body
+        }
 
         fun action(body: LinearLayout, icon: Int, label: Int, danger: Boolean = false, run: () -> Unit) {
             val row = ItemSheetActionBinding.inflate(layoutInflater, body, false)
@@ -805,7 +812,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         val bannerFile = customFile("banner_${item.id}.png")
         val iconFile = customFile("icon_${item.id}.png")
         if (showBanners || showIcons) {
-            val appearance = groups.add(R.drawable.ic_palette, R.string.group_appearance, open = false)
+            val appearance = group(R.string.group_appearance)
             if (showBanners) {
                 action(appearance, R.drawable.ic_image, R.string.set_banner) {
                     pickTarget = item.id to true
@@ -818,13 +825,13 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     pickImage.launch("image/*")
                 }
             }
+            if (showBanners && item.banner != null) action(appearance, R.drawable.ic_opacity, R.string.banner_transparency) {
+                showBannerTransparency(item)
+            }
             if (showBanners && bannerFile.exists()) action(appearance, R.drawable.ic_delete, R.string.remove_banner, danger = true) {
                 bannerFile.delete()
                 prefs.edit { remove(KEY_BANNER_ALPHA + item.id) }
                 refresh()
-            }
-            if (showBanners && item.banner != null) action(appearance, R.drawable.ic_opacity, R.string.banner_transparency) {
-                showBannerTransparency(item)
             }
             if (showIcons && iconFile.exists()) action(appearance, R.drawable.ic_delete, R.string.remove_icon, danger = true) {
                 iconFile.delete()
@@ -832,7 +839,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             }
         }
 
-        val actions = groups.add(R.drawable.ic_bolt, R.string.group_actions, open = true)
+        val actions = group(R.string.group_actions)
         action(actions, R.drawable.ic_push_pin, if (item.pinned) R.string.unpin else R.string.pin) { togglePin(item) }
         action(actions, R.drawable.ic_add, R.string.add_to_home) { addToHomeScreen(item) }
         action(
@@ -841,7 +848,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             if (item.hidden) R.string.unhide else R.string.hide
         ) { toggleHidden(item) }
 
-        val developer = groups.add(R.drawable.ic_code, R.string.group_developer, open = false)
+        val developer = group(R.string.group_developer)
         action(
             developer,
             R.drawable.ic_terminal,
