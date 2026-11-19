@@ -130,4 +130,6 @@
     <string name="group_appearance">外观</string>
     <string name="group_actions">操作</string>
     <string name="group_developer">开发者</string>
+    <string name="group_style">样式</string>
+    <string name="group_visibility">可见性</string>
 </resources>

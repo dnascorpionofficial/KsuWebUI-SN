@@ -91,7 +91,7 @@
             android:id="@+id/theme_group"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="24dp"
+            android:layout_marginHorizontal="16dp"
             android:layout_marginVertical="8dp"
             app:selectionRequired="true"
             app:singleSelection="true">
@@ -128,55 +128,114 @@
 
         </com.google.android.material.button.MaterialButtonToggleGroup>
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/sw_banners"
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:paddingHorizontal="24dp"
-            android:text="@string/opt_banners"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp" />
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp"
+            android:text="@string/group_style"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/sw_blend_banners"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:paddingHorizontal="24dp"
-            android:text="@string/opt_blend_banners"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp" />
+            android:layout_marginHorizontal="16dp"
+            android:background="@drawable/bg_sheet_group"
+            android:clipToOutline="true"
+            android:divider="@drawable/divider_sheet"
+            android:orientation="vertical"
+            android:showDividers="middle">
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/sw_icons"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:paddingHorizontal="24dp"
-            android:text="@string/opt_icons"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp" />
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/sw_banners"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:breakStrategy="simple"
+                android:hyphenationFrequency="none"
+                android:minHeight="52dp"
+                android:paddingHorizontal="18dp"
+                android:text="@string/opt_banners"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/sw_disabled"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:paddingHorizontal="24dp"
-            android:text="@string/opt_disabled"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp" />
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/sw_blend_banners"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:breakStrategy="simple"
+                android:hyphenationFrequency="none"
+                android:minHeight="52dp"
+                android:paddingHorizontal="18dp"
+                android:text="@string/opt_blend_banners"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp" />
 
-        <com.google.android.material.materialswitch.MaterialSwitch
-            android:id="@+id/sw_hidden"
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/sw_icons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:breakStrategy="simple"
+                android:hyphenationFrequency="none"
+                android:minHeight="52dp"
+                android:paddingHorizontal="18dp"
+                android:text="@string/opt_icons"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp" />
+        </LinearLayout>
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="56dp"
-            android:paddingHorizontal="24dp"
-            android:text="@string/opt_hidden"
-            android:textColor="?attr/colorOnSurface"
-            android:textSize="16sp" />
+            android:layout_marginHorizontal="24dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="6dp"
+            android:text="@string/group_visibility"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:background="@drawable/bg_sheet_group"
+            android:clipToOutline="true"
+            android:divider="@drawable/divider_sheet"
+            android:orientation="vertical"
+            android:showDividers="middle">
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/sw_disabled"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:breakStrategy="simple"
+                android:hyphenationFrequency="none"
+                android:minHeight="52dp"
+                android:paddingHorizontal="18dp"
+                android:text="@string/opt_disabled"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/sw_hidden"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:breakStrategy="simple"
+                android:hyphenationFrequency="none"
+                android:minHeight="52dp"
+                android:paddingHorizontal="18dp"
+                android:text="@string/opt_hidden"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="16sp" />
+        </LinearLayout>
 
     </LinearLayout>
 

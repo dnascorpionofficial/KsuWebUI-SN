@@ -130,4 +130,6 @@
     <string name="group_appearance">Wygląd</string>
     <string name="group_actions">Akcje</string>
     <string name="group_developer">Dla programistów</string>
+    <string name="group_style">Styl</string>
+    <string name="group_visibility">Widoczność</string>
 </resources>

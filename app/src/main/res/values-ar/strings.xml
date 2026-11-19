@@ -130,4 +130,6 @@
     <string name="group_appearance">المظهر</string>
     <string name="group_actions">الإجراءات</string>
     <string name="group_developer">المطور</string>
+    <string name="group_style">النمط</string>
+    <string name="group_visibility">الظهور</string>
 </resources>

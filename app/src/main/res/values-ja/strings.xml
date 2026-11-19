@@ -130,4 +130,6 @@
     <string name="group_appearance">外観</string>
     <string name="group_actions">アクション</string>
     <string name="group_developer">開発者</string>
+    <string name="group_style">スタイル</string>
+    <string name="group_visibility">表示</string>
 </resources>
