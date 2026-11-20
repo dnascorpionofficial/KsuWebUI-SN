@@ -82,12 +82,10 @@
   <string name="reboot">再起動</string>
   <string name="soft_reboot">ソフトリブート</string>
   <string name="reboot_recovery">リカバリーで再起動</string>
-  <string name="reboot_bootloader">ブートローダーで再起動</string>
   <string name="reboot_safe_mode">セーフモード</string>
   <string name="confirm_reboot">今すぐデバイスを再起動しますか？</string>
   <string name="confirm_soft_reboot">今すぐソフトリブートしますか？完全な再起動をせずにシステムを再起動します。</string>
   <string name="confirm_reboot_recovery">今すぐリカバリーで再起動しますか？</string>
-  <string name="confirm_reboot_bootloader">今すぐブートローダーで再起動しますか？</string>
   <string name="confirm_reboot_safe_mode">今すぐセーフモードで再起動しますか？モジュールとサードパーティ製アプリは、次回の通常起動まで無効のままになります。</string>
   <string name="module_disabled">無効化されたモジュール</string>
   <string name="module_hidden">非表示のモジュール</string>
@@ -97,8 +95,7 @@
   <string name="no">いいえ</string>
   <string name="soft_reboot_desc">システムのみ再起動 (高速)</string>
   <string name="reboot_recovery_desc">リカバリーモードで起動</string>
-  <string name="reboot_bootloader_desc">ファストブートモードで起動</string>
-  <string name="reboot_safe_mode_desc">モジュールを無効にして起動</string>
+  <string name="reboot_safe_mode_desc">デバイスのセーフモードで起動</string>
   <string name="reboot_desc">デバイスを再起動</string>
   <string name="version_code">バージョンコード: %s</string>
   <string name="module_update_available">アップデートあり</string>
@@ -132,4 +129,15 @@
     <string name="group_developer">開発者</string>
     <string name="group_style">スタイル</string>
     <string name="group_visibility">表示</string>
+    <string name="modules_reboot">モジュールと再起動</string>
+    <string name="modules_reboot_desc">モジュールのオン/オフを切り替えて再起動</string>
+    <string name="disable_all">すべて無効化</string>
+    <string name="enable_all">すべて有効化</string>
+    <string name="apply_continue">適用して続行</string>
+    <string name="modules_applied">変更を適用しました</string>
+    <string name="modules_exit">終了</string>
+    <string name="modules_unchanged">変更はありません</string>
+    <string name="modules_unchanged_message">再起動は不要です。</string>
+    <string name="modules_to_disable">無効にするモジュール: %d</string>
+    <string name="modules_to_enable">有効にするモジュール: %d</string>
 </resources>

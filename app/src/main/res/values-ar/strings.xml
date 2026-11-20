@@ -82,12 +82,10 @@
     <string name="reboot">إعادة تشغيل الجهاز</string>
     <string name="soft_reboot">إعادة تشغيل جزئي</string>
     <string name="reboot_recovery">وضع الريكفري</string>
-    <string name="reboot_bootloader">وضع الbootloader</string>
     <string name="reboot_safe_mode">الوضع الآمن</string>
     <string name="confirm_reboot">هل تريد إعادة تشغيل الجهاز الآن؟</string>
     <string name="confirm_soft_reboot">هل تريد إعادة تشغيل النظام بشكل جزئي؟ لن يُعاد تشغيل الجهاز بالكامل.</string>
     <string name="confirm_reboot_recovery">هل تريد إعادة تشغيل الجهاز إلى وضع الريكفري الآن؟</string>
-    <string name="confirm_reboot_bootloader">هل تريد إعادة تشغيل الجهاز إلى وضع bootloader الآن؟</string>
     <string name="confirm_reboot_safe_mode">هل تريد إعادة التشغيل في الوضع الآمن الآن؟ ستظل الإضافات وتطبيقات الجهات الخارجية معطّلة حتى إعادة تشغيل الجهاز بالطريقة المعتادة.</string>
     <string name="module_disabled">إضافة معطّلة</string>
     <string name="module_hidden">إضافة مخفية</string>
@@ -97,8 +95,7 @@
     <string name="no">لا</string>
     <string name="soft_reboot_desc">إعادة تشغيل النظام فقط، وهي أسرع من إعادة تشغيل الجهاز بالكامل.</string>
     <string name="reboot_recovery_desc">بدء تشغيل الجهاز في وضع الريكفري.</string>
-    <string name="reboot_bootloader_desc">بدء تشغيل الجهاز في وضع bootloader.</string>
-    <string name="reboot_safe_mode_desc">بدء تشغيل الجهاز مع تعطيل الإضافات.</string>
+    <string name="reboot_safe_mode_desc">بدء تشغيل الجهاز في الوضع الآمن.</string>
     <string name="reboot_desc">إعادة تشغيل الجهاز.</string>
     <string name="version_code">رمز الإصدار: %s</string>
     <string name="module_update_available">يتوفر تحديث</string>
@@ -132,4 +129,15 @@
     <string name="group_developer">المطور</string>
     <string name="group_style">النمط</string>
     <string name="group_visibility">الظهور</string>
+    <string name="modules_reboot">الإضافات وإعادة التشغيل</string>
+    <string name="modules_reboot_desc">تفعيل الإضافات أو تعطيلها وإعادة التشغيل</string>
+    <string name="disable_all">تعطيل الكل</string>
+    <string name="enable_all">تفعيل الكل</string>
+    <string name="apply_continue">تطبيق ومتابعة</string>
+    <string name="modules_applied">تم تطبيق التغييرات</string>
+    <string name="modules_exit">خروج</string>
+    <string name="modules_unchanged">لا توجد تغييرات</string>
+    <string name="modules_unchanged_message">لا حاجة لإعادة التشغيل.</string>
+    <string name="modules_to_disable">الإضافات المراد تعطيلها: %d</string>
+    <string name="modules_to_enable">الإضافات المراد تفعيلها: %d</string>
 </resources>

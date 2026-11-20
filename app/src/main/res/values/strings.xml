@@ -82,12 +82,10 @@
     <string name="reboot">Reboot</string>
     <string name="soft_reboot">Soft reboot</string>
     <string name="reboot_recovery">Reboot to recovery</string>
-    <string name="reboot_bootloader">Reboot to bootloader</string>
     <string name="reboot_safe_mode">Safe mode</string>
     <string name="confirm_reboot">Reboot the device now?</string>
     <string name="confirm_soft_reboot">Soft reboot now? This restarts the system without a full reboot.</string>
     <string name="confirm_reboot_recovery">Reboot to recovery now?</string>
-    <string name="confirm_reboot_bootloader">Reboot to bootloader now?</string>
     <string name="confirm_reboot_safe_mode">Reboot into safe mode now? Modules and third-party apps stay disabled until the next normal reboot.</string>
     <string name="module_disabled">Disabled Module</string>
     <string name="module_hidden">Hidden Module</string>
@@ -97,8 +95,7 @@
     <string name="no">No</string>
     <string name="soft_reboot_desc">Restart the system only, faster</string>
     <string name="reboot_recovery_desc">Boot into recovery mode</string>
-    <string name="reboot_bootloader_desc">Boot into fastboot mode</string>
-    <string name="reboot_safe_mode_desc">Boot with modules disabled</string>
+    <string name="reboot_safe_mode_desc">Boot to device safe mode</string>
     <string name="reboot_desc">Restart the device</string>
     <string name="version_code">Version code: %s</string>
     <string name="module_update_available">Update available</string>
@@ -132,4 +129,15 @@
     <string name="group_developer">Developer</string>
     <string name="group_style">Style</string>
     <string name="group_visibility">Visibility</string>
+    <string name="modules_reboot">Modules and reboot</string>
+    <string name="modules_reboot_desc">Turn modules on or off, and reboot</string>
+    <string name="disable_all">Disable all</string>
+    <string name="enable_all">Enable all</string>
+    <string name="apply_continue">Apply and continue</string>
+    <string name="modules_applied">Changes applied</string>
+    <string name="modules_exit">Exit</string>
+    <string name="modules_unchanged">Nothing changed</string>
+    <string name="modules_unchanged_message">No reboot is needed.</string>
+    <string name="modules_to_disable">Modules to disable: %d</string>
+    <string name="modules_to_enable">Modules to enable: %d</string>
 </resources>

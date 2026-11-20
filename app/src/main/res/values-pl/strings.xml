@@ -82,12 +82,10 @@
   <string name="reboot">Uruchom ponownie</string>
   <string name="soft_reboot">Miękki restart</string>
   <string name="reboot_recovery">Uruchom ponownie do recovery</string>
-  <string name="reboot_bootloader">Uruchom ponownie do bootloadera</string>
   <string name="reboot_safe_mode">Tryb awaryjny</string>
   <string name="confirm_reboot">Uruchomić urządzenie ponownie teraz?</string>
   <string name="confirm_soft_reboot">Wykonać miękki restart teraz? System zostanie zrestartowany bez pełnego restartu urządzenia.</string>
   <string name="confirm_reboot_recovery">Uruchomić ponownie do recovery teraz?</string>
-  <string name="confirm_reboot_bootloader">Uruchomić ponownie do bootloadera teraz?</string>
   <string name="confirm_reboot_safe_mode">Uruchomić ponownie w trybie awaryjnym teraz? Moduły i aplikacje innych firm pozostaną wyłączone do następnego normalnego restartu.</string>
   <string name="module_disabled">Moduł wyłączony</string>
   <string name="module_hidden">Moduł ukryty</string>
@@ -97,8 +95,7 @@
   <string name="no">Nie</string>
   <string name="soft_reboot_desc">Restartuje tylko system, szybciej</string>
   <string name="reboot_recovery_desc">Uruchom w trybie recovery</string>
-  <string name="reboot_bootloader_desc">Uruchom w trybie fastboot</string>
-  <string name="reboot_safe_mode_desc">Uruchom z wyłączonymi modułami</string>
+  <string name="reboot_safe_mode_desc">Uruchom w trybie awaryjnym urządzenia</string>
   <string name="reboot_desc">Uruchom urządzenie ponownie</string>
   <string name="version_code">Kod wersji: %s</string>
   <string name="module_update_available">Dostępna aktualizacja</string>
@@ -132,4 +129,15 @@
     <string name="group_developer">Dla programistów</string>
     <string name="group_style">Styl</string>
     <string name="group_visibility">Widoczność</string>
+    <string name="modules_reboot">Moduły i restart</string>
+    <string name="modules_reboot_desc">Włącz lub wyłącz moduły i uruchom ponownie</string>
+    <string name="disable_all">Wyłącz wszystkie</string>
+    <string name="enable_all">Włącz wszystkie</string>
+    <string name="apply_continue">Zastosuj i kontynuuj</string>
+    <string name="modules_applied">Zastosowano zmiany</string>
+    <string name="modules_exit">Zamknij</string>
+    <string name="modules_unchanged">Brak zmian</string>
+    <string name="modules_unchanged_message">Ponowne uruchomienie nie jest potrzebne.</string>
+    <string name="modules_to_disable">Moduły do wyłączenia: %d</string>
+    <string name="modules_to_enable">Moduły do włączenia: %d</string>
 </resources>

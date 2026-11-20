@@ -82,12 +82,10 @@
     <string name="reboot">Reiniciar</string>
     <string name="soft_reboot">Reinício suave</string>
     <string name="reboot_recovery">Reiniciar no recovery</string>
-    <string name="reboot_bootloader">Reiniciar no bootloader</string>
     <string name="reboot_safe_mode">Modo de segurança</string>
     <string name="confirm_reboot">Reiniciar o dispositivo agora?</string>
     <string name="confirm_soft_reboot">Fazer reinício suave agora? Isso reinicia o sistema sem uma reinicialização completa.</string>
     <string name="confirm_reboot_recovery">Reiniciar no recovery agora?</string>
-    <string name="confirm_reboot_bootloader">Reiniciar no bootloader agora?</string>
     <string name="confirm_reboot_safe_mode">Reiniciar em modo de segurança agora? Os módulos e apps de terceiros permanecem desativados até a próxima reinicialização normal.</string>
     <string name="module_disabled">Módulo desativado</string>
     <string name="module_hidden">Módulo oculto</string>
@@ -97,8 +95,7 @@
     <string name="no">Não</string>
     <string name="soft_reboot_desc">Reinicia apenas o sistema, mais rápido</string>
     <string name="reboot_recovery_desc">Inicializa no modo recovery</string>
-    <string name="reboot_bootloader_desc">Inicializa no modo fastboot</string>
-    <string name="reboot_safe_mode_desc">Inicializa com os módulos desativados</string>
+    <string name="reboot_safe_mode_desc">Inicializa no modo seguro do dispositivo</string>
     <string name="reboot_desc">Reinicia o dispositivo</string>
     <string name="version_code">Código da versão: %s</string>
     <string name="module_update_available">Atualização disponível</string>
@@ -132,4 +129,15 @@
     <string name="group_developer">Desenvolvedor</string>
     <string name="group_style">Estilo</string>
     <string name="group_visibility">Visibilidade</string>
+    <string name="modules_reboot">Módulos e reiniciar</string>
+    <string name="modules_reboot_desc">Ative ou desative módulos e reinicie</string>
+    <string name="disable_all">Desativar todos</string>
+    <string name="enable_all">Ativar todos</string>
+    <string name="apply_continue">Aplicar e continuar</string>
+    <string name="modules_applied">Alterações aplicadas</string>
+    <string name="modules_exit">Sair</string>
+    <string name="modules_unchanged">Nada foi alterado</string>
+    <string name="modules_unchanged_message">Não é preciso reiniciar.</string>
+    <string name="modules_to_disable">Módulos a desativar: %d</string>
+    <string name="modules_to_enable">Módulos a ativar: %d</string>
 </resources>

@@ -82,12 +82,10 @@
     <string name="reboot">Redémarrer</string>
     <string name="soft_reboot">Redémarrage à chaud</string>
     <string name="reboot_recovery">Redémarrer en mode recovery</string>
-    <string name="reboot_bootloader">Redémarrer en mode bootloader</string>
     <string name="reboot_safe_mode">Mode sans échec</string>
     <string name="confirm_reboot">Redémarrer l\'appareil maintenant ?</string>
     <string name="confirm_soft_reboot">Effectuer un redémarrage à chaud maintenant ? Cela relance le système sans redémarrage complet.</string>
     <string name="confirm_reboot_recovery">Redémarrer en mode recovery maintenant ?</string>
-    <string name="confirm_reboot_bootloader">Redémarrer en mode bootloader maintenant ?</string>
     <string name="confirm_reboot_safe_mode">Redémarrer en mode sans échec maintenant ? Les modules et les applications tierces restent désactivés jusqu\'au prochain redémarrage normal.</string>
     <string name="module_disabled">Module désactivé</string>
     <string name="module_hidden">Module masqué</string>
@@ -97,8 +95,7 @@
     <string name="no">Non</string>
     <string name="soft_reboot_desc">Redémarre uniquement le système, plus rapide</string>
     <string name="reboot_recovery_desc">Démarrer en mode recovery</string>
-    <string name="reboot_bootloader_desc">Démarrer en mode fastboot</string>
-    <string name="reboot_safe_mode_desc">Démarrer avec les modules désactivés</string>
+    <string name="reboot_safe_mode_desc">Démarrer en mode sans échec de l\'appareil</string>
     <string name="reboot_desc">Redémarrer l\'appareil</string>
     <string name="version_code">Code de version : %s</string>
     <string name="module_update_available">Mise à jour disponible</string>
@@ -132,4 +129,15 @@
     <string name="group_developer">Développeur</string>
     <string name="group_style">Style</string>
     <string name="group_visibility">Visibilité</string>
+    <string name="modules_reboot">Modules et redémarrage</string>
+    <string name="modules_reboot_desc">Activer ou désactiver des modules, et redémarrer</string>
+    <string name="disable_all">Tout désactiver</string>
+    <string name="enable_all">Tout activer</string>
+    <string name="apply_continue">Appliquer et continuer</string>
+    <string name="modules_applied">Modifications appliquées</string>
+    <string name="modules_exit">Quitter</string>
+    <string name="modules_unchanged">Aucun changement</string>
+    <string name="modules_unchanged_message">Aucun redémarrage nécessaire.</string>
+    <string name="modules_to_disable">Modules à désactiver : %d</string>
+    <string name="modules_to_enable">Modules à activer : %d</string>
 </resources>

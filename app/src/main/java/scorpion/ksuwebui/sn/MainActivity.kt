@@ -71,12 +71,14 @@ import scorpion.ksuwebui.sn.databinding.DialogInfoBinding
 import scorpion.ksuwebui.sn.databinding.ItemInfoHeaderBinding
 import scorpion.ksuwebui.sn.databinding.ItemInfoRowBinding
 import scorpion.ksuwebui.sn.databinding.ItemModuleBinding
+import scorpion.ksuwebui.sn.databinding.ItemModulePickBinding
 import scorpion.ksuwebui.sn.databinding.ItemPowerRowBinding
 import scorpion.ksuwebui.sn.databinding.ItemSheetActionBinding
 import scorpion.ksuwebui.sn.databinding.ItemSheetGroupBinding
 import scorpion.ksuwebui.sn.databinding.SheetBannerTransparencyBinding
 import scorpion.ksuwebui.sn.databinding.SheetPowerBinding
 import scorpion.ksuwebui.sn.databinding.SheetModuleSettingsBinding
+import scorpion.ksuwebui.sn.databinding.SheetModulesRebootBinding
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import androidx.core.net.toUri
@@ -103,6 +105,8 @@ private const val KEY_PENDING_REBOOT = "pending_reboot"
 private const val KEY_PENDING_BOOT = "pending_boot_id"
 private const val DISABLED_RED = 0xFFE53935.toInt()
 private const val REBOOT_CMD = "svc power reboot || reboot"
+private const val MAX_VISIBLE_MODULES = 5
+private const val MODULE_ROW_HEIGHT_DP = 60
 private const val SOFT_REBOOT_CMD = "setprop ctl.restart zygote || killall zygote"
 
 @SuppressLint("NotifyDataSetChanged")
@@ -337,15 +341,19 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
     }
 
-    private class PowerOption(val icon: Int, val label: Int, val desc: Int, val message: Int, val cmd: String)
+    private class PowerOption(val icon: Int, val label: Int, val desc: Int, val run: () -> Unit)
 
     private fun showPowerSheet() {
+        fun reboot(icon: Int, label: Int, desc: Int, message: Int, cmd: String) =
+            PowerOption(icon, label, desc) {
+                showConfirm(icon, label, message) { App.executor.execute { Shell.cmd(cmd).exec() } }
+            }
         val options = listOf(
-            PowerOption(R.drawable.ic_reboot, R.string.reboot, R.string.reboot_desc, R.string.confirm_reboot, REBOOT_CMD),
-            PowerOption(R.drawable.ic_soft_reboot, R.string.soft_reboot, R.string.soft_reboot_desc, R.string.confirm_soft_reboot, SOFT_REBOOT_CMD),
-            PowerOption(R.drawable.ic_recovery, R.string.reboot_recovery, R.string.reboot_recovery_desc, R.string.confirm_reboot_recovery, "svc power reboot recovery || reboot recovery"),
-            PowerOption(R.drawable.ic_bootloader, R.string.reboot_bootloader, R.string.reboot_bootloader_desc, R.string.confirm_reboot_bootloader, "svc power reboot bootloader || reboot bootloader"),
-            PowerOption(R.drawable.ic_safe_mode, R.string.reboot_safe_mode, R.string.reboot_safe_mode_desc, R.string.confirm_reboot_safe_mode, "setprop persist.sys.safemode 1; $REBOOT_CMD")
+            reboot(R.drawable.ic_reboot, R.string.reboot, R.string.reboot_desc, R.string.confirm_reboot, REBOOT_CMD),
+            reboot(R.drawable.ic_soft_reboot, R.string.soft_reboot, R.string.soft_reboot_desc, R.string.confirm_soft_reboot, SOFT_REBOOT_CMD),
+            reboot(R.drawable.ic_recovery, R.string.reboot_recovery, R.string.reboot_recovery_desc, R.string.confirm_reboot_recovery, "svc power reboot recovery || reboot recovery"),
+            PowerOption(R.drawable.ic_modules, R.string.modules_reboot, R.string.modules_reboot_desc, ::showModulesReboot),
+            reboot(R.drawable.ic_safe_mode, R.string.reboot_safe_mode, R.string.reboot_safe_mode_desc, R.string.confirm_reboot_safe_mode, "setprop persist.sys.safemode 1; $REBOOT_CMD")
         )
         val dialog = BottomSheetDialog(this)
         val sheet = SheetPowerBinding.inflate(layoutInflater)
@@ -365,7 +373,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
             row.desc.setText(option.desc)
             row.root.setOnClickListener {
                 dialog.dismiss()
-                confirmPower(option)
+                option.run()
             }
             sheet.list.addView(row.root)
         }
@@ -375,9 +383,110 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         dialog.show()
     }
 
-    private fun confirmPower(option: PowerOption) {
-        showConfirm(option.icon, option.label, option.message) {
-            App.executor.execute { Shell.cmd(option.cmd).exec() }
+    private class PickModule(val id: String, val name: String, val disabled: Boolean)
+
+    private fun showModulesReboot() {
+        App.executor.execute {
+            val script = "for d in /data/adb/modules/*/; do [ -f \"\$d/module.prop\" ] || continue; " +
+                "id=\${d%/}; id=\${id##*/}; " +
+                "n=; while IFS= read -r l; do case \$l in name=*) n=\${l#name=}; break;; esac; done < \"\$d/module.prop\"; " +
+                "x=0; [ -e \"\$d/disable\" ] && x=1; echo \"\$x|\$id|\$n\"; done"
+            val mods = Shell.cmd(script).exec().out.mapNotNull { line ->
+                val p = line.trimEnd('\r').split("|", limit = 3)
+                if (p.size < 3 || p[1].isEmpty()) null
+                else PickModule(p[1], p[2].trim().ifEmpty { p[1] }, p[0] == "1")
+            }.sortedBy { it.name.lowercase() }
+            runOnUiThread { if (!isFinishing) showModulesRebootSheet(mods) }
+        }
+    }
+
+    private fun showModulesRebootSheet(mods: List<PickModule>) {
+        val dialog = BottomSheetDialog(this)
+        val sheet = SheetModulesRebootBinding.inflate(layoutInflater)
+        val icons = allModules.associate { it.id to it.icon }
+        val boxes = mods.map { m ->
+            val row = ItemModulePickBinding.inflate(layoutInflater, sheet.list, false)
+            row.name.text = m.name
+            val icon = icons[m.id]
+            if (icon != null) row.icon.setImageBitmap(icon) else row.icon.setImageResource(R.drawable.ic_module_default)
+            row.check.isChecked = !m.disabled
+            row.root.setOnClickListener { row.check.toggle() }
+            sheet.list.addView(row.root)
+            row.check
+        }
+        if (boxes.size > MAX_VISIBLE_MODULES) {
+            val dp = resources.displayMetrics.density
+            val visibleHeight = ((MODULE_ROW_HEIGHT_DP * MAX_VISIBLE_MODULES + (MAX_VISIBLE_MODULES - 1)) * dp).toInt()
+            sheet.listScroll.layoutParams.height = visibleHeight
+        }
+        fun updateButtons() {
+            sheet.disableAll.isVisible = boxes.any { it.isChecked }
+            sheet.enableAll.isVisible = boxes.any { !it.isChecked }
+        }
+        boxes.forEach { it.setOnCheckedChangeListener { _, _ -> updateButtons() } }
+        sheet.disableAll.setOnClickListener { boxes.forEach { it.isChecked = false } }
+        sheet.enableAll.setOnClickListener { boxes.forEach { it.isChecked = true } }
+        sheet.applyButton.setOnClickListener {
+            val changed = mods.indices.filter { boxes[it].isChecked == mods[it].disabled }
+            if (changed.isEmpty()) {
+                MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUISN_ButtonDialog)
+                    .setTitle(R.string.modules_unchanged)
+                    .setMessage(R.string.modules_unchanged_message)
+                    .setPositiveButton(R.string.info_close, null)
+                    .show()
+                return@setOnClickListener
+            }
+            val disabling = changed.count { !boxes[it].isChecked }
+            val enabling = changed.size - disabling
+            val summary = listOfNotNull(
+                getString(R.string.modules_to_disable, disabling).takeIf { disabling > 0 },
+                getString(R.string.modules_to_enable, enabling).takeIf { enabling > 0 }
+            ).joinToString("\n")
+            sheet.applyButton.isEnabled = false
+            applyModuleStates(changed.associate { mods[it].id to !boxes[it].isChecked }) { ok ->
+                dialog.dismiss()
+                if (!ok) {
+                    showMessage(getString(R.string.module_toggle_failed))
+                    return@applyModuleStates
+                }
+                val original = changed.associate { mods[it].id to mods[it].disabled }
+                showConfirm(
+                    R.drawable.ic_reboot,
+                    getString(R.string.modules_applied),
+                    summary + "\n\n" + getString(R.string.confirm_reboot),
+                    R.string.reboot_now, R.string.modules_exit,
+                    onCancel = {
+                        applyModuleStates(original) { reverted ->
+                            if (!reverted) showMessage(getString(R.string.module_toggle_failed))
+                        }
+                    }
+                ) {
+                    App.executor.execute { Shell.cmd(REBOOT_CMD).exec() }
+                }
+            }
+        }
+        updateButtons()
+        dialog.setContentView(sheet.root)
+        dialog.behavior.skipCollapsed = true
+        dialog.behavior.isDraggable = false
+        dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        dialog.show()
+    }
+
+    private fun applyModuleStates(states: Map<String, Boolean>, done: (Boolean) -> Unit) {
+        val cmd = states.entries.joinToString(" && ") { (id, disabled) -> "${if (disabled) "touch" else "rm -f"} ${disableMarker(id)}" }
+        App.executor.execute {
+            val ok = Shell.cmd(cmd).exec().isSuccess
+            runOnUiThread {
+                if (isFinishing) return@runOnUiThread
+                if (ok) {
+                    allModules = allModules.map { m -> states[m.id]?.let { m.copy(disabled = it) } ?: m }
+                    applyFilter()
+                } else {
+                    refresh()
+                }
+                done(ok)
+            }
         }
     }
 
@@ -386,7 +495,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
     private fun showConfirm(
         icon: Int?, title: CharSequence, message: CharSequence,
-        yes: Int = R.string.yes, no: Int = R.string.no, onYes: () -> Unit
+        yes: Int = R.string.yes, no: Int = R.string.no, onCancel: (() -> Unit)? = null, onYes: () -> Unit
     ) {
         val view = DialogConfirmBinding.inflate(layoutInflater)
         if (icon != null) {
@@ -400,11 +509,15 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUISN_ButtonDialog)
             .setView(view.root)
             .create()
-        view.no.setOnClickListener { dialog.dismiss() }
+        view.no.setOnClickListener {
+            dialog.dismiss()
+            onCancel?.invoke()
+        }
         view.yes.setOnClickListener {
             dialog.dismiss()
             onYes()
         }
+        dialog.setOnCancelListener { onCancel?.invoke() }
         dialog.show()
     }
 
@@ -1066,8 +1179,10 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         applyFilter()
     }
 
+    private fun disableMarker(id: String) = "'/data/adb/modules/${id.replace("'", "'\\''")}/disable'"
+
     private fun setModuleEnabled(item: Module, enable: Boolean) {
-        val marker = "'/data/adb/modules/${item.id.replace("'", "'\\''")}/disable'"
+        val marker = disableMarker(item.id)
         App.executor.execute {
             val ok = Shell.cmd(if (enable) "rm -f $marker" else "touch $marker").exec().isSuccess
             val needsReboot = ok && markPendingReboot(item.id)

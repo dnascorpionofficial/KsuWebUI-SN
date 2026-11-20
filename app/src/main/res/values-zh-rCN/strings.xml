@@ -82,12 +82,10 @@
     <string name="reboot">重启</string>
     <string name="soft_reboot">软重启</string>
     <string name="reboot_recovery">重启到 Recovery</string>
-    <string name="reboot_bootloader">重启到 Bootloader</string>
     <string name="reboot_safe_mode">安全模式</string>
     <string name="confirm_reboot">立即重启设备？</string>
     <string name="confirm_soft_reboot">立即软重启？这将在不完全重启的情况下重启系统。</string>
     <string name="confirm_reboot_recovery">立即重启到 Recovery？</string>
-    <string name="confirm_reboot_bootloader">立即重启到 Bootloader？</string>
     <string name="confirm_reboot_safe_mode">立即重启到安全模式？模块和第三方应用将保持禁用，直到下次正常重启。</string>
     <string name="module_disabled">已禁用的模块</string>
     <string name="module_hidden">已隐藏的模块</string>
@@ -97,8 +95,7 @@
     <string name="no">否</string>
     <string name="soft_reboot_desc">仅重启系统，速度更快</string>
     <string name="reboot_recovery_desc">启动到 Recovery 模式</string>
-    <string name="reboot_bootloader_desc">启动到 Fastboot 模式</string>
-    <string name="reboot_safe_mode_desc">在禁用模块的情况下启动</string>
+    <string name="reboot_safe_mode_desc">以设备安全模式启动</string>
     <string name="reboot_desc">重启设备</string>
     <string name="version_code">版本号：%s</string>
     <string name="module_update_available">有可用更新</string>
@@ -132,4 +129,15 @@
     <string name="group_developer">开发者</string>
     <string name="group_style">样式</string>
     <string name="group_visibility">可见性</string>
+    <string name="modules_reboot">模块与重启</string>
+    <string name="modules_reboot_desc">开启或关闭模块，并重启</string>
+    <string name="disable_all">全部禁用</string>
+    <string name="enable_all">全部启用</string>
+    <string name="apply_continue">应用并继续</string>
+    <string name="modules_applied">更改已应用</string>
+    <string name="modules_exit">退出</string>
+    <string name="modules_unchanged">没有更改</string>
+    <string name="modules_unchanged_message">无需重启。</string>
+    <string name="modules_to_disable">将禁用的模块：%d</string>
+    <string name="modules_to_enable">将启用的模块：%d</string>
 </resources>
