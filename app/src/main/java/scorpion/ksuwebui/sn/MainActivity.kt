@@ -20,17 +20,21 @@ import android.graphics.Shader
 import android.os.Build
 import android.os.SystemClock
 import android.os.Bundle
+import android.os.Handler
 import android.os.Looper
-import android.text.TextUtils
+import android.animation.ValueAnimator
+import android.view.animation.LinearInterpolator
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
+import android.view.PixelCopy
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.CompoundButton
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.widget.TextView
@@ -113,6 +117,7 @@ private const val SOFT_REBOOT_CMD = "setprop ctl.restart zygote || killall zygot
 @SuppressLint("NotifyDataSetChanged")
 class MainActivity : AppCompatActivity(), FileSystemService.Listener {
     private lateinit var binding: ActivityMainBinding
+    private var titleAnim: ValueAnimator? = null
     private var allModules = emptyList<Module>()
     private var moduleList = emptyList<Module>()
     private var searchQuery = ""
@@ -209,9 +214,28 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         setContentView(binding.root)
         binding.toolbar.title = "${getString(R.string.app_name)} ${UpdateChecker.installedLabel()}"
         binding.toolbar.children.filterIsInstance<TextView>().firstOrNull()?.apply {
-            ellipsize = TextUtils.TruncateAt.MARQUEE
-            marqueeRepeatLimit = -1
-            isSelected = true
+            setHorizontallyScrolling(true)
+            ellipsize = null
+            var lastRange = -1
+            addOnLayoutChangeListener { v, _, _, _, _, _, _, _, _ ->
+                val tv = v as TextView
+                val range = ((tv.layout?.getLineWidth(0) ?: 0f) - (tv.width - tv.paddingLeft - tv.paddingRight)).toInt()
+                if (range == lastRange) return@addOnLayoutChangeListener
+                lastRange = range
+                titleAnim?.cancel()
+                titleAnim = null
+                tv.scrollTo(0, 0)
+                if (range <= 0) return@addOnLayoutChangeListener
+                titleAnim = ValueAnimator.ofInt(0, range).apply {
+                    duration = (range * 1000L / (40 * tv.resources.displayMetrics.density)).toLong().coerceAtLeast(600L)
+                    startDelay = 1200L
+                    interpolator = LinearInterpolator()
+                    repeatMode = ValueAnimator.REVERSE
+                    repeatCount = ValueAnimator.INFINITE
+                    addUpdateListener { tv.scrollTo(it.animatedValue as Int, 0) }
+                    start()
+                }
+            }
         }
         binding.toolbar.inflateMenu(R.menu.main_menu)
         binding.toolbar.setNavigationIcon(R.drawable.ic_menu)
@@ -575,8 +599,14 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         binding.toolbar.menu.findItem(R.id.update)?.isVisible = visible
     }
 
+    override fun onPause() {
+        super.onPause()
+        titleAnim?.pause()
+    }
+
     override fun onResume() {
         super.onResume()
+        titleAnim?.resume()
         if (shouldRefresh) {
             refresh()
             shouldRefresh = false
@@ -977,19 +1007,100 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         dialog.setContentView(sheet.root)
         dialog.behavior.skipCollapsed = true
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        blurBehind(dialog)
-        dialog.show()
+        showBlurred(dialog)
     }
 
-    private fun blurBehind(dialog: BottomSheetDialog) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
-        val title = binding.toolbar.children.filterIsInstance<TextView>().firstOrNull()
-        val targets = listOf<View>(binding.swipeRefresh) + binding.toolbar.children.filter { it !== title }.toList()
-        val radius = 16f * resources.displayMetrics.density
-        val blur = RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
-        targets.forEach { it.setRenderEffect(blur) }
+    private fun showBlurred(dialog: BottomSheetDialog) {
         dialog.window?.setDimAmount(0f)
-        dialog.setOnDismissListener { targets.forEach { it.setRenderEffect(null) } }
+        val targets = listOf<View>(binding.swipeRefresh)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val radius = 16f * resources.displayMetrics.density
+            val blur = RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
+            targets.forEach { it.setRenderEffect(blur) }
+            dialog.setOnDismissListener { targets.forEach { it.setRenderEffect(null) } }
+            dialog.show()
+            return
+        }
+        val decor = window.decorView
+        if (decor.width == 0 || decor.height == 0) {
+            dialog.show()
+            return
+        }
+        val scale = 1f / 8f
+        val snapshot = Bitmap.createBitmap(
+            (decor.width * scale).toInt().coerceAtLeast(1),
+            (decor.height * scale).toInt().coerceAtLeast(1),
+            Bitmap.Config.ARGB_8888
+        )
+        val overlays = ArrayList<Pair<View, BitmapDrawable>>()
+        dialog.setOnDismissListener { overlays.forEach { (v, d) -> v.overlay.remove(d) } }
+        try {
+            PixelCopy.request(window, snapshot, { result ->
+                if (result == PixelCopy.SUCCESS) {
+                    boxBlur(snapshot, 3, 2)
+                    val loc = IntArray(2)
+                    targets.forEach { v ->
+                        if (v.width == 0 || v.height == 0) return@forEach
+                        v.getLocationInWindow(loc)
+                        val l = (loc[0] * scale).toInt().coerceIn(0, snapshot.width - 1)
+                        val t = (loc[1] * scale).toInt().coerceIn(0, snapshot.height - 1)
+                        val cw = (v.width * scale).toInt().coerceIn(1, snapshot.width - l)
+                        val ch = (v.height * scale).toInt().coerceIn(1, snapshot.height - t)
+                        val d = BitmapDrawable(resources, Bitmap.createBitmap(snapshot, l, t, cw, ch))
+                        d.isFilterBitmap = true
+                        d.setBounds(0, 0, v.width, v.height)
+                        v.overlay.add(d)
+                        overlays.add(v to d)
+                    }
+                }
+                dialog.show()
+            }, Handler(Looper.getMainLooper()))
+        } catch (e: Exception) {
+            dialog.show()
+        }
+    }
+
+    private fun boxBlur(bmp: Bitmap, radius: Int, passes: Int) {
+        val w = bmp.width
+        val h = bmp.height
+        val a = IntArray(w * h)
+        val b = IntArray(w * h)
+        bmp.getPixels(a, 0, w, 0, 0, w, h)
+        repeat(passes) {
+            boxBlurPass(a, b, w, h, radius, true)
+            boxBlurPass(b, a, w, h, radius, false)
+        }
+        bmp.setPixels(a, 0, w, 0, 0, w, h)
+    }
+
+    private fun boxBlurPass(src: IntArray, dst: IntArray, w: Int, h: Int, r: Int, horizontal: Boolean) {
+        val lines = if (horizontal) h else w
+        val len = if (horizontal) w else h
+        val size = 2 * r + 1
+        for (line in 0 until lines) {
+            fun px(i: Int): Int {
+                val c = i.coerceIn(0, len - 1)
+                return if (horizontal) src[line * w + c] else src[c * w + line]
+            }
+            var sr = 0
+            var sg = 0
+            var sb = 0
+            for (i in -r..r) {
+                val p = px(i)
+                sr += p shr 16 and 0xFF
+                sg += p shr 8 and 0xFF
+                sb += p and 0xFF
+            }
+            for (i in 0 until len) {
+                val out = (0xFF shl 24) or (sr / size shl 16) or (sg / size shl 8) or (sb / size)
+                if (horizontal) dst[line * w + i] = out else dst[i * w + line] = out
+                val add = px(i + r + 1)
+                val sub = px(i - r)
+                sr += (add shr 16 and 0xFF) - (sub shr 16 and 0xFF)
+                sg += (add shr 8 and 0xFF) - (sub shr 8 and 0xFF)
+                sb += (add and 0xFF) - (sub and 0xFF)
+            }
+        }
     }
 
     private fun addToHomeScreen(item: Module) {
@@ -1251,6 +1362,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
 
     override fun onDestroy() {
         super.onDestroy()
+        titleAnim?.cancel()
         FileSystemService.removeListener(this)
     }
 }
