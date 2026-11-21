@@ -15,6 +15,7 @@ import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
+import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Build
 import android.os.SystemClock
@@ -976,7 +977,19 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         dialog.setContentView(sheet.root)
         dialog.behavior.skipCollapsed = true
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+        blurBehind(dialog)
         dialog.show()
+    }
+
+    private fun blurBehind(dialog: BottomSheetDialog) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        val title = binding.toolbar.children.filterIsInstance<TextView>().firstOrNull()
+        val targets = listOf<View>(binding.swipeRefresh) + binding.toolbar.children.filter { it !== title }.toList()
+        val radius = 16f * resources.displayMetrics.density
+        val blur = RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
+        targets.forEach { it.setRenderEffect(blur) }
+        dialog.window?.setDimAmount(0f)
+        dialog.setOnDismissListener { targets.forEach { it.setRenderEffect(null) } }
     }
 
     private fun addToHomeScreen(item: Module) {
