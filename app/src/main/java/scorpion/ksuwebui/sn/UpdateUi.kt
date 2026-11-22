@@ -62,11 +62,10 @@ fun AppCompatActivity.showUpdateDialog(update: UpdateChecker.Update) {
         .setView(box)
         .setPositiveButton(R.string.update_download) { _, _ -> startUpdate(update) }
         .setNeutralButton(R.string.update_later, null)
-        .setOnDismissListener {
+        .showBlurred(this) {
             (web.parent as? ViewGroup)?.removeView(web)
             web.destroy()
         }
-        .show()
 }
 
 private fun AppCompatActivity.changelogPage(update: UpdateChecker.Update, textColor: Int, dark: Boolean): String {
@@ -160,7 +159,7 @@ private fun AppCompatActivity.startUpdate(update: UpdateChecker.Update) {
         .setCancelable(false)
         .setNegativeButton(android.R.string.cancel) { _, _ -> job?.cancel() }
         .create()
-    dialog.show()
+    dialog.showBlurred(this)
 
     job = lifecycleScope.launch {
         try {
@@ -195,7 +194,7 @@ private fun AppCompatActivity.startUpdate(update: UpdateChecker.Update) {
                 MaterialAlertDialogBuilder(this@startUpdate, R.style.ThemeOverlay_KsuWebUISN_ButtonDialog)
                     .setMessage(getString(R.string.update_failed, error))
                     .setPositiveButton(android.R.string.ok, null)
-                    .show()
+                    .showBlurred(this@startUpdate)
             }
         } finally {
             if (dialog.isShowing) dialog.dismiss()

@@ -24,9 +24,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.lifecycleScope
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.CircularProgressIndicator
-import scorpion.ksuwebui.sn.databinding.DialogConfirmBinding
 import com.topjohnwu.superuser.nio.FileSystemManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -197,20 +195,10 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
 
     private fun confirmExit() {
         if (exitDialog?.isShowing == true) return
-        val view = DialogConfirmBinding.inflate(layoutInflater)
-        view.title.setText(R.string.confirm_exit_webui)
-        view.message.visibility = View.GONE
-        val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUISN_ButtonDialog)
-            .setView(view.root)
-            .create()
-        view.no.setOnClickListener { dialog.dismiss() }
-        view.yes.setOnClickListener {
-            dialog.dismiss()
+        exitDialog = showConfirmDialog(getString(R.string.confirm_exit_webui)) {
             backCallback.isEnabled = false
             onBackPressedDispatcher.onBackPressed()
         }
-        exitDialog = dialog
-        dialog.show()
     }
 
     override fun onDestroy() {

@@ -589,7 +589,7 @@ class EditorActivity : AppCompatActivity(), FileSystemService.Listener {
             dialog.dismiss()
             save(true)
         }
-        dialog.show()
+        dialog.showBlurred(this)
     }
 
     companion object {

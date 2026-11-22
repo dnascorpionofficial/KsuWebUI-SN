@@ -15,26 +15,22 @@ import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffXfermode
 import android.graphics.Rect
-import android.graphics.RenderEffect
 import android.graphics.Shader
 import android.os.Build
 import android.os.SystemClock
 import android.os.Bundle
-import android.os.Handler
 import android.os.Looper
 import android.animation.ValueAnimator
 import android.view.animation.LinearInterpolator
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
-import android.view.PixelCopy
 import android.view.View
 import android.view.ViewOutlineProvider
 import android.widget.CompoundButton
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.LayerDrawable
 import android.widget.TextView
@@ -71,7 +67,6 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import com.topjohnwu.superuser.nio.FileSystemManager
 import scorpion.ksuwebui.sn.databinding.ActivityMainBinding
-import scorpion.ksuwebui.sn.databinding.DialogConfirmBinding
 import scorpion.ksuwebui.sn.databinding.DialogInfoBinding
 import scorpion.ksuwebui.sn.databinding.ItemInfoHeaderBinding
 import scorpion.ksuwebui.sn.databinding.ItemInfoRowBinding
@@ -405,7 +400,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         dialog.setContentView(sheet.root)
         dialog.behavior.skipCollapsed = true
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.show()
+        dialog.showBlurred(this, listOf(binding.swipeRefresh))
     }
 
     private class PickModule(val id: String, val name: String, val disabled: Boolean)
@@ -458,7 +453,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
                     .setTitle(R.string.modules_unchanged)
                     .setMessage(R.string.modules_unchanged_message)
                     .setPositiveButton(R.string.info_close, null)
-                    .show()
+                    .showBlurred(this)
                 return@setOnClickListener
             }
             val disabling = changed.count { !boxes[it].isChecked }
@@ -495,7 +490,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         dialog.behavior.skipCollapsed = true
         dialog.behavior.isDraggable = false
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        dialog.show()
+        dialog.showBlurred(this, listOf(binding.swipeRefresh))
     }
 
     private fun applyModuleStates(states: Map<String, Boolean>, done: (Boolean) -> Unit) {
@@ -515,35 +510,14 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         }
     }
 
-    private fun showConfirm(icon: Int?, title: Int, message: Int, onYes: () -> Unit): Unit =
-        showConfirm(icon, getString(title), getString(message), onYes = onYes)
+    private fun showConfirm(icon: Int?, title: Int, message: Int, onConfirm: () -> Unit): Unit =
+        showConfirm(icon, getString(title), getString(message), onConfirm = onConfirm)
 
     private fun showConfirm(
         icon: Int?, title: CharSequence, message: CharSequence,
-        yes: Int = R.string.yes, no: Int = R.string.no, onCancel: (() -> Unit)? = null, onYes: () -> Unit
+        confirmText: Int = R.string.yes, cancelText: Int = R.string.no, onCancel: (() -> Unit)? = null, onConfirm: () -> Unit
     ) {
-        val view = DialogConfirmBinding.inflate(layoutInflater)
-        if (icon != null) {
-            view.icon.setImageResource(icon)
-            view.icon.visibility = View.VISIBLE
-        }
-        view.title.text = title
-        view.message.text = message
-        view.yes.setText(yes)
-        view.no.setText(no)
-        val dialog = MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUISN_ButtonDialog)
-            .setView(view.root)
-            .create()
-        view.no.setOnClickListener {
-            dialog.dismiss()
-            onCancel?.invoke()
-        }
-        view.yes.setOnClickListener {
-            dialog.dismiss()
-            onYes()
-        }
-        dialog.setOnCancelListener { onCancel?.invoke() }
-        dialog.show()
+        showConfirmDialog(title, message, icon, confirmText, cancelText, onCancel, onConfirm = onConfirm)
     }
 
     private fun setupDrawer() {
@@ -1007,100 +981,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         dialog.setContentView(sheet.root)
         dialog.behavior.skipCollapsed = true
         dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-        showBlurred(dialog)
-    }
-
-    private fun showBlurred(dialog: BottomSheetDialog) {
-        dialog.window?.setDimAmount(0f)
-        val targets = listOf<View>(binding.swipeRefresh)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val radius = 16f * resources.displayMetrics.density
-            val blur = RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP)
-            targets.forEach { it.setRenderEffect(blur) }
-            dialog.setOnDismissListener { targets.forEach { it.setRenderEffect(null) } }
-            dialog.show()
-            return
-        }
-        val decor = window.decorView
-        if (decor.width == 0 || decor.height == 0) {
-            dialog.show()
-            return
-        }
-        val scale = 1f / 8f
-        val snapshot = Bitmap.createBitmap(
-            (decor.width * scale).toInt().coerceAtLeast(1),
-            (decor.height * scale).toInt().coerceAtLeast(1),
-            Bitmap.Config.ARGB_8888
-        )
-        val overlays = ArrayList<Pair<View, BitmapDrawable>>()
-        dialog.setOnDismissListener { overlays.forEach { (v, d) -> v.overlay.remove(d) } }
-        try {
-            PixelCopy.request(window, snapshot, { result ->
-                if (result == PixelCopy.SUCCESS) {
-                    boxBlur(snapshot, 3, 2)
-                    val loc = IntArray(2)
-                    targets.forEach { v ->
-                        if (v.width == 0 || v.height == 0) return@forEach
-                        v.getLocationInWindow(loc)
-                        val l = (loc[0] * scale).toInt().coerceIn(0, snapshot.width - 1)
-                        val t = (loc[1] * scale).toInt().coerceIn(0, snapshot.height - 1)
-                        val cw = (v.width * scale).toInt().coerceIn(1, snapshot.width - l)
-                        val ch = (v.height * scale).toInt().coerceIn(1, snapshot.height - t)
-                        val d = BitmapDrawable(resources, Bitmap.createBitmap(snapshot, l, t, cw, ch))
-                        d.isFilterBitmap = true
-                        d.setBounds(0, 0, v.width, v.height)
-                        v.overlay.add(d)
-                        overlays.add(v to d)
-                    }
-                }
-                dialog.show()
-            }, Handler(Looper.getMainLooper()))
-        } catch (e: Exception) {
-            dialog.show()
-        }
-    }
-
-    private fun boxBlur(bmp: Bitmap, radius: Int, passes: Int) {
-        val w = bmp.width
-        val h = bmp.height
-        val a = IntArray(w * h)
-        val b = IntArray(w * h)
-        bmp.getPixels(a, 0, w, 0, 0, w, h)
-        repeat(passes) {
-            boxBlurPass(a, b, w, h, radius, true)
-            boxBlurPass(b, a, w, h, radius, false)
-        }
-        bmp.setPixels(a, 0, w, 0, 0, w, h)
-    }
-
-    private fun boxBlurPass(src: IntArray, dst: IntArray, w: Int, h: Int, r: Int, horizontal: Boolean) {
-        val lines = if (horizontal) h else w
-        val len = if (horizontal) w else h
-        val size = 2 * r + 1
-        for (line in 0 until lines) {
-            fun px(i: Int): Int {
-                val c = i.coerceIn(0, len - 1)
-                return if (horizontal) src[line * w + c] else src[c * w + line]
-            }
-            var sr = 0
-            var sg = 0
-            var sb = 0
-            for (i in -r..r) {
-                val p = px(i)
-                sr += p shr 16 and 0xFF
-                sg += p shr 8 and 0xFF
-                sb += p and 0xFF
-            }
-            for (i in 0 until len) {
-                val out = (0xFF shl 24) or (sr / size shl 16) or (sg / size shl 8) or (sb / size)
-                if (horizontal) dst[line * w + i] = out else dst[i * w + line] = out
-                val add = px(i + r + 1)
-                val sub = px(i - r)
-                sr += (add shr 16 and 0xFF) - (sub shr 16 and 0xFF)
-                sg += (add shr 8 and 0xFF) - (sub shr 8 and 0xFF)
-                sb += (add and 0xFF) - (sub and 0xFF)
-            }
-        }
+        dialog.showBlurred(this, listOf(binding.swipeRefresh))
     }
 
     private fun addToHomeScreen(item: Module) {
@@ -1275,7 +1156,7 @@ class MainActivity : AppCompatActivity(), FileSystemService.Listener {
         MaterialAlertDialogBuilder(this, R.style.ThemeOverlay_KsuWebUISN_ButtonDialog)
             .setView(dialog.root)
             .setPositiveButton(R.string.info_close, null)
-            .show()
+            .showBlurred(this)
     }
 
     private fun checkModuleUpdates(mods: List<Module>) {

@@ -34,7 +34,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.webkit.WebViewAssetLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import scorpion.ksuwebui.sn.databinding.DialogConfirmBinding
 import scorpion.ksuwebui.sn.databinding.DialogReloadBinding
 import com.topjohnwu.superuser.nio.FileSystemManager
 import kotlinx.coroutines.launch
@@ -391,19 +390,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
                 val msg = message.orEmpty()
                 when {
                     msg == PROMPT_CONFIRM -> {
-                        val confirm = DialogConfirmBinding.inflate(layoutInflater)
-                        confirm.title.text = defaultValue.orEmpty()
-                        confirm.message.visibility = View.GONE
-                        val dialog = buttonDialog(confirm.root, result)
-                        confirm.no.setOnClickListener {
-                            result?.cancel()
-                            dialog.dismiss()
-                        }
-                        confirm.yes.setOnClickListener {
-                            result?.confirm("yes")
-                            dialog.dismiss()
-                        }
-                        dialog.show()
+                        showConfirmDialog(defaultValue.orEmpty(), onCancel = { result?.cancel() }, blurred = false) { result?.confirm("yes") }
                     }
                     msg == PROMPT_EDITOR -> {
                         startActivity(
