@@ -279,6 +279,7 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         if (!window.__erudaInit) {
         window.__erudaInit = true;
         ${erudaJs("pos_save")}
+        ${erudaJs("keys")}
         $erudaSource
         ;
         ${erudaSetupJs(center, dark)}

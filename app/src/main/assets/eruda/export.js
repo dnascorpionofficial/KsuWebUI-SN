@@ -123,10 +123,6 @@
       return out;
     }
 
-    function isErudaKey(k) {
-      return /^eruda/.test(k) || k === 'active-eruda';
-    }
-
     function unquote(v) {
       if (typeof v === 'string') {
         if (v.length > 1 && v.charAt(0) === '"' && v.indexOf('"', 1) === v.length - 1) return v.slice(1, -1);
@@ -184,10 +180,11 @@
       var keys = [];
       for (var i = 0; i < area.length; i++) keys.push(area.key(i));
       keys.sort();
+      var isTool = window.ksuToolKeys(keys);
       keys.forEach(function (k) {
-        groups[isErudaKey(k) ? 'eruda' : 'module'][k] = readable(area.getItem(k));
+        groups[isTool(k) ? 'eruda' : 'module'][k] = readable(area.getItem(k));
       });
-      return '{\n' + section('eruda', groups.eruda) + ',\n' + section('module', groups.module) + '\n}\n';
+      return '{\n' + section('module', groups.module) + ',\n' + section('eruda', groups.eruda) + '\n}\n';
     }
 
     async function collectLocal() { return dumpArea(localStorage); }
