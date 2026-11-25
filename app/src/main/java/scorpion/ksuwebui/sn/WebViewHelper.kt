@@ -301,12 +301,18 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
     val erudaSource by lazy { assets.open("eruda.min.js").bufferedReader().use { it.readText() } }
     fun erudaBootJs(center: Boolean, dark: Boolean) = """
         if (!window.__erudaInit) {
-        window.__erudaInit = true;
+        try {
         ${erudaJs("pos_save")}
         ${erudaJs("keys")}
         $erudaSource
         ;
         ${erudaSetupJs(center, dark)}
+        window.__erudaInit = true;
+        } catch (e) {
+        try { window.eruda && window.eruda.destroy(); } catch (e2) {}
+        var __ksuHost = document.getElementById('eruda');
+        if (__ksuHost) __ksuHost.remove();
+        }
         }
     """
 
@@ -343,14 +349,23 @@ fun WebUIActivity.initWebView(fs: FileSystemManager, state: WebUIState) {
         override fun onPageFinished(view: WebView?, url: String?) {
             val prefs = getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
             val consoleModules = prefs.getStringSet(KEY_CONSOLE_MODULES, emptySet()).orEmpty()
-            if (moduleId in consoleModules) {
-                val centered = prefs.getStringSet(KEY_ERUDA_CENTERED, emptySet()).orEmpty()
-                val center = moduleId !in centered
-                view?.evaluateJavascript(erudaBootJs(center, isAppDark()), null)
-                if (center) prefs.edit { putStringSet(KEY_ERUDA_CENTERED, centered + moduleId) }
+            fun injectRest() {
+                view?.evaluateJavascript(downloadSource, null)
+                view?.evaluateJavascript(SYSTEM_BARS_JS, null)
             }
-            view?.evaluateJavascript(downloadSource, null)
-            view?.evaluateJavascript(SYSTEM_BARS_JS, null)
+            if (moduleId in consoleModules) {
+                view?.evaluateJavascript("window.__erudaInit === true") { booted ->
+                    if (booted != "true") {
+                        val centered = prefs.getStringSet(KEY_ERUDA_CENTERED, emptySet()).orEmpty()
+                        val center = moduleId !in centered
+                        view?.evaluateJavascript(erudaBootJs(center, isAppDark()), null)
+                        if (center) prefs.edit { putStringSet(KEY_ERUDA_CENTERED, centered + moduleId) }
+                    }
+                    injectRest()
+                }
+            } else {
+                injectRest()
+            }
         }
     }
 
