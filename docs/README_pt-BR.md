@@ -25,25 +25,22 @@ o árabe (`values-ar`), o francês (`values-fr`), o polonês (`values-pl`), o ja
 ### Adicionar um idioma
 
 ```
-python3 scripts/add_language.py de        # alemão
-python3 scripts/add_language.py zh-TW     # chinês tradicional
+python3 scripts/language_extension.py
 ```
 
-Cria `values-de/strings.xml` com todas as strings copiadas do inglês e marcadas com `<!-- TODO translate -->`, e depois pede a tradução de cada uma.
-**Enter** pula a string (ela continua marcada), **`quit_translate`** salva e sai, **`\n`** insere uma quebra de linha. Mantenha os marcadores (`%s`, `%1$d`)
-idênticos; uma resposta com marcadores diferentes é rejeitada. Cada resposta é salva na hora. Execute o mesmo comando de novo para continuar com as strings
-ainda marcadas (as strings adicionadas ao inglês depois vêm primeiro). A compilação reconhece o novo idioma automaticamente.
+Mostra os idiomas ainda não adicionados em uma lista numerada em ordem alfabética (nome e código). Digite o número e pressione **Enter** para criar `values-xx/strings.xml` com todas as strings copiadas do inglês e marcadas com `<!-- TODO translate -->`, e depois traduza uma a uma.
+Se o seu idioma não estiver na lista, digite **`addnew`** e envie o nome e o código do idioma (por ex. `Esperanto`, `eo`). Um idioma já adicionado deixa de aparecer nesta lista; um que ainda tem strings marcadas aparece em **Unfinished** — escolha-o ali para continuar (as strings adicionadas ao inglês desde então são adicionadas primeiro).
+**Enter** pula a string (ela continua marcada), **`quit_translate`** salva e sai, **`\n`** é uma quebra de linha. Mantenha os marcadores (`%s`, `%1$d`)
+idênticos; uma resposta com marcadores diferentes é recusada. Cada resposta é salva na hora. A compilação reconhece o novo idioma automaticamente.
 
 ### Editar um idioma
 
 ```
-python3 scripts/add_language.py de --edit                     # mostra cada string para edição
-python3 scripts/add_language.py de --edit reboot_now          # somente a string reboot_now
-python3 scripts/add_language.py de --edit update reboot_now   # strings update e reboot_now - dá para adicionar mais
+python3 scripts/language_extension.py --edit
 ```
 
+Lista os idiomas já adicionados (ordem alfabética, nome e código). Digite o número e depois o nome de uma ou mais strings (por ex. `update reboot_now`) ou pressione **Enter** para percorrer todas as strings.
 Mostra o texto em inglês e o texto atual de cada string e pede um novo; **Enter** mantém o texto atual.
-Informe um ou vários nomes, ou nenhum para percorrer todas as strings.
 
 ### Verificar
 

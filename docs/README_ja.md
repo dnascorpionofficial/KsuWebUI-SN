@@ -25,25 +25,22 @@ UI のテキストはすべて `app/src/main/res/values*/strings.xml` にあり�
 ### 言語を追加する
 
 ```
-python3 scripts/add_language.py de        # ドイツ語
-python3 scripts/add_language.py zh-TW     # 繁体字中国語
+python3 scripts/language_extension.py
 ```
 
-`values-de/strings.xml` を作成し、英語の文字列をすべて `<!-- TODO translate -->` 付きでコピーしてから、1 つずつ翻訳を尋ねます。
+まだ追加されていない言語を、アルファベット順の番号付きリスト（名前とコード）で表示します。番号を入力して **Enter** を押すと、英語の文字列をすべて `<!-- TODO translate -->` 付きでコピーした `values-xx/strings.xml` を作成し、1 つずつ翻訳を尋ねます。
+リストにない言語は **`addnew`** と入力し、言語名とコード（例：`Esperanto`、`eo`）を送ります。追加済みの言語はこのリストに表示されなくなります。マーカーが残っている言語は **Unfinished** の下に表示されるので、そこから選んで続けられます（その後に英語へ追加された文字列は先に追加されます）。
 **Enter** でスキップ（マーカーは残ります）、**`quit_translate`** で保存して終了、**`\n`** は改行です。プレースホルダー（`%s`、`%1$d`）は同一に保ってください。
-異なる入力は拒否されます。入力はすぐに保存されます。同じコマンドをもう一度実行すると、マーカーが残っている文字列から続けられます
-（その後に英語へ追加された文字列は先に追加されます）。ビルド時に新しい言語が自動的に認識されます。
+異なる入力は拒否されます。入力はすぐに保存されます。ビルド時に新しい言語が自動的に認識されます。
 
 ### 言語を編集する
 
 ```
-python3 scripts/add_language.py de --edit                     # 各文字列を順に表示して編集
-python3 scripts/add_language.py de --edit reboot_now          # reboot_now の文字列のみ
-python3 scripts/add_language.py de --edit update reboot_now   # update と reboot_now の文字列（さらに追加可能）
+python3 scripts/language_extension.py --edit
 ```
 
+追加済みの言語をアルファベット順（名前とコード）で表示します。番号を入力し、続けて文字列名を 1 つまたは複数（例：`update reboot_now`）入力するか、**Enter** だけで全文字列を順に確認します。
 各文字列の英語のテキストと現在の訳を表示し、新しい訳の入力を求めます。**Enter** だけで現在の訳を保持します。
-名前は 1 つでも複数でも指定でき、省略するとすべての文字列を順に確認します。
 
 ### チェックする
 

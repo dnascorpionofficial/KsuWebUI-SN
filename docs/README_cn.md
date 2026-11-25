@@ -25,24 +25,22 @@
 ### 添加语言
 
 ```
-python3 scripts/add_language.py de        # 德语
-python3 scripts/add_language.py zh-TW     # 繁体中文
+python3 scripts/language_extension.py
 ```
 
-创建 `values-de/strings.xml`，其中包含从英语复制的所有字符串，并标有 `<!-- TODO translate -->`，然后逐条询问译文。
+以按字母顺序编号的列表显示尚未添加的语言（名称和代码）。输入编号并按**回车**，即可创建 `values-xx/strings.xml`，其中包含从英语复制的所有字符串并标有 `<!-- TODO translate -->`，然后逐条翻译。
+如果列表中没有你的语言，输入 **`addnew`**，再发送语言名称和代码（例如 `Esperanto`、`eo`）。已添加的语言不会再出现在此列表中；仍有带标记字符串的语言会显示在 **Unfinished** 下，在那里选择它即可继续（此后新增到英语中的字符串会先被补上）。
 **回车**跳过（仍保留标记），**`quit_translate`** 保存并退出，**`\n`** 表示换行。请保持占位符（`%s`、`%1$d`）一致，不一致的输入会被拒绝。
-每个答案会立即保存。再次运行同一命令即可继续翻译仍带标记的字符串（此后新增到英语中的字符串会先被补上）。构建时会自动识别新语言。
+每个答案会立即保存。构建时会自动识别新语言。
 
 ### 编辑语言
 
 ```
-python3 scripts/add_language.py de --edit                     # 逐条显示每个字符串以供编辑
-python3 scripts/add_language.py de --edit reboot_now          # 仅 reboot_now 字符串
-python3 scripts/add_language.py de --edit update reboot_now   # update 和 reboot_now 字符串，可继续添加更多
+python3 scripts/language_extension.py --edit
 ```
 
+按字母顺序列出已添加的语言（名称和代码）。输入编号，然后输入一个或多个字符串名称（例如 `update reboot_now`），或直接按**回车**遍历所有字符串。
 显示每条字符串的英文原文和当前译文，并请你输入新译文；直接按**回车**则保留当前译文。
-可以指定一个或多个名称，不带名称则遍历所有字符串。
 
 ### 检查
 

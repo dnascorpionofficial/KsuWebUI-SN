@@ -25,25 +25,22 @@ arabski (`values-ar`), francuski (`values-fr`), polski (`values-pl`), japoński 
 ### Dodawanie języka
 
 ```
-python3 scripts/add_language.py de        # niemiecki
-python3 scripts/add_language.py zh-TW     # chiński tradycyjny
+python3 scripts/language_extension.py
 ```
 
-Tworzy `values-de/strings.xml` ze wszystkimi tekstami skopiowanymi z angielskiego i oznaczonymi `<!-- TODO translate -->`, a następnie pyta o tłumaczenie każdego z nich po kolei.
-**Enter** pomija tekst (pozostaje oznaczony), **`quit_translate`** zapisuje i kończy, **`\n`** wstawia podział wiersza. Zachowaj identyczne symbole zastępcze (`%s`, `%1$d`);
-odpowiedź z innymi symbolami jest odrzucana. Każda odpowiedź jest od razu zapisywana. Uruchom to samo polecenie ponownie, aby kontynuować z tekstami, które nadal są oznaczone
-(teksty dodane od tego czasu do angielskiego są najpierw dopisywane). Kompilacja sama uwzględnia nowy język.
+Wyświetla jeszcze niedodane języki w postaci numerowanej listy w kolejności alfabetycznej (nazwa i kod). Wpisz numer i naciśnij **Enter**, aby utworzyć `values-xx/strings.xml` ze wszystkimi tekstami skopiowanymi z angielskiego i oznaczonymi `<!-- TODO translate -->`, a następnie tłumacz je po kolei.
+Jeśli Twojego języka nie ma na liście, wpisz **`addnew`**, a potem podaj nazwę i kod języka (np. `Esperanto`, `eo`). Dodany język znika z tej listy; język, w którym nadal są oznaczone teksty, pojawia się w sekcji **Unfinished** – wybierz go tam, aby kontynuować (teksty dodane od tego czasu do angielskiego zostaną dodane najpierw).
+**Enter** pomija tekst (pozostaje oznaczony), **`quit_translate`** zapisuje i kończy, **`\n`** oznacza łamanie wiersza. Zachowaj identyczne symbole zastępcze (`%s`, `%1$d`);
+odpowiedź z innymi zostanie odrzucona. Każda odpowiedź jest zapisywana od razu. Kompilacja sama uwzględnia nowy język.
 
 ### Edycja języka
 
 ```
-python3 scripts/add_language.py de --edit                     # pokazuje każdy tekst do edycji
-python3 scripts/add_language.py de --edit reboot_now          # tylko tekst reboot_now
-python3 scripts/add_language.py de --edit update reboot_now   # teksty update i reboot_now - można dodać kolejne
+python3 scripts/language_extension.py --edit
 ```
 
-Pokazuje angielski i aktualny tekst każdej pozycji, a następnie prosi o nowy; **Enter** zachowuje aktualny tekst.
-Podaj jedną lub kilka nazw albo żadnej, aby przejść przez wszystkie teksty.
+Wyświetla już dodane języki (kolejność alfabetyczna, nazwa i kod). Wpisz numer, a następnie podaj nazwę jednego lub kilku tekstów (np. `update reboot_now`) albo naciśnij **Enter**, aby przejść przez wszystkie teksty.
+Dla każdego tekstu pokazuje angielski oryginał i obecne tłumaczenie oraz prosi o nowe; **Enter** zachowuje obecne.
 
 ### Sprawdzanie
 

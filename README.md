@@ -25,25 +25,22 @@ Arabic (`values-ar`), French (`values-fr`), Polish (`values-pl`), Japanese (`val
 ### Add a language
 
 ```
-python3 scripts/add_language.py de        # German
-python3 scripts/add_language.py zh-TW     # Traditional Chinese
+python3 scripts/language_extension.py
 ```
 
-Creates `values-de/strings.xml` with every string copied from English marked `<!-- TODO translate -->`, then asks for each translation one by one.
+Shows the languages that are not added yet as a numbered list in alphabetical order (name and code). Type a number and press **Enter** to create `values-xx/strings.xml` with every string copied from English marked `<!-- TODO translate -->`, then translate them one by one.
+If your language is not in the list, type **`addnew`**, then send the language name and code (e.g. `Esperanto`, `eo`). A language that has been added no longer shows in this list; one that still has strings marked appears under **Unfinished**, pick it there to continue (strings added to English since are added first).
 **Enter** skips a string (it stays marked), **`quit_translate`** saves and quits, **`\n`** is a line break. Keep placeholders (`%s`, `%1$d`)
-identical; an answer with different ones is rejected. Every answer is saved at once. Run the same command again to continue with the strings
-still marked (strings added to English since are added first). The build picks the new language up by itself.
+identical; an answer with different ones is rejected. Every answer is saved at once. The build picks the new language up by itself.
 
 ### Edit a language
 
 ```
-python3 scripts/add_language.py de --edit                     # show each string for edit
-python3 scripts/add_language.py de --edit reboot_now          # reboot_now string only
-python3 scripts/add_language.py de --edit update reboot_now   # update & reboot_now strings - can add more
+python3 scripts/language_extension.py --edit
 ```
 
+Lists the languages already added (alphabetical order, name and code). Type a number, then give one or several string names (e.g. `update reboot_now`) or press **Enter** to go through every string.
 Shows the English and the current text of each string and asks for a new one; **Enter** keeps the current text.
-Give one or several names, or none to go through every string.
 
 ### Check
 
