@@ -99,6 +99,30 @@ window.ksuText = {
 };
 """
 
+private const val ERUDA_CLOSE_JS = """
+(function () {
+  try {
+    var d = window.eruda && window.eruda._devTools;
+    if (d && d._isShow) {
+      d.hide();
+      return true;
+    }
+  } catch (e) {}
+  return false;
+})()
+"""
+
+fun WebUIActivity.closeErudaIfOpen(web: WebView, onResult: (Boolean) -> Unit) {
+    val moduleId = intent.getStringExtra("id")
+    val consoleModules = getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE)
+        .getStringSet(KEY_CONSOLE_MODULES, emptySet()).orEmpty()
+    if (moduleId == null || moduleId !in consoleModules) {
+        onResult(false)
+        return
+    }
+    web.evaluateJavascript(ERUDA_CLOSE_JS) { onResult(it == "true") }
+}
+
 private fun Context.isAppDark(): Boolean =
     when (themeMode(getSharedPreferences(PREFS_SETTINGS, Context.MODE_PRIVATE))) {
         THEME_DARK -> true

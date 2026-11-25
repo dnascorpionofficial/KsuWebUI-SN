@@ -36,10 +36,13 @@ class WebUIActivity : ComponentActivity(), FileSystemService.Listener {
     private val backCallback = object : OnBackPressedCallback(true) {
         override fun handleOnBackPressed() {
             val web = webUIState.webView
-            if (web != null && web.canGoBack()) {
-                web.goBack()
-            } else {
+            if (web == null) {
                 confirmExit()
+                return
+            }
+            closeErudaIfOpen(web) { closed ->
+                if (closed) return@closeErudaIfOpen
+                if (web.canGoBack()) web.goBack() else confirmExit()
             }
         }
     }
